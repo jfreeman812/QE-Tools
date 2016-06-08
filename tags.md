@@ -1,4 +1,5 @@
-Tag extractor: sed -e '1,/^---/d' -e 's/  *|.*//' -e 's/^/@/' $tags_file 
+This file describes the only tags we expect to find on QE Gherkin files (ARIC and AF).
+Separate tooling is used to validate that there are no other tags in use than are present here.
 
 tag             | tag purpose      | Description
 ---             | ---              | ---
