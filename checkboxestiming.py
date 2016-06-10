@@ -2,7 +2,7 @@ import json
 import sys
 from collections import namedtuple
 from datetime import datetime as DT
-decode_fmt="%Y-%m-%dT%H:%M:%S.%fZ"
+decode_fmt = "%Y-%m-%dT%H:%M:%S.%fZ"
 
 # This script will analyze the action times for the CheckBoxes process.
 # It was a quick and dirty hack and does not handle the case where
@@ -20,6 +20,7 @@ try:
 except:
     print "Usage:", myName, "file-to-analyze"
     sys.exit(-1)
+
 
 def trim_log_time(ts):
     # All this string hacking is because the timestamps
@@ -40,7 +41,7 @@ print "Slow steps:"
 slow_steps = []
 for step in steps:
     logs = step.get("Logs")
-    if step.has_key("ExecutionSteps"):
+    if 'ExecutionSteps' in step:
         del step['ExecutionSteps']
     if logs is None:
         continue
@@ -59,7 +60,8 @@ slow_details = []
 
 for delta, step in slow_steps:
     print "This step took", delta, "seconds"
-    json.dump(step, sys.stdout, indent=2, sort_keys=True, separators=(',', ':'))
+    json.dump(step, sys.stdout, indent=2, sort_keys=True,
+              separators=(',', ':'))
     details = step.get("Details")
     id_ = details.get("ID")
     params_ = details.get("InputParams")
@@ -69,8 +71,11 @@ for delta, step in slow_steps:
     print
     print
 
+
 def print_timing_line(timing_data):
-    print "%-15s %s %s" % (timing_data.host, timing_data.time, timing_data.action)
+    print "%-15s %s %s" % (timing_data.host,
+                           timing_data.time,
+                           timing_data.action)
 
 print "Slowness by Action:"
 for timing_data in sorted(slow_details, key=lambda x: (x.action, x.host)):
@@ -81,5 +86,3 @@ print
 print "Slowness by Host:"
 for timing_data in sorted(slow_details, key=lambda x: (x.host, x.action)):
     print_timing_line(timing_data)
-
-
