@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+
 import os
 from collections import Counter
 
@@ -59,6 +60,8 @@ def processFeatureFile(dirpath, filename):
                 tags = set()
     counts = map(lambda k: "%3d" % myCounter.get(k, 0), master_count_list)
     print ",".join(counts + [filename] + dirlist)
+    # NOTE: We might want to use the feature summary line vs the file name?
+    #       If we keep the filename, we might want to strip the extension.
 
 
 def is_feature_file(filename):
