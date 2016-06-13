@@ -5,7 +5,7 @@ tag             | tag purpose      | Description
 ---             | ---              | ---
 nyi             | test code status | Not Yet Implemented - Could even be just a skeleton, but is present so we can generate reporting data.
 wip             | test code status | Work In Progress - test hasn't been validated yet, probably because the service is failing or not implemented
-skip            | test code status | this test is offline awaiting maintenance
+skip            | test code status | this test is offline awaiting maintenance, it will still be run but will be reported as a qurantined failure or passed
 quarantined     | test code status | this test has been quarantined because of the jira task in the comment
 deploy          | test scope       | Build Verification Test - test checks that the system is running. Must be quick. Used to validate a build/deploy has a pulse and that is all.
 smoke           | test scope       | Checks that a component is basically functioning. Cannot take too long, and is not an extensive test. This term is used throughout Rackspace though each QE team has their own definition (attempts to unify that definition have been unsuccessful to date). All the smoke tests should run in less than about 10 minutes.
