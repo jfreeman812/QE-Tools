@@ -31,7 +31,7 @@ def trim_log_time(ts):
     ts = ts[:-2]
     if len(ts) < 22:
         ts += "00"
-    return ts+"Z"
+    return ts + "Z"
 
 print "analyzing", inputName
 event = json.load(open(inputName))
