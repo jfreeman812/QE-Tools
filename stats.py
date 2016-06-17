@@ -91,6 +91,10 @@ class Scenario(object):
         self.analyze_tags()
         all_scenarios.append(self)
 
+    @staticmethod
+    def sort_key(obj):
+        return (obj.dir_list, obj.file_name, obj.line_no)
+
     def analyze_tags(self):
         self.polarity = one_tag_from(self.tags, polarity_tags, "TBD")
         self.environment = one_tag_from(self.tags, environment_tags, "ALL")
@@ -138,5 +142,5 @@ for dir_path, dir_names, file_names in os.walk(os.curdir):
 
 write_csv_row(csv_header_list)
 
-for scenario in all_scenarios:
+for scenario in sorted(all_scenarios, key=Scenario.sort_key):
     scenario.print_stats()
