@@ -4,67 +4,41 @@ import csv
 import os
 import sys
 
+from test_tags import TestTags
+
 write_csv_row = csv.writer(sys.stdout).writerow
 
 # NOTE: This is not (yet) a general Gherkin file validator/checker,
 #       so weirdly formatted Gherkin might slip through.
 
-############
-# This section to the marker below is temporary until we get Ben's new
-# tags parser merged.
-#
+tag_file_name = 'tags.md'
+try:
+    script_name, tag_file_name = sys.argv
+except:
+    pass
 
-tag_mappings = dict()
+tags = TestTags(tag_file_name)
 
-suite_tags = set([
-    '@bvt',
-    '@smoke',
-    '@load',
-    '@destructive',
-    '@solo'])
-for tag in suite_tags:
-    tag_mappings[tag] = tag[1:]
+# Hard coded until I add to tags.md?
+group_default = {
+    'polarity': "TBD",
+    'environment': "ALL",
+    'priority': "p1",
+    'status': "Operational",
+    'suite': "ALL"
+}
 
-status_tags = set([
-    '@nyi',
-    '@needs-work'])
-tag_mappings['@nyi'] = 'NYI'
-tag_mappings['@needs-work'] = 'Needs Work'
+master_tags = set(tags.keys())
 
-priority_tags = set([
-    '@p0',
-    '@p1'])
-for tag in priority_tags:
-    tag_mappings[tag] = tag[1:]
-
-environment_tags = set([
-    '@production-only',
-    '@staging-only'])
-tag_mappings['@production-only'] = "Production"
-tag_mappings['@staging-only'] = "Staging"
-
-polarity_tags = set([
-    '@positive',
-    '@negative'])
-tag_mappings['@positive'] = 'P'
-tag_mappings['@negative'] = 'N'
-
-master_tags_set = (status_tags | suite_tags | priority_tags |
-                   environment_tags | polarity_tags)
-
-#
-############
-
-
-csv_header_list = ['suite', 'status', 'priority', 'environment', 'polarity',
-                   'scenario', 'feature file', 'feature hierarchy...']
+group_list = sorted(tags.groups.keys())
+csv_header_list = group_list + ['feature file', 'feature hierarchy...']
 
 
 def tags_from(line):
-    """Note that we don't have to check for leading '@' since those
-       will automatically fail the master tags check"""
+    # we don't have to check for leading '@',
+    # those will automatically fail the master tags check
     tags = set(line.split())
-    bad_tags = tags - master_tags_set
+    bad_tags = tags - master_tags
     if bad_tags:
         print "Unsupported tags:", ",".join(bad_tags)
     return tags
@@ -77,7 +51,7 @@ def one_tag_from(have_tags, tag_set, default_value):
     if not targets:
         return default_value
     tag = targets.pop()
-    return tag_mappings.get(tag, "UNKNOWN TAG: %s" % (tag,))
+    return tags.report_names.get(tag, "UNKNOWN TAG: %s" % (tag,))
 
 
 all_scenarios = []
@@ -90,24 +64,23 @@ class Scenario(object):
         self.file_name = file_name
         self.dir_list = dir_list
         self.tags = tags
+        self.group = dict()
         self.analyze_tags()
         all_scenarios.append(self)
 
     @staticmethod
     def sort_key(obj):
+        # using line_no will keep the sort stable if the scenario line changes.
         return (obj.dir_list, obj.file_name, obj.line_no)
 
     def analyze_tags(self):
-        self.polarity = one_tag_from(self.tags, polarity_tags, "TBD")
-        self.environment = one_tag_from(self.tags, environment_tags, "ALL")
-        self.priority = one_tag_from(self.tags, priority_tags, "p1")
-        self.status = one_tag_from(self.tags, status_tags, "Operational")
-        self.suite = one_tag_from(self.tags, suite_tags, "ALL")
+        for group, tag_list in tags.groups.items():
+            self.group[group] = one_tag_from(self.tags, tag_list,
+                                             group_default[group])
 
     def print_stats(self):
-        write_csv_row([self.suite, self.status, self.priority,
-                       self.environment, self.polarity, self.scenario,
-                       self.file_name] + self.dir_list)
+        write_csv_row([self.group[x] for x in group_list] +
+                      [self.file_name] + self.dir_list)
 
 
 def process_feature_file(dir_path, file_name):
