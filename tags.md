@@ -4,7 +4,7 @@ Separate tooling is used to validate that there are no other tags in use than ar
 tag             | tag purpose      | Description
 ---             | ---              | ---
 nyi             | test code status | Not Yet Implemented - Could even be just a skeleton, but is present so we can generate reporting data.
-wip             | test code status | Work In Progress - test hasn't been validated yet, probably because the service is failing or not implemented
+needs-work      | test code status | Work In Progress - test hasn't been validated yet, probably because the service is failing or not implemented
 skip            | test code status | this test is offline awaiting maintenance, it will still be run but will be reported as a qurantined failure or passed
 quarantined     | test code status | this test has been quarantined because of the jira task in the comment
 deploy          | test scope       | Build Verification Test - test checks that the system is running. Must be quick. Used to validate a build/deploy has a pulse and that is all.
@@ -17,4 +17,4 @@ staging-only    | environment      | can only be run in staging (perhaps due to 
 mvp             | reporting        | most important test(s) to implement first.
 negative        | reporting        | test is a negative/in-the-weeds case
 repeat          | reporting        | this test is a repeat of another test
-unstable        | reporting        | this test is known to be unstable so a signle pass does not mean the problem is fixed
+sparadic        | reporting        | this test is known to be unstable so a signle pass does not mean the problem is fixed
