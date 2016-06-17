@@ -1,7 +1,7 @@
 This file describes the only tags we expect to find on QE Gherkin files (ARIC and AF).
 Separate tooling is used to validate that there are no other tags in use than are present here.
 
-tag             | tag purpose      | Description
+tag             | tag purpose      | description
 ---             | ---              | ---
 nyi             | test code status | Not Yet Implemented - Could even be just a skeleton, but is present so we can generate reporting data.
 needs-work      | test code status | Work In Progress - test hasn't been validated yet, probably because the service is failing or not implemented
