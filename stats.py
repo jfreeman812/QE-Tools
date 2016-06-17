@@ -32,8 +32,10 @@ tag_mappings['@nyi'] = 'NYI'
 tag_mappings['@needs-work'] = 'Needs Work'
 
 priority_tags = set([
-    '@mvp'])
-tag_mappings['@mvp'] = "p0"
+    '@p0',
+    '@p1'])
+for tag in priority_tags:
+    tag_mappings[tag] = tag[1:]
 
 environment_tags = set([
     '@production-only',
@@ -91,6 +93,10 @@ class Scenario(object):
         self.analyze_tags()
         all_scenarios.append(self)
 
+    @staticmethod
+    def sort_key(obj):
+        return (obj.dir_list, obj.file_name, obj.line_no)
+
     def analyze_tags(self):
         self.polarity = one_tag_from(self.tags, polarity_tags, "TBD")
         self.environment = one_tag_from(self.tags, environment_tags, "ALL")
@@ -138,5 +144,5 @@ for dir_path, dir_names, file_names in os.walk(os.curdir):
 
 write_csv_row(csv_header_list)
 
-for scenario in all_scenarios:
+for scenario in sorted(all_scenarios, key=Scenario.sort_key):
     scenario.print_stats()
