@@ -32,8 +32,10 @@ tag_mappings['@nyi'] = 'NYI'
 tag_mappings['@needs-work'] = 'Needs Work'
 
 priority_tags = set([
-    '@mvp'])
-tag_mappings['@mvp'] = "p0"
+    '@p0',
+    '@p1'])
+for tag in priority_tags:
+    tag_mappings[tag] = tag[1:]
 
 environment_tags = set([
     '@production-only',
