@@ -19,6 +19,8 @@ class TestTags(dict):
             if row.count('|'):
                 row_data = map(lambda x: x.strip(), row.split('|')[:4])
                 tag = Tag(*row_data)
+                if tag.tag.startswith('---'):
+                    continue
                 if tag.tag.lower() == 'default':
                     self.group_default[tag.purpose] = tag.report_as
                     continue
