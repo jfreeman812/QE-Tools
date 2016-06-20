@@ -19,15 +19,6 @@ except:
 
 tags = TestTags(tag_file_name)
 
-# Hard coded until I add to tags.md?
-group_default = {
-    'polarity': "TBD",
-    'environment': "ALL",
-    'priority': "p1",
-    'status': "Operational",
-    'suite': "ALL"
-}
-
 master_tags = set(tags.keys())
 
 group_list = sorted(tags.groups.keys())
@@ -44,12 +35,13 @@ def tags_from(line):
     return tags
 
 
-def one_tag_from(have_tags, tag_set, default_value):
+def one_tag_from(have_tags, group):
+    tag_set = tags.groups[group]
     targets = have_tags & tag_set
     if len(targets) > 1:
         print "Mutually exclusive tags:", " ".join(targets)
     if not targets:
-        return default_value
+        return tags.group_default.get(group)
     tag = targets.pop()
     return tags.report_names.get(tag, "UNKNOWN TAG: %s" % (tag,))
 
@@ -74,9 +66,14 @@ class Scenario(object):
         return (obj.dir_list, obj.file_name, obj.line_no)
 
     def analyze_tags(self):
-        for group, tag_list in tags.groups.items():
-            self.group[group] = one_tag_from(self.tags, tag_list,
-                                             group_default[group])
+        for group in tags.groups:
+            report_as = one_tag_from(self.tags, group)
+            if report_as is None:
+                report_as = "MISSING TAG FOR %s" % (group,)
+                print "Missing a tag for group:", group, "options:", " ".join(tags.groups[group])
+                print "    Scenario:", self.scenario
+                print "    line", self.line_no, "file:", self.file_name
+            self.group[group] = report_as
 
     def print_stats(self):
         write_csv_row([self.group[x] for x in group_list] +

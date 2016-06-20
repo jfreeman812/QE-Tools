@@ -25,3 +25,9 @@ tag              | purpose     | report as   | description
 @p1              | priority    | p1          | Second most important test(s) to implement.
 @positive        | polarity    | P           | Test is a positive/down-the-fairway case.
 @negative        | polarity    | N           | Test is a negative/in-the-weeds case.
+
+default          | status      | Operational | Default
+default          | suite       | ALL         | Default
+default          | environment | ALL         | Default
+default          | priority    | p1          | Default
+default          | polarity    | TBD         | Default
