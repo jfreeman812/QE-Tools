@@ -6,19 +6,19 @@ The purpose column indicates why we are using the tag, and also names the group 
 At the moment, tags within any purpose are mutually exclusive.
 The report as column indicates how the tag is shown when reported.
 
-Note 1: The 'somke' designation is used throughout Rackspace, though each team has their own interpretation of it.
+Note 1: The 'smoke' designation is used throughout Rackspace, though each team has their own interpretation of it.
 Note 2: We are contemplating another status for tests taken offline so as not to disturb the component being tested while devs are working on it.
 
 tag              | purpose     | report as   | description
 ---              | ---         | ---         | ---
 @nyi             | status      | NYI         | Not Yet Implemented - present so we can generate reporting data on scoping.
 @needs-work      | status      | Needs Work  | Test offline: problem with test that QE needs to fix.
-@quarantined     | status      | Quarantined | Test offline: a bug in the system, the details are in a jira task in a test comment.
+@quarantined     | status      | Quarantined | Test offline: a bug in the application, the details are in a jira task in a test comment.
 @deploy          | suite       | deploy      | Build Verification Test - Must be quick. Used to validate that deploy has a pulse.
 @smoke           | suite       | smoke       | Checks for basic functioning; is not an extensive test. All smoke tests should run in less than about 10 minutes.
-@load            | suite       | load        | Test is designed to (help) stress/load the system. (Not a fast test.)
+@load            | suite       | load        | Test is designed to (help) stress/load the application. (Not a fast test.)
 @solo            | suite       | solo        | Test cannot be run in parallel with any other tests.
-@integration     | suite       | integration | Test exercises multiple systems not just one component.
+@integration     | suite       | integration | Test exercises multiple applications not just one component.
 @production-only | environment | Production  | Can only be run in production (perhaps due to devices/accounts/systems used/needed).
 @staging-only    | environment | Staging     | Can only be run in staging (perhaps due to devices/accounts/systems used/needed).
 @p0              | priority    | p0          | Most important test(s) to implement first.
