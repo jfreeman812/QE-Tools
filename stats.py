@@ -13,7 +13,7 @@ write_csv_row = csv.writer(sys.stdout).writerow
 
 tag_file_name = 'tags.md'
 try:
-    script_name, tag_file_name = sys.argv
+    _, tag_file_name = sys.argv
 except:
     pass
 
@@ -22,7 +22,9 @@ tags = TestTags(tag_file_name)
 master_tags = set(tags.keys())
 
 group_list = sorted(tags.groups.keys())
-csv_header_list = group_list + ['feature file', 'feature hierarchy...']
+csv_header_list = group_list + ['scenario',
+                                'feature file',
+                                'feature hierarchy...']
 
 
 def tags_from(line):
@@ -70,14 +72,15 @@ class Scenario(object):
             report_as = one_tag_from(self.tags, group)
             if report_as is None:
                 report_as = "MISSING TAG FOR %s" % (group,)
-                print "Missing a tag for group:", group, "options:", " ".join(tags.groups[group])
+                print "Missing a tag for group:", group,
+                print "options:", " ".join(tags.groups[group])
                 print "    Scenario:", self.scenario
                 print "    line", self.line_no, "file:", self.file_name
             self.group[group] = report_as
 
     def print_stats(self):
         write_csv_row([self.group[x] for x in group_list] +
-                      [self.file_name] + self.dir_list)
+                      [self.scenario, self.file_name] + self.dir_list)
 
 
 def process_feature_file(dir_path, file_name):
