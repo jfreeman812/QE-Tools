@@ -21,7 +21,7 @@ class TestTags(dict):
                 tag = Tag(*row_data)
                 if tag.tag.startswith('---'):
                     continue
-                if tag.tag.lower() == 'default':
+                if not tag.tag:
                     self.group_default[tag.purpose] = tag.report_as
                     continue
                 assert tag.tag not in self, 'Tag %s is defined twice' % tag.tag
