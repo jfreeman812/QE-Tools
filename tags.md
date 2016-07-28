@@ -2,9 +2,16 @@ This file describes the only tags we expect to find on QE Gherkin files (ARIC an
 Additional tags may and will be used by individual QE Devs in their own repos, however,
 only the tags listed here should be accepted into a master/"blessed" group repo.
 
-The 'purpose' column indicates why we are using the tag, and is also the name of the reporting group for that tag.
-At the moment, tags with the same purpose are mutually exclusive.
-The 'report as' column indicates how the tag is shown when reported.
+The reason for these tags is two fold:
+* to allow us to control test selection during test runs
+* to generate automatic scoping / coverage reports for management
+
+The 'purpose' column indicates why we are using the tag,
+and is also the name of the group for that tag in the scoping report.
+The 'report as' column indicates how the tag is shown in the scoping report.
+
+Tags with the same purpose are mutually exclusive.
+
 
 Note: The 'smoke' designation is used throughout Rackspace, though each team has their own interpretation of it.
 
