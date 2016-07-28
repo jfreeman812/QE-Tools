@@ -5,8 +5,8 @@ we have some data, tools, and conventions.
 
 ### Data:
 * tags.md 
-** describes the groups / categories for reporting
-** defines values within those groups, both as tags for Gherkin and string equivalents for reporting.
+  * describes the groups / categories for reporting
+  * defines values within those groups, both as tags for Gherkin and string equivalents for reporting.
 
 ### Tools:
 * stats.py - generates a coverage report for Gherkin feature test files.
