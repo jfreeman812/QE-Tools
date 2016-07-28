@@ -15,7 +15,7 @@ we have some data, tools, and conventions.
 
 ### Conventions (not enforced by the tools):
 * The filesystem heirarchy of feature files is reflected in columns of the generated report.
-  * For ARIC, we have a defined list of directories to represent the high level features.
+  * For ARIC, we have a defined list of top level and second level directories to represent the high level features.
 * As Feature summary lines and Scenario summary lines are copied directly into the report.
   * For ARIC API testing, we use the rest operation (POST/GET/etc) as a prefix to the Scenario Summary line.
   * For ARIC API testing, we include the API endpoint in parenthesis at the end of the Feature Summary line.
