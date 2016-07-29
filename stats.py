@@ -67,7 +67,8 @@ def tags_from(line, location):
     tags = set(line.split())
     bad_tags = tags - master_tags
     if bad_tags:
-        error("Unsupported tags: %s at: %s" % (", ".join(bad_tags), location))
+        error("Unsupported tags: {} at: {}".format(", ".join(bad_tags),
+                                                   location))
     return tags
 
 
@@ -75,8 +76,8 @@ def one_tag_from(have_tags, group, location):
     tag_set = tags.groups[group]
     targets = have_tags & tag_set
     if len(targets) > 1:
-        error("Mutually exclusive tags: %s at: %s" % (" ".join(targets),
-                                                      location))
+        error("Mutually exclusive tags: {} at: {}".format(" ".join(targets),
+                                                          location))
     if not targets:
         return tags.group_default.get(group)
     tag = targets.pop()
@@ -108,7 +109,7 @@ class Scenario(object):
             report_as = one_tag_from(self.tags, group, self.location)
             if report_as is None:
                 report_as = "MISSING TAG FOR %s" % (group,)
-                error("Missing a tag for group '%s' (%s) at: %s" % (
+                error("Missing a tag for group '{}' ({}) at: {}".format(
                     group, " ".join(tags.groups[group]), self.location))
             self.group[group] = report_as
 
@@ -128,8 +129,8 @@ class ScenarioOutline(Scenario):
 
     def add_example(self, columns, location):
         if len(columns) < 3:
-            error("Malformed Examples table entry, too few columns, at: %s" %
-                  (location, ))
+            error("Examples table entry has too few columns, at: {}".format(
+                  location))
             return
         if not self.seen_examples_table_header_row:
             self.seen_examples_table_header_row = True
@@ -146,7 +147,7 @@ def process_feature_file(dir_path, file_name):
     if dir_list[0].lower() == 'features':
         dir_list = dir_list[1:]
     if len(dir_list) > DIRECTORY_DEPTH_MAX:
-        error("Too many nested directories for feature file: %s -> %s" % (
+        error("Too many nested directories for feature file: {} -> {}".format(
               file_name, dir_path))
     feature_tags = set()
     tags = set()
@@ -176,7 +177,7 @@ def process_feature_file(dir_path, file_name):
             elif line.lower().startswith('scenario:'):
                 if feature_name is None:
                     error("Error: Scenario occurred without "
-                          "preceeding Feature at: %s" % (here(),))
+                          "preceeding Feature at: {}".format(here()))
                 all_scenarios.append(Scenario(summary_from(line),
                                               feature_name, here(),
                                               tags | feature_tags))
@@ -185,7 +186,7 @@ def process_feature_file(dir_path, file_name):
             elif line.lower().startswith('scenario outline:'):
                 if feature_name is None:
                     error("Error: Scenario Outline occurred without"
-                          "preceeding Feature at: %s" % (here(),))
+                          "preceeding Feature at: {}".format(here()))
                 scenario_outline = ScenarioOutline(summary_from(line),
                                                    feature_name, here(),
                                                    tags | feature_tags)
@@ -193,7 +194,7 @@ def process_feature_file(dir_path, file_name):
             elif line.lower().startswith('examples:'):
                 if scenario_outline is None:
                     error("Error, Examples outside of a Scenario Outline"
-                          ", at: %s" % (here(),))
+                          ", at: {}".format(here()))
                     continue
                 scenario_outline.new_example_table()
                 in_examples = True
