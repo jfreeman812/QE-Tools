@@ -156,12 +156,12 @@ def process_feature_file(dir_path, file_name):
     feature_name = None
     with open(os.path.join(dir_path, file_name), 'r') as feature_file:
         for line_no, line in enumerate(feature_file, 1):
-            here = lambda: Location(dir_list, file_name, line_no)
+            here = Location(dir_list, file_name, line_no)
             line = line.strip()
             if in_examples:
                 if line.startswith('|'):
                     columns = line.split('|')
-                    scenario_outline.add_example(columns, here())
+                    scenario_outline.add_example(columns, here)
                     continue
                 in_examples = False
                 # deliberately fall through as there is no trailing/end marker
@@ -169,30 +169,30 @@ def process_feature_file(dir_path, file_name):
                 # do not end the scenario outline as there can be multiple
                 # examples tables.
             if line.startswith('@'):
-                tags |= tags_from(line, here())
+                tags |= tags_from(line, here)
             elif line.lower().startswith('feature:'):
                 feature_name = summary_from(line)
                 feature_tags = tags
                 tags = set()
             elif line.lower().startswith('scenario:'):
                 if feature_name is None:
-                    error("Scenario occurred before/without Feature", here())
+                    error("Scenario occurred before/without Feature", here)
                 all_scenarios.append(Scenario(summary_from(line),
-                                              feature_name, here(),
+                                              feature_name, here,
                                               tags | feature_tags))
                 scenario_outline = None
                 tags = set()
             elif line.lower().startswith('scenario outline:'):
                 if feature_name is None:
                     error("Scenario Outline occurred before/without Feature",
-                          here())
+                          here)
                 scenario_outline = ScenarioOutline(summary_from(line),
-                                                   feature_name, here(),
+                                                   feature_name, here,
                                                    tags | feature_tags)
                 tags = set()
             elif line.lower().startswith('examples:'):
                 if scenario_outline is None:
-                    error("Examples outside of a Scenario Outline", here())
+                    error("Examples outside of a Scenario Outline", here)
                     continue
                 scenario_outline.new_example_table()
                 in_examples = True
