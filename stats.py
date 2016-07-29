@@ -56,6 +56,11 @@ def error(msg, location):
     error_log.append(msg)
 
 
+def print_error_log():
+    for msg in error_log:
+        print msg
+
+
 class Location(namedtuple('Location', ['dir_list', 'file_name', 'line_no'])):
     def __str__(self):
         full_path = os.path.join(*(self.dir_list + [self.file_name]))
@@ -209,8 +214,7 @@ for dir_path, dir_names, file_names in os.walk(os.curdir):
     for file_name in filter(is_feature_file, file_names):
         process_feature_file(dir_path, file_name)
 
-for msg in error_log:
-    print msg
+print_error_log()
 
 if args.report:
     write_csv_row(csv_header_list)
