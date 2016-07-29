@@ -1,5 +1,11 @@
 #!/usr/bin/env python
+"""
+Scan the current directory tree for Gherkin feature files and check their
+use of tags against the given tags file. Tags are used to generate a test
+coverage report as well.
+"""
 
+import argparse
 import csv
 import os
 import sys
@@ -15,17 +21,20 @@ write_csv_row = csv.writer(sys.stdout).writerow
 # NOTE: This is not (yet) a general Gherkin file validator/checker,
 #       so weirdly formatted Gherkin might slip through.
 
-# default tags file to same directory as this script...
+# default tags file location to the same directory as this script...
 _here = os.path.dirname(os.path.abspath(__file__))
 tags_file_name = os.path.join(_here, 'tags.md')
 
-# but allow a command line over-ride of the tags file
-try:
-    _, tags_file_name = sys.argv
-except:
-    pass
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument('-r', '--report', default=False, action='store_true',
+                    help='generate/print a coverage report')
+parser.add_argument('-t', '--tagsfile', type=str, default=tags_file_name,
+                    metavar='FILE',
+                    help="Specify a different tags file to consult")
 
-tags = TestTags(tags_file_name)
+args = parser.parse_args()
+
+tags = TestTags(args.tagsfile)
 
 master_tags = set(tags.keys())
 
@@ -195,7 +204,7 @@ for dir_path, dir_names, file_names in os.walk(os.curdir):
     for file_name in filter(is_feature_file, file_names):
         process_feature_file(dir_path, file_name)
 
-write_csv_row(csv_header_list)
-
-for scenario in sorted(all_scenarios, key=Scenario.sort_key):
-    scenario.print_stats()
+if args.report:
+    write_csv_row(csv_header_list)
+    for scenario in sorted(all_scenarios, key=Scenario.sort_key):
+        scenario.print_stats()
