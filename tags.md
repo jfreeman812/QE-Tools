@@ -40,4 +40,3 @@ tag              | purpose     | report as   | description
 -----------      | ----------- | ----------- | -----------
 @positive        | polarity    | Positive    | Test is a positive/down-the-fairway case.
 @negative        | polarity    | Negative    | Test is a negative/in-the-weeds case.
-                 | polarity    | TBD         | *Default when no tag for this purpose is used.*
