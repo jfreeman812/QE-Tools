@@ -15,6 +15,7 @@ from collections import namedtuple
 from test_tags import TestTags
 
 DIRECTORY_DEPTH_MAX = 3   # Chosen by Chris DeMattio for his reports.
+ERROR_EXIT_CODE = 1
 
 write_csv_row = csv.writer(sys.stdout).writerow
 
@@ -46,8 +47,11 @@ csv_header_list = group_list + ['scenario',
                                 for x in range(DIRECTORY_DEPTH_MAX)]
 
 
+error_log = []
+
+
 def error(msg):
-    print msg
+    error_log.append(msg)
 
 
 class Location(namedtuple('Location', ['dir_list', 'file_name', 'line_no'])):
@@ -206,7 +210,13 @@ for dir_path, dir_names, file_names in os.walk(os.curdir):
     for file_name in filter(is_feature_file, file_names):
         process_feature_file(dir_path, file_name)
 
+for msg in error_log:
+    print msg
+
 if args.report:
     write_csv_row(csv_header_list)
     for scenario in sorted(all_scenarios, key=Scenario.sort_key):
         scenario.print_stats()
+
+if error_log:
+    sys.exit(ERROR_EXIT_CODE)
