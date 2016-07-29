@@ -176,8 +176,7 @@ def process_feature_file(dir_path, file_name):
                 tags = set()
             elif line.lower().startswith('scenario:'):
                 if feature_name is None:
-                    error("Scenario occurred without "
-                          "preceeding Feature", here())
+                    error("Scenario occurred before/without Feature", here())
                 all_scenarios.append(Scenario(summary_from(line),
                                               feature_name, here(),
                                               tags | feature_tags))
@@ -185,8 +184,8 @@ def process_feature_file(dir_path, file_name):
                 tags = set()
             elif line.lower().startswith('scenario outline:'):
                 if feature_name is None:
-                    error("Scenario Outline occurred without"
-                          "preceeding Feature", here())
+                    error("Scenario Outline occurred before/without Feature",
+                          here())
                 scenario_outline = ScenarioOutline(summary_from(line),
                                                    feature_name, here(),
                                                    tags | feature_tags)
