@@ -34,7 +34,7 @@ csv_header_list = group_list + ['scenario',
 
 class Location(namedtuple('Location', ['dir_list', 'file_name', 'line_no'])):
     def __str__(self):
-        return "%s, line: %s" % (self.file_name, self.line_no)
+        return "%s, line: %s" % (os.path.join(*(self.dir_list + [self.file_name])), self.line_no)
 
 
 def tags_from(line, location):
