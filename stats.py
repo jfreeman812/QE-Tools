@@ -15,13 +15,17 @@ write_csv_row = csv.writer(sys.stdout).writerow
 # NOTE: This is not (yet) a general Gherkin file validator/checker,
 #       so weirdly formatted Gherkin might slip through.
 
-tag_file_name = 'tags.md'
+# default tags file to same directory as this script...
+_here = os.path.dirname(os.path.abspath(__file__))
+tags_file_name = os.path.join(_here, 'tags.md')
+
+# but allow a command line over-ride of the tags file
 try:
-    _, tag_file_name = sys.argv
+    _, tags_file_name = sys.argv
 except:
     pass
 
-tags = TestTags(tag_file_name)
+tags = TestTags(tags_file_name)
 
 master_tags = set(tags.keys())
 
