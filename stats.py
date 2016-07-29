@@ -40,6 +40,7 @@ class Location(namedtuple('Location', ['dir_list', 'file_name', 'line_no'])):
 def tags_from(line, location):
     # we don't have to check for leading '@',
     # those will automatically fail the master tags check
+    line = line.split('#',1)[0]
     tags = set(line.split())
     bad_tags = tags - master_tags
     if bad_tags:
