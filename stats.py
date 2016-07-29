@@ -33,18 +33,20 @@ group_list = sorted(tags.groups.keys())
 csv_header_list = group_list + ['scenario',
                                 'feature',
                                 'feature file'] + \
-                               ['level %d' % (x+1) for x in range(DIRECTORY_DEPTH_MAX)]
+                               ['level %d' % (x + 1)
+                                for x in range(DIRECTORY_DEPTH_MAX)]
 
 
 class Location(namedtuple('Location', ['dir_list', 'file_name', 'line_no'])):
     def __str__(self):
-        return "%s, line: %s" % (os.path.join(*(self.dir_list + [self.file_name])), self.line_no)
+        full_path = os.path.join(*(self.dir_list + [self.file_name]))
+        return "%s, line: %s" % (full_path, self.line_no)
 
 
 def tags_from(line, location):
     # we don't have to check for leading '@',
     # those will automatically fail the master tags check
-    line = line.split('#',1)[0]
+    line = line.split('#', 1)[0]
     tags = set(line.split())
     bad_tags = tags - master_tags
     if bad_tags:
