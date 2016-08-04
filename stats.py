@@ -128,10 +128,10 @@ class Scenario(object):
 class ScenarioOutline(Scenario):
     def __init__(self, *args, **kwargs):
         super(ScenarioOutline, self).__init__(*args, **kwargs)
-        self.new_example_table()
 
-    def new_example_table(self):
+    def new_example_table(self, tags):
         self.seen_examples_table_header_row = False
+        self.example_tags = tags
 
     def add_example(self, columns, location):
         if len(columns) < 3:
@@ -142,7 +142,7 @@ class ScenarioOutline(Scenario):
             return
         row_name = "%s (%s)" % (self.scenario, columns[1].strip())
         all_scenarios.append(Scenario(row_name, self.feature, location,
-                                      self.tags))
+                                      self.tags | self.example_tags))
 
 
 def process_feature_file(dir_path, file_name):
@@ -199,8 +199,9 @@ def process_feature_file(dir_path, file_name):
                 if scenario_outline is None:
                     error("Examples outside of a Scenario Outline", here)
                     continue
-                scenario_outline.new_example_table()
+                scenario_outline.new_example_table(tags)
                 in_examples = True
+                tags = set()
 
 
 def is_feature_file(file_name):
