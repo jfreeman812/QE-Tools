@@ -56,20 +56,22 @@ error_log = []
 
 
 def error(msg, location):
-    if location is not None:
-        msg += ", at: {}".format(location)
-    error_log.append(msg)
+    error_log.append((location, msg))
 
 
 def print_error_log():
-    for msg in error_log:
+    for (location, msg) in error_log:
+        if location is not None:
+            msg += ", at: {}".format(location)
         print msg
 
 
 class Location(namedtuple('Location', ['dir_list', 'file_name', 'line_no'])):
+    def full_path(self):
+        return os.path.join(*(self.dir_list + [self.file_name]))
+
     def __str__(self):
-        full_path = os.path.join(*(self.dir_list + [self.file_name]))
-        return "%s, line: %s" % (full_path, self.line_no)
+        return "%s, line: %s" % (self.full_path(), self.line_no)
 
 
 def tags_from(line, location):
