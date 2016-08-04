@@ -15,6 +15,7 @@ from collections import namedtuple
 from test_tags import TestTags
 
 DIRECTORY_DEPTH_MAX = 3   # Chosen by Chris DeMattio for his reports.
+ERROR_EXIT_CODE = 1
 
 write_csv_row = csv.writer(sys.stdout).writerow
 
@@ -46,6 +47,20 @@ csv_header_list = group_list + ['scenario',
                                 for x in range(DIRECTORY_DEPTH_MAX)]
 
 
+error_log = []
+
+
+def error(msg, location):
+    if location is not None:
+        msg = "{}, at: {}".format(msg, location)
+    error_log.append(msg)
+
+
+def print_error_log():
+    for msg in error_log:
+        print msg
+
+
 class Location(namedtuple('Location', ['dir_list', 'file_name', 'line_no'])):
     def __str__(self):
         full_path = os.path.join(*(self.dir_list + [self.file_name]))
@@ -59,7 +74,7 @@ def tags_from(line, location):
     tags = set(line.split())
     bad_tags = tags - master_tags
     if bad_tags:
-        print "Unsupported tags: %s at: %s" % (", ".join(bad_tags), location)
+        error("Unsupported tags: {}".format(", ".join(bad_tags)), location)
     return tags
 
 
@@ -67,8 +82,8 @@ def one_tag_from(have_tags, group, location):
     tag_set = tags.groups[group]
     targets = have_tags & tag_set
     if len(targets) > 1:
-        print "Mutually exclusive tags:", " ".join(targets),
-        print "from:", location
+        error("Mutually exclusive tags: {}".format(" ".join(targets)),
+              location)
     if not targets:
         return tags.group_default.get(group)
     tag = targets.pop()
@@ -100,10 +115,8 @@ class Scenario(object):
             report_as = one_tag_from(self.tags, group, self.location)
             if report_as is None:
                 report_as = "MISSING TAG FOR %s" % (group,)
-                print "Missing a tag for group '%s' (%s)" % (
-                    group, " ".join(tags.groups[group]))
-                print "    Scenario:", self.scenario
-                print "   ", self.location
+                error("Missing a tag for group '{}' ({})".format(
+                    group, " ".join(tags.groups[group])), self.location)
             self.group[group] = report_as
 
     def print_stats(self):
@@ -122,8 +135,7 @@ class ScenarioOutline(Scenario):
 
     def add_example(self, columns, location):
         if len(columns) < 3:
-            print "Malformed Examples table entry, too few columns, at:",
-            print location
+            error("Examples table entry has too few columns", location)
             return
         if not self.seen_examples_table_header_row:
             self.seen_examples_table_header_row = True
@@ -140,8 +152,8 @@ def process_feature_file(dir_path, file_name):
     if dir_list[0].lower() == 'features':
         dir_list = dir_list[1:]
     if len(dir_list) > DIRECTORY_DEPTH_MAX:
-        print "WARNING: Too many nested directories for feature file:",
-        print file_name, " -> ", dir_path
+        error("Too many nested directories for feature file: {} -> {}".format(
+              file_name, dir_path), None)
     feature_tags = set()
     tags = set()
     in_examples = False
@@ -149,12 +161,12 @@ def process_feature_file(dir_path, file_name):
     feature_name = None
     with open(os.path.join(dir_path, file_name), 'r') as feature_file:
         for line_no, line in enumerate(feature_file, 1):
-            here = lambda: Location(dir_list, file_name, line_no)
+            here = Location(dir_list, file_name, line_no)
             line = line.strip()
             if in_examples:
                 if line.startswith('|'):
                     columns = line.split('|')
-                    scenario_outline.add_example(columns, here())
+                    scenario_outline.add_example(columns, here)
                     continue
                 in_examples = False
                 # deliberately fall through as there is no trailing/end marker
@@ -162,32 +174,30 @@ def process_feature_file(dir_path, file_name):
                 # do not end the scenario outline as there can be multiple
                 # examples tables.
             if line.startswith('@'):
-                tags |= tags_from(line, here())
+                tags |= tags_from(line, here)
             elif line.lower().startswith('feature:'):
                 feature_name = summary_from(line)
                 feature_tags = tags
                 tags = set()
             elif line.lower().startswith('scenario:'):
                 if feature_name is None:
-                    print "Error: Scenario occurred without",
-                    print "preceeding Feature at:", here()
+                    error("Scenario occurred before/without Feature", here)
                 all_scenarios.append(Scenario(summary_from(line),
-                                              feature_name, here(),
+                                              feature_name, here,
                                               tags | feature_tags))
                 scenario_outline = None
                 tags = set()
             elif line.lower().startswith('scenario outline:'):
                 if feature_name is None:
-                    print "Error: Scenario Outline occurred without",
-                    print "preceeding Feature at:", here()
+                    error("Scenario Outline occurred before/without Feature",
+                          here)
                 scenario_outline = ScenarioOutline(summary_from(line),
-                                                   feature_name, here(),
+                                                   feature_name, here,
                                                    tags | feature_tags)
                 tags = set()
             elif line.lower().startswith('examples:'):
                 if scenario_outline is None:
-                    print "Error, Examples outside of a Scenario Outline, at:",
-                    print here()
+                    error("Examples outside of a Scenario Outline", here)
                     continue
                 scenario_outline.new_example_table()
                 in_examples = True
@@ -204,7 +214,12 @@ for dir_path, dir_names, file_names in os.walk(os.curdir):
     for file_name in filter(is_feature_file, file_names):
         process_feature_file(dir_path, file_name)
 
+print_error_log()
+
 if args.report:
     write_csv_row(csv_header_list)
     for scenario in sorted(all_scenarios, key=Scenario.sort_key):
         scenario.print_stats()
+
+if error_log:
+    sys.exit(ERROR_EXIT_CODE)
