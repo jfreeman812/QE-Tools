@@ -57,7 +57,7 @@ error_log = []
 
 def error(msg, location):
     if location is not None:
-        msg = "{}, at: {}".format(msg, location)
+        msg += ", at: {}".format(location)
     error_log.append(msg)
 
 
