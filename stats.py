@@ -168,6 +168,9 @@ def process_feature_file(dir_path, file_name):
                     columns = line.split('|')
                     scenario_outline.add_example(columns, here)
                     continue
+                if not line.split('#', 1)[0].strip():
+                    # Blank lines do not end an example table.
+                    continue
                 in_examples = False
                 # deliberately fall through as there is no trailing/end marker
                 # for an examples table.
