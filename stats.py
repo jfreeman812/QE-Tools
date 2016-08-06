@@ -17,6 +17,11 @@ from test_tags import TestTags
 DIRECTORY_DEPTH_MAX = 3   # Chosen by Chris DeMattio for his reports.
 ERROR_EXIT_CODE = 1
 
+# A line with less than this number of columns is not a properly formed
+# examples table line, since tables have to have at least one column of data,
+# and one column of data divides the line into 3 sections.
+MIN_EXAMPLE_TABLE_COLUMNS = 3
+
 write_csv_row = csv.writer(sys.stdout).writerow
 
 # NOTE: This is not (yet) a general Gherkin file validator/checker,
@@ -134,7 +139,7 @@ class ScenarioOutline(Scenario):
         self.example_tags = tags
 
     def add_example(self, columns, location):
-        if len(columns) < 3:
+        if len(columns) < MIN_EXAMPLE_TABLE_COLUMNS:
             error("Examples table entry has too few columns", location)
             return
         if not self.seen_examples_table_header_row:
