@@ -10,7 +10,7 @@ import csv
 import os
 import sys
 
-from collections import namedtuple
+from collections import namedtuple, defaultdict
 
 from test_tags import TestTags
 
@@ -31,12 +31,65 @@ write_csv_row = csv.writer(sys.stdout).writerow
 _here = os.path.dirname(os.path.abspath(__file__))
 tags_file_name = os.path.join(_here, 'tags.md')
 
+
+error_log = []
+
+
+def error(msg, location):
+    error_log.append((location, msg))
+
+
+def print_error_log_csv():
+    if not error_log:
+        return
+    write_csv_row(['Error', 'File', 'Line No', 'Path'])
+    for (location, msg) in error_log:
+        row = [msg]
+        if location is not None:
+            row.append(location.file_name)
+            row.append(location.line_no)
+            row.extend(location.dir_list)
+        write_csv_row(row)
+
+
+def print_error_log_one_line():
+    for (location, msg) in error_log:
+        if location is not None:
+            msg += ", at: {}".format(location)
+        print msg
+
+
+def print_error_log_grep():
+    for (location, msg) in error_log:
+        if location is not None:
+            msg = "{}:{}:{}".format(location.full_path(), location.line_no,
+                                    msg)
+        print msg
+
+
+error_reporter_prefix = "print_error_log_"
+
+
+def is_error_reporter_name(x):
+    return x.startswith("print_error_log_")
+
+
+def short_error_name(x):
+    return x.split(error_reporter_prefix, 1)[1]
+
+error_reporters = map(short_error_name,
+                      filter(is_error_reporter_name, globals()))
+
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('-r', '--report', default=False, action='store_true',
                     help='generate/print a coverage report')
 parser.add_argument('-t', '--tagsfile', type=str, default=tags_file_name,
                     metavar='FILE',
                     help="Specify a different tags file to consult")
+parser.add_argument('-e', type=str,
+                    default='one_line',
+                    choices=error_reporters,
+                    help="which format for error logging")
 
 args = parser.parse_args()
 
@@ -50,20 +103,6 @@ csv_header_list = group_list + ['scenario',
                                 'feature file'] + \
                                ['level %d' % (x + 1)
                                 for x in range(DIRECTORY_DEPTH_MAX)]
-
-
-error_log = []
-
-
-def error(msg, location):
-    error_log.append((location, msg))
-
-
-def print_error_log():
-    for (location, msg) in error_log:
-        if location is not None:
-            msg += ", at: {}".format(location)
-        print msg
 
 
 class Location(namedtuple('Location', ['dir_list', 'file_name', 'line_no'])):
@@ -224,6 +263,9 @@ for dir_path, dir_names, file_names in os.walk(os.curdir):
         dir_names.remove('unUsedCode')
     for file_name in filter(is_feature_file, file_names):
         process_feature_file(dir_path, file_name)
+
+print_error_log = globals().get("print_error_log_" + args.e,
+                                print_error_log_one_line)
 
 print_error_log()
 
