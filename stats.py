@@ -36,14 +36,16 @@ error_log = []
 
 
 def error(msg, location):
-    error_log.append((location, msg))
+    error_log.append((msg, location))
 
 
 def print_error_log_csv():
     if not error_log:
         return
+    # For error reporting we decided not to label the individual
+    # path columns (unlike for the main report).
     write_csv_row(['Error', 'File', 'Line No', 'Path'])
-    for (location, msg) in error_log:
+    for (msg, location) in error_log:
         row = [msg]
         if location is not None:
             row.append(location.file_name)
@@ -53,14 +55,14 @@ def print_error_log_csv():
 
 
 def print_error_log_one_line():
-    for (location, msg) in error_log:
+    for (msg, location) in error_log:
         if location is not None:
             msg += ", at: {}".format(location)
         print msg
 
 
 def print_error_log_grep():
-    for (location, msg) in error_log:
+    for (msg, location) in error_log:
         if location is not None:
             msg = "{}:{}:{}".format(location.full_path(), location.line_no,
                                     msg)
@@ -71,7 +73,7 @@ error_reporter_prefix = "print_error_log_"
 
 
 def is_error_reporter_name(x):
-    return x.startswith("print_error_log_")
+    return x.startswith(error_reporter_prefix)
 
 
 def short_error_name(x):
@@ -264,7 +266,7 @@ for dir_path, dir_names, file_names in os.walk(os.curdir):
     for file_name in filter(is_feature_file, file_names):
         process_feature_file(dir_path, file_name)
 
-print_error_log = globals().get("print_error_log_" + args.e,
+print_error_log = globals().get(error_reporter_prefix + args.e,
                                 print_error_log_one_line)
 
 print_error_log()
