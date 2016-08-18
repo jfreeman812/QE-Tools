@@ -23,6 +23,9 @@ tag              | purpose     | report as   | description
 @quarantined     | status      | Quarantined | Test offline; bug in application/system/etc. outside QE's scope to fix. (JIRA ID in comments).
                  | status      | Operational | *Default when no tag for this purpose is used.*
 -----------      | ----------- | ----------- | -----------
+
+fast & slow default to fast staff meeting on 2016/08/17.
+
 @deploy          | suite       | Deploy      | Build Verification Test Quick test to validate successful deployment, does not test system functionality.
 @smoke           | suite       | Smoke       | Checks for basic functioning; is not an extensive test. All smoke tests should run in less than about 10 minutes.
 @load            | suite       | Load        | Test is designed to (help) stress/load the application. (Not a fast test.)
