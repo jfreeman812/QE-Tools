@@ -18,8 +18,12 @@ except:
     sys.exit(-1)
 
 
+# Keep the newly created directory right next to the source JSON file,
+# using the name of the JSON file sans-extension.
 root_dir_name = os.path.splitext(json_file_name)[0]
 
+# If the file has no extension, or if there is already a directory present,
+# don't overwrite it, just bomb out and let the user handle it.
 if os.path.exists(root_dir_name):
     print
     print 'File/Directory already exists:', root_dir_name
@@ -34,8 +38,11 @@ except:
     raise
 
 
-# Common JSON formatting and squash LastModified info to make diff cleaner.
 def json_dump(obj, into):
+    """Helper to encapsulate JSON output formatting which also
+    squashes the Last Modification info for cleaner diffs.
+    """
+
     obj.pop('LastModifiedBy', None)
     obj.pop('LastModifiedDate', None)
     json.dump(obj, into, indent=2, sort_keys=True)
