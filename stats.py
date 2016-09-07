@@ -99,7 +99,7 @@ tags = TestTags(args.tagsfile)
 
 master_tags = set(tags.keys())
 
-group_list = sorted(tags.groups.keys())
+group_list = sorted(tags.report_groups())
 csv_header_list = group_list + ['scenario',
                                 'feature',
                                 'feature file'] + \

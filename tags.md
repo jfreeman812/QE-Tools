@@ -11,6 +11,8 @@ and is also the name of the group for that tag in the scoping report.
 The 'report as' column indicates how the tag is shown in the scoping report.
 
 Tags with the same purpose are mutually exclusive.
+Any purpose whose name starts with a hyphen (-) is not reported on, but will
+be otherwise checked.
 
 
 Note: The 'smoke' designation is used throughout Rackspace, though each team has their own interpretation of it.
@@ -23,9 +25,6 @@ tag              | purpose     | report as   | description
 @quarantined     | status      | Quarantined | Test offline; bug in application/system/etc. outside QE's scope to fix. (JIRA ID in comments).
                  | status      | Operational | *Default when no tag for this purpose is used.*
 -----------      | ----------- | ----------- | -----------
-
-fast & slow default to fast staff meeting on 2016/08/17.
-
 @deploy          | suite       | Deploy      | Build Verification Test Quick test to validate successful deployment, does not test system functionality.
 @smoke           | suite       | Smoke       | Checks for basic functioning; is not an extensive test. All smoke tests should run in less than about 10 minutes.
 @load            | suite       | Load        | Test is designed to (help) stress/load the application. (Not a fast test.)
@@ -43,3 +42,7 @@ fast & slow default to fast staff meeting on 2016/08/17.
 -----------      | ----------- | ----------- | -----------
 @positive        | polarity    | Positive    | Test is a positive/down-the-fairway case.
 @negative        | polarity    | Negative    | Test is a negative/in-the-weeds case.
+-----------      | ----------- | ----------- | -----------
+@fast            | -speed      | fast        | Test runs "fast" (within a few minutes)
+@slow            | -speed      | slow        | Test runs "slow" (takes many minutes or more).
+                 | -speed      | fast        | *Default when no tag for this purpose is used.*
