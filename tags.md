@@ -11,6 +11,8 @@ and is also the name of the group for that tag in the scoping report.
 The 'report as' column indicates how the tag is shown in the scoping report.
 
 Tags with the same purpose are mutually exclusive.
+Any purpose whose name starts with a hyphen (-) is not reported on, but will
+be otherwise checked.
 
 
 Note: The 'smoke' designation is used throughout Rackspace, though each team has their own interpretation of it.
@@ -40,3 +42,7 @@ tag              | purpose     | report as   | description
 -----------      | ----------- | ----------- | -----------
 @positive        | polarity    | Positive    | Test is a positive/down-the-fairway case.
 @negative        | polarity    | Negative    | Test is a negative/in-the-weeds case.
+-----------      | ----------- | ----------- | -----------
+@fast            | -speed      | fast        | Test runs "fast" (within a few minutes)
+@slow            | -speed      | slow        | Test runs "slow" (takes many minutes or more).
+                 | -speed      | fast        | *Default when no tag for this purpose is used.*

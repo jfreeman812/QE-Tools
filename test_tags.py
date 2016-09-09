@@ -29,6 +29,15 @@ class TestTags(dict):
                 self.groups.setdefault(tag.purpose, set()).add(tag.tag)
                 self.report_names[tag.tag] = tag.report_as
 
+    @staticmethod
+    def report_group_name(group_name):
+        """Should the given group name should be part of coverage reports."""
+        return not group_name.startswith('-')
+
+    def report_groups(self):
+        """Return the list of group names to be part of coverage reports."""
+        return filter(self.report_group_name, self.groups.keys())
+
 if __name__ == "__main__":
     from pprint import pprint
     tags = TestTags('tags.md')
