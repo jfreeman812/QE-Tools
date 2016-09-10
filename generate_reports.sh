@@ -1,12 +1,11 @@
 #!/bin/sh
 
-# Deliberate choice that this step should not fail because of reporting errors.
-# We want to generate as many reports as possible, so any issues with one report
-# should not keep us from generating others.
+# Generate test coverage reports based on Gherkin tags.
+#
 
+# Report file name will contain date/time stamp.
 # using hours-minutes-seconds makes for hard to read file names,
 # so we use the build number to distinguish between different runs on the same day.
-
 
 prefix="$(date +%Y-%m-%d)-${BUILD_NUMBER:-XX}"
 
@@ -29,12 +28,12 @@ echo
 
 
 # cleanup from the last run(s).
-# We can't do this at the end because the post-build step
-# needs these files to archive.
+# We can't do this at the end of this run, because the Jenkins post-build step
+# needs these files to still be around so it can archive them.
 rm -f *.csv
 
 
-# Now scan all the directories where tagging reports are wanted.
+# Scan all the directories where tagging reports are wanted.
 # the file tag_report_name.txt is used to indicate where in the tree
 # a report should be rooted, and the first line of the file is used
 # to provide a unique part of the report's file name.
