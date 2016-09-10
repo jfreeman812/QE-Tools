@@ -8,12 +8,11 @@
 # so we use the build number to distinguish between different runs on the same day.
 
 
-prefix=$(date +%Y-%m-%d)-"${BUILD_NUMBER}"
+prefix="$(date +%Y-%m-%d)-${BUILD_NUMBER:-XX}"
 
-easy_repos="aric-qe-ui afroast"
-repos="${easy_repos} rba_roast"
+repos="QE-Tools aric-qe-ui afroast rba_roast"
 
-for repo in QE-Tools $repos
+for repo in $repos
 do
     echo Updating $repo 
     if [ ! -d "$repo" ]; then
@@ -34,16 +33,32 @@ echo
 # needs these files to archive.
 rm -f *.csv
 
-for repo in $easy_repos
-do
-    (cd "$repo" ; stats.py -r > "../${prefix}-${repo}.csv" 2>&1)
-done
 
-(cd "rba_roast/af" ; stats.py -r > "../../${prefix}-rba_af_api.csv" 2>&1)
-(cd "rba_roast/aric" ; stats.py -r > "../../${prefix}-rba_aric_api.csv" 2>&1)
+# Now scan all the directories where tagging reports are wanted.
+# the file tag_report_name.txt is used to indicate where in the tree
+# a report should be rooted, and the first line of the file is used
+# to provide a unique part of the report's file name.
+# If any run finds an error, print a message, but keep going so we can
+# generate as many reports as possible.
+# Exit with an error status if any run had an error.
+
+found_error=0
+
+for dir in $(find . -iname tag_report_name.txt | sed 's#/[^/]*$##')
+do
+     unique_part=$(sed -n -e 1p ${dir}/tag_report_name.txt)
+     csv_name="${prefix}-${unique_part}.csv"
+     echo Scanning ${dir} into ${csv_name}
+     if ! (cd "$dir" ; stats.py -r )> "${csv_name}" 2>&1 ; then
+        echo "    Error in stats for ${dir}"
+        found_error=1
+     fi
+done
 
 echo
 
 ls -l *.csv
 
 echo
+
+exit $found_error
