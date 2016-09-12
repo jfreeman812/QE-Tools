@@ -16,7 +16,12 @@ do
     echo Updating $repo 
     if [ ! -d "$repo" ]; then
         git clone git@github.rackspace.com:AutomationServices/"$repo".git
+        # Make sure we don't ever accidently push these repos.
+        (cd "$repo" && git remote set-url --push origin DISABLE)
     fi
+    # reset --hard is here because of lessons learned in other Jenkins
+    # repos where sometimes files would be changed and cause the pull
+    # to need to merge and then the merge would fail.
     (cd "$repo" ; git reset --hard ; git pull origin master )
     echo
     echo
