@@ -1,13 +1,7 @@
 #! /bin/sh
 
-do_setup=false
-
 if [ "$1" = "--setup" ] ; then
     shift
-    do_setup=true
-fi
-
-if $do_setup ; then
     ./env-setup.sh
 fi
 
