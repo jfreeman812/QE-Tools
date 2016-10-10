@@ -2,7 +2,10 @@
 
 if [ "$1" = "--setup" ] ; then
     shift
-    ./env-setup.sh
+    if ! ./env-setup.sh ; then
+        echo environment setup failed, aborting self-checks
+        exit 1
+    fi
 fi
 
 # From this point on any command that fails should cause an exit.
