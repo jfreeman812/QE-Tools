@@ -65,8 +65,12 @@ echo
 # HACK for AF reports to avoid manual step:
 # Yes, I know these are hard-coded. Until we fix this another way
 # we can at least avoid the gratuitous step of doing this manually.
-cat "${prefix}-afroast.csv" "${prefix}-rba_af_api.csv" | \
-sed -e '/,maintenance,/d' > "${prefix}-af-api-combined.csv"
+# Maintenance items are suppressed because they're utilities
+#     written as tests and shouldn't be reported.
+# Only one header needed in the combined file...
+# So it easier to do all the edits to one file and "cat" it second.
+sed -e '1d' -e '/,maintenance,/d' "${prefix}-afroast.csv" | \
+cat "${prefix}-rba_af_api.csv" - > "${prefix}-af-api-combined.csv"
 
 ls -l *.csv
 
