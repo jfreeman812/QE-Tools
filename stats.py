@@ -121,7 +121,7 @@ def tags_from(line, location):
     line = line.split('#', 1)[0]
     tags = set(line.split())
     bad_tags = tags - master_tags
-    if bad_tags:
+    if bad_tags and not '@quarantined' in tags:
         error("Unsupported tags: {}".format(", ".join(bad_tags)), location)
     return tags
 
