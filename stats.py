@@ -114,6 +114,8 @@ class Location(namedtuple('Location', ['dir_list', 'file_name', 'line_no'])):
     def __str__(self):
         return "%s, line: %s" % (self.full_path(), self.line_no)
 
+_allow_unknown_tags = set('@quarantined @nyi'.split())
+
 
 def tags_from(line, location):
     # we don't have to check for leading '@',
@@ -121,7 +123,7 @@ def tags_from(line, location):
     line = line.split('#', 1)[0]
     tags = set(line.split())
     bad_tags = tags - master_tags
-    if bad_tags:
+    if bad_tags and not _allow_unknown_tags & tags:
         error("Unsupported tags: {}".format(", ".join(bad_tags)), location)
     return tags
 
