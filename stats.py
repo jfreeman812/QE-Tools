@@ -116,6 +116,7 @@ class Location(namedtuple('Location', ['dir_list', 'file_name', 'line_no'])):
 
 _allow_unknown_tags = set('@quarantined @nyi'.split())
 
+
 def tags_from(line, location):
     # we don't have to check for leading '@',
     # those will automatically fail the master tags check
