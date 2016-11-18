@@ -58,7 +58,7 @@ def print_error_log_one_line():
     for (msg, location) in error_log:
         if location is not None:
             msg += ", at: {}".format(location)
-        print msg
+        print(msg)
 
 
 def print_error_log_grep():
@@ -66,7 +66,7 @@ def print_error_log_grep():
         if location is not None:
             msg = "{}:{}:{}".format(location.full_path(), location.line_no,
                                     msg)
-        print msg
+        print(msg)
 
 
 error_reporter_prefix = "print_error_log_"
@@ -79,18 +79,14 @@ def is_error_reporter_name(x):
 def short_error_name(x):
     return x.split(error_reporter_prefix, 1)[1]
 
-error_reporters = map(short_error_name,
-                      filter(is_error_reporter_name, globals()))
+error_reporters = [short_error_name(x) for x in globals() if is_error_reporter_name(x)]
 
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('-r', '--report', default=False, action='store_true',
                     help='generate/print a coverage report')
-parser.add_argument('-t', '--tagsfile', type=str, default=tags_file_name,
-                    metavar='FILE',
+parser.add_argument('-t', '--tagsfile', type=str, default=tags_file_name, metavar='FILE',
                     help="Specify a different tags file to consult")
-parser.add_argument('-e', type=str,
-                    default='one_line',
-                    choices=error_reporters,
+parser.add_argument('-e', type=str, default='one_line', choices=error_reporters,
                     help="which format for error logging")
 
 args = parser.parse_args()
@@ -146,7 +142,7 @@ def summary_from(line):
 all_scenarios = []
 
 
-class Scenario(object):
+class Scenario:
     def __init__(self, scenario, feature, location, tags):
         self.scenario = scenario
         self.feature = feature

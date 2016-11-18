@@ -1,7 +1,7 @@
 import json
 import sys
 from collections import namedtuple
-from datetime import datetime as DT
+from datetime import datetime as dt
 decode_fmt = "%Y-%m-%dT%H:%M:%S.%fZ"
 
 # This script will analyze the action times for the CheckBoxes process.
@@ -18,7 +18,7 @@ TimingData = namedtuple("TimingData", ["time", "action", "host"])
 try:
     inputName, = sys.argv[1:]
 except:
-    print "Usage:", myName, "file-to-analyze"
+    print("Usage: {} file-to-analyze".format(myName))
     sys.exit(-1)
 
 
@@ -33,11 +33,11 @@ def trim_log_time(ts):
         ts += "00"
     return ts + "Z"
 
-print "analyzing", inputName
+print("analyzing {}".format(inputName))
 event = json.load(open(inputName))
 steps = event['Automation']['ExecutionSteps'][2]['ExecutionSteps']
-print
-print "Slow steps:"
+print()
+print("Slow steps:")
 slow_steps = []
 for step in steps:
     logs = step.get("Logs")
@@ -45,11 +45,11 @@ for step in steps:
         del step['ExecutionSteps']
     if logs is None:
         continue
-    log_times = map(logs.get, ['ACCEPTED', 'PROCESSING', 'COMPLETED'])
+    log_times = [logs.get(msg) for msg in ['ACCEPTED', 'PROCESSING', 'COMPLETED']]
     if not all(log_times):  # unless all timestamps are present, ignore
         continue
-    log_times = map(trim_log_time, log_times)
-    stamps = map(lambda x: DT.strptime(x, decode_fmt), log_times)
+    log_times = [trim_log_time(ts) for ts in log_times]
+    stamps = [dt.strptime(x, decode_fmt) for x in log_times]
     first = min(stamps)
     last = max(stamps)
     delta = last - first
@@ -59,7 +59,7 @@ for step in steps:
 slow_details = []
 
 for delta, step in slow_steps:
-    print "This step took", delta, "seconds"
+    print("This step took {} seconds".format(delta))
     json.dump(step, sys.stdout, indent=2, sort_keys=True,
               separators=(',', ':'))
     details = step.get("Details")
@@ -68,21 +68,19 @@ for delta, step in slow_steps:
     if params_:
         host_ = params_[0].get("ParameterValue")
         slow_details.append(TimingData(time=delta, action=id_, host=host_))
-    print
-    print
+    print()
+    print()
 
 
 def print_timing_line(timing_data):
-    print "%-15s %s %s" % (timing_data.host,
-                           timing_data.time,
-                           timing_data.action)
+    print('{:15} {} {}'.format(timing_data.host, timing_data.time, timing_data.action))
 
-print "Slowness by Action:"
+print("Slowness by Action:")
 for timing_data in sorted(slow_details, key=lambda x: (x.action, x.host)):
     print_timing_line(timing_data)
 
-print
-print
-print "Slowness by Host:"
+print()
+print()
+print("Slowness by Host:")
 for timing_data in sorted(slow_details, key=lambda x: (x.host, x.action)):
     print_timing_line(timing_data)

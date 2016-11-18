@@ -17,7 +17,7 @@ class TestTags(dict):
         data = text.split('\n---', 1)[1]
         for row in data.splitlines()[1:]:
             if row.count('|'):
-                row_data = map(lambda x: x.strip(), row.split('|')[:4])
+                row_data = [x.strip() for x in row.split('|')[:4]]
                 tag = Tag(*row_data)
                 if tag.tag.startswith('---'):
                     continue
@@ -36,15 +36,15 @@ class TestTags(dict):
 
     def report_groups(self):
         """Return the list of group names to be part of coverage reports."""
-        return filter(self.report_group_name, self.groups.keys())
+        return [group for group in self.groups if self.report_group_name(group)]
 
 if __name__ == "__main__":
     from pprint import pprint
     tags = TestTags('tags.md')
 
     pprint(tags.groups)
-    print
+    print()
     pprint(tags.report_names)
-    print
+    print()
     for t in tags.values():
         pprint(t)
