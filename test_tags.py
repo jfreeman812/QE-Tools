@@ -38,6 +38,7 @@ class TestTags(dict):
         """Return the list of group names to be part of coverage reports."""
         return [group for group in self.groups if self.report_group_name(group)]
 
+
 if __name__ == "__main__":
     from pprint import pprint
     tags = TestTags('tags.md')

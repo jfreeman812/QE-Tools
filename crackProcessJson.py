@@ -57,6 +57,7 @@ def dump_list(list_obj, name_field, directory_name):
         with open(os.path.join(dir_name, name), 'w') as member_file:
             json_dump(member, member_file)
 
+
 dump_list(file_json['Process']['Members'], 'Name', 'Process')
 dump_list(file_json['APIGroups'], 'APIGroupName', 'APIGroups')
 dump_list(file_json['Actions'], 'Name', 'Actions')

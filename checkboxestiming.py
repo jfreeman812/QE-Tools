@@ -33,6 +33,7 @@ def trim_log_time(ts):
         ts += "00"
     return ts + "Z"
 
+
 print("analyzing {}".format(inputName))
 event = json.load(open(inputName))
 steps = event['Automation']['ExecutionSteps'][2]['ExecutionSteps']
@@ -74,6 +75,7 @@ for delta, step in slow_steps:
 
 def print_timing_line(timing_data):
     print('{:15} {} {}'.format(timing_data.host, timing_data.time, timing_data.action))
+
 
 print("Slowness by Action:")
 for timing_data in sorted(slow_details, key=lambda x: (x.action, x.host)):

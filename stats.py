@@ -79,6 +79,7 @@ def is_error_reporter_name(x):
 def short_error_name(x):
     return x.split(error_reporter_prefix, 1)[1]
 
+
 error_reporters = [short_error_name(x) for x in globals() if is_error_reporter_name(x)]
 
 parser = argparse.ArgumentParser(description=__doc__)
@@ -110,6 +111,7 @@ class Location(namedtuple('Location', ['dir_list', 'file_name', 'line_no'])):
     def __str__(self):
         return "%s, line: %s" % (self.full_path(), self.line_no)
 
+
 _allow_unknown_tags = set('@quarantined @nyi'.split())
 
 
@@ -138,6 +140,7 @@ def one_tag_from(have_tags, group, location):
 
 def summary_from(line):
     return line.split(':', 1)[1].strip()
+
 
 all_scenarios = []
 
@@ -255,6 +258,7 @@ def process_feature_file(dir_path, file_name):
 
 def is_feature_file(file_name):
     return file_name.lower().endswith('.feature')
+
 
 for dir_path, dir_names, file_names in os.walk(os.curdir):
     if '.git' in dir_names:
