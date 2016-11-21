@@ -12,9 +12,9 @@ import sys
 try:
     _, json_file_name = sys.argv
 except:
-    print __doc__
-    print
-    print 'Usage: ', sys.argv[0], 'json-file-name'
+    print(__doc__)
+    print()
+    print('Usage: {} json-file-name'.format(sys.argv[0]))
     sys.exit(-1)
 
 
@@ -25,8 +25,8 @@ root_dir_name = os.path.splitext(json_file_name)[0]
 # If the file has no extension, or if there is already a directory present,
 # don't overwrite it, just bomb out and let the user handle it.
 if os.path.exists(root_dir_name):
-    print
-    print 'File/Directory already exists:', root_dir_name
+    print()
+    print('File/Directory already exists: {}'.format(root_dir_name))
     sys.exit(-2)
 
 file_blob = open(json_file_name).read()
@@ -34,7 +34,7 @@ file_blob = open(json_file_name).read()
 try:
     file_json = json.loads(file_blob)
 except:
-    print 'JSON decoding error in', json_file_name
+    print('JSON decoding error in {}'.format(json_file_name))
     raise
 
 
@@ -48,7 +48,7 @@ def json_dump(obj, into):
     json.dump(obj, into, indent=2, sort_keys=True)
 
 
-def dumpList(list_obj, name_field, directory_name):
+def dump_list(list_obj, name_field, directory_name):
     dir_name = os.path.join(root_dir_name, directory_name)
     os.makedirs(dir_name)
 
@@ -57,7 +57,8 @@ def dumpList(list_obj, name_field, directory_name):
         with open(os.path.join(dir_name, name), 'w') as member_file:
             json_dump(member, member_file)
 
-dumpList(file_json['Process']['Members'], 'Name', 'Process')
-dumpList(file_json['APIGroups'], 'APIGroupName', 'APIGroups')
-dumpList(file_json['Actions'], 'Name', 'Actions')
-dumpList(file_json['APIs'], 'APIName', 'APIs')
+
+dump_list(file_json['Process']['Members'], 'Name', 'Process')
+dump_list(file_json['APIGroups'], 'APIGroupName', 'APIGroups')
+dump_list(file_json['Actions'], 'Name', 'Actions')
+dump_list(file_json['APIs'], 'APIName', 'APIs')
