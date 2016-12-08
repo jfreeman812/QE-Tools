@@ -83,6 +83,8 @@ def short_error_name(x):
 error_reporters = [short_error_name(x) for x in globals() if is_error_reporter_name(x)]
 
 parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument('--legacy', default=False, action='store_true',
+                    help='permit unknown tags without complaining. For legacy repos ONLY!')
 parser.add_argument('-r', '--report', default=False, action='store_true',
                     help='generate/print a coverage report')
 parser.add_argument('-t', '--tagsfile', type=str, default=tags_file_name, metavar='FILE',
@@ -121,7 +123,7 @@ def tags_from(line, location):
     line = line.split('#', 1)[0]
     tags = set(line.split())
     bad_tags = tags - master_tags
-    if bad_tags and not _allow_unknown_tags & tags:
+    if (not args.legacy) and bad_tags and (not _allow_unknown_tags & tags):
         error("Unsupported tags: {}".format(", ".join(bad_tags)), location)
     return tags
 
