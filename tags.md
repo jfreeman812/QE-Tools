@@ -38,6 +38,7 @@ tag              | purpose     | report as   | description
 -----------      | ----------- | ----------- | -----------
 @p0              | priority    | p0          | Most important test(s) to implement first.
 @p1              | priority    | p1          | Second most important test(s) to implement.
+@p2              | priority    | p2          | Third most important test(s) to implement.
                  | priority    | p1          | *Default when no tag for this purpose is used.*
 -----------      | ----------- | ----------- | -----------
 @positive        | polarity    | Positive    | Test is a positive/down-the-fairway case.
