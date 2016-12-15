@@ -200,7 +200,7 @@ def process_feature_file(dir_path, file_name):
     dir_list = dir_path.split(os.sep)
     if dir_list[0] == os.curdir:
         dir_list = dir_list[1:]
-    if dir_list[0].lower() == 'features':
+    if dir_list and dir_list[0].lower() == 'features':
         dir_list = dir_list[1:]
     if len(dir_list) > DIRECTORY_DEPTH_MAX:
         error("Too many nested directories for feature file: {} -> {}".format(
