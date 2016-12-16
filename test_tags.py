@@ -30,13 +30,13 @@ class TestTags(dict):
                 self.report_names[tag.tag] = tag.report_as
 
     @staticmethod
-    def report_group_name(group_name):
-        """Should the given group name should be part of coverage reports."""
+    def is_group_name_reportable(group_name):
+        """Should the given group name be part of coverage reports."""
         return not group_name.startswith('-')
 
     def report_groups(self):
         """Return the list of group names to be part of coverage reports."""
-        return [group for group in self.groups if self.report_group_name(group)]
+        return filter(self.is_group_name_reportable, self.groups)
 
 
 if __name__ == "__main__":
