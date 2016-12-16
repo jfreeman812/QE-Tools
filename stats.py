@@ -15,7 +15,7 @@ from collections import namedtuple, defaultdict
 
 from test_tags import TestTags
 
-DIRECTORY_DEPTH_MAX = 3   # Chosen by Chris DeMattio for his reports.
+DIRECTORY_DEPTH_MAX = 3  # As per JIRA QGTM-443, which has to be manually tracked for now.
 ERROR_EXIT_CODE = 1
 
 # A line with less than this number of columns is not a properly formed
