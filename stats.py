@@ -7,6 +7,7 @@ coverage report as well.
 
 import argparse
 import csv
+import json
 import os
 import sys
 
@@ -14,7 +15,7 @@ from collections import namedtuple, defaultdict
 
 from test_tags import TestTags
 
-DIRECTORY_DEPTH_MAX = 3   # Chosen by Chris DeMattio for his reports.
+DIRECTORY_DEPTH_MAX = 3  # As per JIRA QGTM-443, which has to be manually tracked for now.
 ERROR_EXIT_CODE = 1
 
 # A line with less than this number of columns is not a properly formed
@@ -86,7 +87,12 @@ parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--legacy', default=False, action='store_true',
                     help='permit unknown tags without complaining. For legacy repos ONLY!')
 parser.add_argument('-r', '--report', default=False, action='store_true',
-                    help='generate/print a coverage report')
+                    help='generate/print a CSV coverage report')
+# Adding in JSON as a new option for now as QGTM-444 is still in progress.
+# When QGTM-444 closes, we will have pull to publish the JSON not CSV and the '-r' report
+# will then be the JSON report.
+parser.add_argument('--json', default=False, action='store_true',
+                    help='generate/print a JSON coverage report')
 parser.add_argument('-t', '--tagsfile', type=str, default=tags_file_name, metavar='FILE',
                     help="Specify a different tags file to consult")
 parser.add_argument('-e', type=str, default='one_line', choices=error_reporters,
@@ -99,11 +105,6 @@ tags = TestTags(args.tagsfile)
 master_tags = set(tags.keys())
 
 group_list = sorted(tags.report_groups())
-csv_header_list = group_list + ['scenario',
-                                'feature',
-                                'feature file'] + \
-                               ['level %d' % (x + 1)
-                                for x in range(DIRECTORY_DEPTH_MAX)]
 
 
 class Location(namedtuple('Location', ['dir_list', 'file_name', 'line_no'])):
@@ -170,10 +171,14 @@ class Scenario:
                     group, " ".join(tags.groups[group])), self.location)
             self.group[group] = report_as
 
-    def print_stats(self):
-        write_csv_row([self.group[x] for x in group_list] +
-                      [self.scenario, self.feature, self.location.file_name] +
-                      self.location.dir_list)
+    def stats(self):
+        stat_json = {group_name: self.group[group_name]
+                     for group_name in group_list}
+        stat_json['scenario'] = self.scenario
+        stat_json['feature'] = self.feature
+        stat_json['feature file'] = self.location.file_name
+        stat_json['categories'] = self.location.dir_list
+        return stat_json
 
 
 class ScenarioOutline(Scenario):
@@ -275,10 +280,19 @@ print_error_log = globals().get(error_reporter_prefix + args.e,
 
 print_error_log()
 
+all_stats = [scenario.stats() for scenario in sorted(all_scenarios, key=Scenario.sort_key)]
+
 if args.report:
-    write_csv_row(csv_header_list)
-    for scenario in sorted(all_scenarios, key=Scenario.sort_key):
-        scenario.print_stats()
+    fixed_fields = group_list + ['scenario', 'feature', 'feature file']
+    category_headers = ['level %d' % (x + 1) for x in range(DIRECTORY_DEPTH_MAX)]
+
+    write_csv_row(fixed_fields + category_headers)
+    for stat in all_stats:
+        write_csv_row([stat[x] for x in fixed_fields] + stat['categories'])
+
+if args.json:
+    json.dump(all_stats, sys.stdout, indent=2, sort_keys=True)
+    print()
 
 if error_log:
     sys.exit(ERROR_EXIT_CODE)
