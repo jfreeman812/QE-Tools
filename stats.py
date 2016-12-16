@@ -88,6 +88,9 @@ parser.add_argument('--legacy', default=False, action='store_true',
                     help='permit unknown tags without complaining. For legacy repos ONLY!')
 parser.add_argument('-r', '--report', default=False, action='store_true',
                     help='generate/print a CSV coverage report')
+# Adding in JSON as a new option for now as QGTM-444 is still in progress.
+# When QGTM-444 closes, we will have pull to publish the JSON not CSV and the '-r' report
+# will then be the JSON report.
 parser.add_argument('--json', default=False, action='store_true',
                     help='generate/print a JSON coverage report')
 parser.add_argument('-t', '--tagsfile', type=str, default=tags_file_name, metavar='FILE',
