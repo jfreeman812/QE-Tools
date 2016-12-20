@@ -9,27 +9,39 @@
 
 prefix="$(date +%Y-%m-%d)-${BUILD_NUMBER:-XX}"
 
-repos="QE-Tools aric-qe-ui afroast rba_roast"
 
-for repo in $repos
-do
-    echo Updating $repo 
-    if [ ! -d "$repo" ]; then
-        git clone git@github.rackspace.com:AutomationServices/"$repo".git
-        # Make sure we don't ever accidently push these repos.
-        (cd "$repo" && git remote set-url --push origin DISABLE)
-    fi
-    # reset --hard is here because of lessons learned in other Jenkins
-    # repos where sometimes files would be changed and cause the pull
-    # to need to merge and then the merge would fail.
-    (cd "$repo" ; git reset --hard ; git pull origin master )
-    echo
-    echo
-done
+# --in-place is to allow this to be used to generate reports in place on existing
+# repos so we can individually track our own status, or test out the report generator, etc.
 
-PATH=$(pwd)/QE-Tools:"$PATH"
-echo PATH = $PATH
-echo
+checkout_repos=true
+if [ "$1" = "--in-place" ]; then
+    checkout_repos=false
+fi
+
+
+if $checkout_repos ; then
+    repos="QE-Tools aric-qe-ui afroast rba_roast"
+
+    for repo in $repos
+    do
+        echo Updating $repo
+        if [ ! -d "$repo" ]; then
+            git clone git@github.rackspace.com:AutomationServices/"$repo".git
+            # Make sure we don't ever accidently push these repos.
+            (cd "$repo" && git remote set-url --push origin DISABLE)
+        fi
+        # reset --hard is here because of lessons learned in other Jenkins
+        # repos where sometimes files would be changed and cause the pull
+        # to need to merge and then the merge would fail.
+        (cd "$repo" ; git reset --hard ; git pull origin master )
+        echo
+        echo
+    done
+
+    PATH=$(pwd)/QE-Tools:"$PATH"
+    echo PATH = $PATH
+    echo
+fi
 
 
 # cleanup from the last run(s).
