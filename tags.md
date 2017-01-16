@@ -45,5 +45,5 @@ tag              | purpose     | report as   | description
 @negative        | polarity    | Negative    | Test is a negative/in-the-weeds case.
 -----------      | ----------- | ----------- | -----------
 @fast            | -speed      | fast        | Test runs "fast" (within a few minutes)
-@slow            | -speed      | slow        | Test runs "slow" (takes many minutes or more).
+@slow            | -speed      | slow        | Test runs "slow" (scenario takes > 5 minutes to run).
                  | -speed      | fast        | *Default when no tag for this purpose is used.*
