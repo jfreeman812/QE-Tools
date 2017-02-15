@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import json
 import sys
 from collections import namedtuple
@@ -78,7 +79,7 @@ def print_timing_line(timing_data):
 
 
 print("Slowness by Action:")
-for timing_data in sorted(slow_details, key=lambda x: (x.action, x.host)):
+for timing_data in sorted(slow_details, key=lambda x: (x.action, x.time, x.host)):
     print_timing_line(timing_data)
 
 print()
