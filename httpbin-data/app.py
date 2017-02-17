@@ -43,7 +43,7 @@ class GroupAPI(MethodView):
 group_view = GroupAPI.as_view('group_api')
 app.add_url_rule('/data-check/', view_func=group_view, methods=['GET'])
 app.add_url_rule('/data-check/', view_func=group_view, methods=['POST'])
-app.add_url_rule('/data-check/<group_name>', view_func=group_view, methods=['GET', 'DELETE'])
+app.add_url_rule('/data-check/<group_name>', view_func=group_view, methods=['DELETE'])
 
 
 class DataAPI(MethodView):
