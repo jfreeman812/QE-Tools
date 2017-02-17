@@ -16,8 +16,14 @@ prefix="$(date +%Y-%m-%d)-${BUILD_NUMBER:-XX}"
 checkout_repos=true
 if [ "$1" = "--in-place" ]; then
     checkout_repos=false
+    shift
 fi
 
+cleanup_old_csvs=true
+if [ "$1" = "--dirty" ]; then
+    cleanup_old_csvs=false
+    shift
+fi
 
 if $checkout_repos ; then
     repos="QE-Tools aric-qe-ui afroast rba_roast"
@@ -44,10 +50,12 @@ if $checkout_repos ; then
 fi
 
 
-# cleanup from the last run(s).
-# We can't do this at the end of this run, because the Jenkins post-build step
-# needs these files to still be around so it can archive them.
-rm -f *.csv
+if $cleanup_old_csvs ; then
+    # cleanup from the last run(s).
+    # We can't do this at the end of this run, because the Jenkins post-build step
+    # needs these files to still be around so it can archive them.
+    rm -f *.csv
+fi
 
 
 # Scan all the directories where tagging reports are wanted.
