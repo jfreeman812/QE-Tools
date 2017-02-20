@@ -174,7 +174,10 @@ class Scenario:
     def stats(self):
         stat_json = {group_name: self.group[group_name]
                      for group_name in group_list}
-        stat_json['scenario'] = self.scenario
+        stat_json['product'] = 'TBD'
+        stat_json['project'] = 'TBD'
+        stat_json['test name'] = self.scenario
+        stat_json['interface type'] = 'API'
         stat_json['feature'] = self.feature
         stat_json['feature file'] = self.location.file_name
         stat_json['categories'] = self.location.dir_list
@@ -283,7 +286,7 @@ print_error_log()
 all_stats = [scenario.stats() for scenario in sorted(all_scenarios, key=Scenario.sort_key)]
 
 if args.report:
-    fixed_fields = group_list + ['scenario', 'feature', 'feature file']
+    fixed_fields = group_list + ['test name', 'feature', 'feature file']
     category_headers = ['level %d' % (x + 1) for x in range(DIRECTORY_DEPTH_MAX)]
 
     write_csv_row(fixed_fields + category_headers)

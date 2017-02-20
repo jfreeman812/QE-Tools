@@ -19,17 +19,18 @@ Note: The 'smoke' designation is used throughout Rackspace, though each team has
 
 tag              | purpose     | report as   | description
 -----------      | ----------- | ----------- | -----------
-@nyi             | status      | NYI         | Not Yet Implemented - test is a skeleton for generating data on scoping.
-@not-tested      | status      | Not Tested  | Test is ready, but the service / subject is not ready
+@nyi             | status      | Pending     | Not Yet Implemented - test is a skeleton for generating data on scoping.
+@not-tested      | status      | Pending     | Test is ready, but the service / subject is not ready
 @needs-work      | status      | Needs Work  | Test offline; problem with test; QE needs to fix (JIRA ID in comments).
 @quarantined     | status      | Quarantined | Test offline; bug in application/system/etc. outside QE's scope to fix. (JIRA ID in comments).
                  | status      | Operational | *Default when no tag for this purpose is used.*
 -----------      | ----------- | ----------- | -----------
-@deploy          | suite       | Deploy      | Build Verification Test Quick test to validate successful deployment, does not test system functionality.
-@smoke           | suite       | Smoke       | Checks for basic functioning; is not an extensive test. All smoke tests should run in less than about 10 minutes.
-@load            | suite       | Load        | Test is designed to (help) stress/load the application. (Not a fast test.)
+@deploy          | suite       | Unit        | Build Verification Test Quick test to validate successful deployment, does not test system functionality.
+@smoke           | suite       | Unit        | Checks for basic functioning; is not an extensive test. All smoke tests should run in less than about 10 minutes.
+@load            | suite       | Performance | Test is designed to (help) stress/load the application. (Not a fast test.)
 @solo            | suite       | Solo        | Test cannot be run in parallel with any other tests.
 @integration     | suite       | Integration | Test exercises multiple applications not just one component.
+@security        | suite       | Security    | Test is a security test.
                  | suite       | ALL         | *Default when no tag for this purpose is used.*
 -----------      | ----------- | ----------- | -----------
 @production-only | environment | Production  | Can only be run in production (perhaps due to devices/accounts/systems used/needed).
@@ -43,6 +44,10 @@ tag              | purpose     | report as   | description
 -----------      | ----------- | ----------- | -----------
 @positive        | polarity    | Positive    | Test is a positive/down-the-fairway case.
 @negative        | polarity    | Negative    | Test is a negative/in-the-weeds case.
+-----------      | ----------- | ----------- | -----------
+@manual          | execution   | Manual      | Test description is of a manual test, present for coverage reporting.
+@automated       | execution   | Automated   | Test is automated.
+                 | execution   | Automated   | *Default when no tag for this purpose is used.*
 -----------      | ----------- | ----------- | -----------
 @fast            | -speed      | fast        | Test runs "fast" (within a few minutes)
 @slow            | -speed      | slow        | Test runs "slow" (scenario takes > 5 minutes to run).
