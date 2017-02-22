@@ -37,7 +37,7 @@ class GroupAPI(MethodView):
 
     def delete(self, group_name):
         del DATA[group_name]
-        return {'message': '{} deleted successfully'}
+        return {'message': '{} deleted successfully'.format(group_name)}
 
 
 group_view = GroupAPI.as_view('group_api')
