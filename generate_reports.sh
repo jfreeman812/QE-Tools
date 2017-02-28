@@ -9,6 +9,7 @@
 
 prefix="$(date +%Y-%m-%d)-${BUILD_NUMBER:-XX}"
 
+github_root="git@github.rackspace.com:"
 
 # --in-place is to allow this to be used to generate reports in place on existing
 # repos so we can individually track our own status, or test out the report generator, etc.
@@ -26,20 +27,18 @@ if [ "$1" = "--dirty" ]; then
 fi
 
 if $checkout_repos ; then
-    repos="QE-Tools aric-qe-ui afroast rba_roast"
-
-    for repo in $repos
+    for repo in AutomationServices/QE-Tools "$@"
     do
         echo Updating $repo
         if [ ! -d "$repo" ]; then
-            git clone git@github.rackspace.com:AutomationServices/"$repo".git
+            git clone "$github_root"/"$repo".git
             # Make sure we don't ever accidently push these repos.
-            (cd "$repo" && git remote set-url --push origin DISABLE)
+            (cd "${repo#*/}" && git remote set-url --push origin DISABLE)
         fi
         # reset --hard is here because of lessons learned in other Jenkins
         # repos where sometimes files would be changed and cause the pull
         # to need to merge and then the merge would fail.
-        (cd "$repo" ; git reset --hard ; git pull origin master )
+        (cd "${repo#*/}" ; git reset --hard ; git pull origin master )
         echo
         echo
     done
@@ -81,16 +80,6 @@ done
 
 echo
 
-
-# HACK for AF reports to avoid manual step:
-# Yes, I know these are hard-coded. Until we fix this another way
-# we can at least avoid the gratuitous step of doing this manually.
-# Maintenance items are suppressed because they're utilities
-#     written as tests and shouldn't be reported.
-# Only one header needed in the combined file...
-# So it easier to do all the edits to one file and "cat" it second.
-sed -e '1d' -e '/,maintenance,/d' "${prefix}-afroast.csv" | \
-cat "${prefix}-rba_af_api.csv" - > "${prefix}-af-api-combined.csv"
 
 ls -l *.csv
 
