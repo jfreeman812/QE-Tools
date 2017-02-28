@@ -27,18 +27,19 @@ if [ "$1" = "--dirty" ]; then
 fi
 
 if $checkout_repos ; then
-    for repo in AutomationServices/QE-Tools "$@"
+    for repo_spec in AutomationServices/QE-Tools "$@"
     do
-        echo Updating $repo
+        repo="${repo_spec#*/}"
+        echo Updating "$repo"
         if [ ! -d "$repo" ]; then
-            git clone "$github_root"/"$repo".git
+            git clone "$github_root"/"$repo_spec".git
             # Make sure we don't ever accidently push these repos.
-            (cd "${repo#*/}" && git remote set-url --push origin DISABLE)
+            (cd "$repo" && git remote set-url --push origin DISABLE)
         fi
         # reset --hard is here because of lessons learned in other Jenkins
         # repos where sometimes files would be changed and cause the pull
         # to need to merge and then the merge would fail.
-        (cd "${repo#*/}" ; git reset --hard ; git pull origin master )
+        (cd "$repo" ; git reset --hard ; git pull origin master )
         echo
         echo
     done
