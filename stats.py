@@ -3,6 +3,10 @@
 Scan the current directory tree for Gherkin feature files and check their
 use of tags against the given tags file. Tags are used to generate a test
 coverage report as well.
+
+NOTES: The --interface command line switch is because we anticipate that
+       all tests in one place are of one type. If we find a case where
+       API and UI tests are in the same tree we will have to revisit this.
 """
 
 import argparse
@@ -97,6 +101,8 @@ parser.add_argument('-t', '--tagsfile', type=str, default=tags_file_name, metava
                     help="Specify a different tags file to consult")
 parser.add_argument('-e', type=str, default='one_line', choices=error_reporters,
                     help="which format for error logging")
+parser.add_argument('-i', '--interface', type=str, default='API', choices=('API', 'UI'),
+                    help="which kind of tests are in this report")
 
 args = parser.parse_args()
 
@@ -174,13 +180,15 @@ class Scenario:
     def stats(self):
         stat_json = {group_name: self.group[group_name]
                      for group_name in group_list}
-        stat_json['product'] = 'TBD'
+        # By convention, we take the top level directory to be the product name
+        stat_json['product'] = self.location.dir_list[0]
         stat_json['project'] = 'TBD'
         stat_json['test name'] = self.scenario
-        stat_json['interface type'] = 'API'
+        stat_json['interface type'] = args.interface
         stat_json['feature'] = self.feature
         stat_json['feature file'] = self.location.file_name
-        stat_json['categories'] = self.location.dir_list
+        # Since top level directory is captured in product above, skip it here.
+        stat_json['categories'] = self.location.dir_list[1:]
         return stat_json
 
 
@@ -286,7 +294,7 @@ print_error_log()
 all_stats = [scenario.stats() for scenario in sorted(all_scenarios, key=Scenario.sort_key)]
 
 if args.report:
-    fixed_fields = group_list + ['test name', 'feature', 'feature file']
+    fixed_fields = group_list + ['product', 'test name', 'feature', 'feature file']
     category_headers = ['level %d' % (x + 1) for x in range(DIRECTORY_DEPTH_MAX)]
 
     write_csv_row(fixed_fields + category_headers)
