@@ -121,7 +121,7 @@ class Location(namedtuple('Location', ['dir_list', 'file_name', 'line_no'])):
         return "%s, line: %s" % (self.full_path(), self.line_no)
 
 
-_allow_unknown_tags = set('@quarantined @nyi'.split())
+_allow_unknown_tags = set('@quarantined @nyi @needs-work'.split())
 
 
 def tags_from(line, location):
