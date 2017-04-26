@@ -37,6 +37,10 @@ class ParseBase(object):
     def add_output(self, line, line_breaks=1):
         self._output.append('{}{}'.format(line, '\n' * line_breaks))
 
+    @property
+    def blank_line(self):
+        self.add_output('')
+
     def create_section(self, level, section):
         '''Create a section of <level> (1-10 supported).'''
         self.add_output(section)
@@ -45,7 +49,7 @@ class ParseBase(object):
 
     def write_file(self):
         '''Write the output file for project/category <name>.'''
-        file_name = '.'.join([self.dest_prefix, self.dest_suffix])
+        file_name = os.extsep.join([self.dest_prefix, self.dest_suffix])
         file_path = os.path.join(self.args.output_path, file_name)
         if self.args.dry_run:
             print('Would create file [{}]'.format(file_path))
@@ -53,11 +57,10 @@ class ParseBase(object):
         if not self.args.force and os.path.isfile(file_path):
             print('File {} already exists, skipping.'.format(file_path))
             return
-        else:
-            if not self.args.quiet:
-                print('Creating file [{}]'.format(file_path))
-            with sphinx.util.osutil.FileAvoidWrite(file_path) as f:
-                f.write(''.join(self._output))
+        if not self.args.quiet:
+            print('Creating file [{}]'.format(file_path))
+        with sphinx.util.osutil.FileAvoidWrite(file_path) as f:
+            f.write(''.join(self._output))
 
 
 class ParseSource(ParseBase):
@@ -97,7 +100,7 @@ class ParseSource(ParseBase):
                 self.table(step, inline=True)
             if step.text:
                 self.description(step.text)
-        self.add_output('')
+        self.blank_line
 
     def examples(self, examples):
         for example in examples:
@@ -106,9 +109,9 @@ class ParseSource(ParseBase):
     def table(self, obj, inline=False):
         spacing = '   ' if inline else ''
         if inline:
-            # When inline, add a space to separate from the inline content
-            # because it causes problems for the reST converter
-            self.add_output('')
+            # When inline, add a new line to separate it from the inline
+            # content because it causes problems for the reST converter
+            self.blank_line
         directive = '.. csv-table::'
         if not inline:
             directive += ' {}: {}'.format(obj.keyword, obj.name)
@@ -121,7 +124,7 @@ class ParseSource(ParseBase):
             self.add_output('{}   "{}"'.format(spacing, '", "'.join(row)))
         if not inline:
             # If not inline, seprarate the directive from additional content
-            self.add_output('')
+            self.blank_line
 
     def _set_output(self):
         self.update_suffix()
@@ -213,6 +216,7 @@ class RecurseTree(object):
                            _get_source_files(category_files))
 
         display_name = self._display_name(category_name, root, category)
+        # Each parsed category needs a TOC for sphinx so we write it here
         toc_file = ParseTOC(category_name, self.args)
         toc_file.parse(category_map, section=display_name)
         toc_file.write_file()
@@ -269,7 +273,7 @@ def main():
         parser.exit(message='Sphinx (sphinx-apidoc) {}'.format(sphinx.__display_version__))
     if args.doc_project is None:
         args.doc_project = os.path.abspath(args.gherkin_path).split(os.path.sep)[-1]
-    args.suffix.lstrip('.')
+    args.suffix.lstrip(os.extsep)
     args.gherkin_path = os.path.abspath(args.gherkin_path)
     args.output_path = os.path.abspath(args.output_path)
     if not os.path.isdir(args.gherkin_path):
