@@ -86,9 +86,9 @@ class ParseSource(ParseBase):
 
     def tags(self, tags):
         if tags:
-            self.add_output('.. admonition:: Tagged')
-            self.add_output('   :class: note', line_breaks=2)
-            self.add_output('   {}'.format(', '.join(tags)), line_breaks=2)
+            self.add_output('::', line_breaks=2)
+            self.add_output('   Tagged: {}'.format(', '.join(tags)),
+                            line_breaks=2)
 
     def steps(self, steps):
         for step in steps:
@@ -110,9 +110,9 @@ class ParseSource(ParseBase):
             # When inline, add a new line to separate it from the inline
             # content because it causes problems for the reST converter
             self.blank_line()
+        else:
+            self.section(3, obj)
         directive = '.. csv-table::'
-        if not inline:
-            directive += ' {}: {}'.format(obj.keyword, obj.name)
         self.add_output('{}{}'.format(spacing, directive))
         headers = '", "'.join(obj.table.headings)
         self.add_output('{}   :header: "{}"'.format(spacing, headers),
