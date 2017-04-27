@@ -11,7 +11,6 @@ import behave.parser
 import sphinx
 import sphinx.util
 
-variable_match = re.compile(r'(\<.*?\>)')
 SOURCE_PATTERNS = ('*.feature', '*.md', '*.rst')
 
 
@@ -37,7 +36,6 @@ class ParseBase(object):
     def add_output(self, line, line_breaks=1):
         self._output.append('{}{}'.format(line, '\n' * line_breaks))
 
-    @property
     def blank_line(self):
         self.add_output('')
 
@@ -94,13 +92,13 @@ class ParseSource(ParseBase):
 
     def steps(self, steps):
         for step in steps:
-            bold_step = variable_match.sub(r'**\1**', rst_escape(step.name))
+            bold_step = re.sub(r'(\<.*?\>)', r'**\1**', rst_escape(step.name))
             self.add_output('- {} {}'.format(step.keyword, bold_step))
             if step.table:
                 self.table(step, inline=True)
             if step.text:
                 self.description(step.text)
-        self.blank_line
+        self.blank_line()
 
     def examples(self, examples):
         for example in examples:
@@ -111,7 +109,7 @@ class ParseSource(ParseBase):
         if inline:
             # When inline, add a new line to separate it from the inline
             # content because it causes problems for the reST converter
-            self.blank_line
+            self.blank_line()
         directive = '.. csv-table::'
         if not inline:
             directive += ' {}: {}'.format(obj.keyword, obj.name)
@@ -124,7 +122,7 @@ class ParseSource(ParseBase):
             self.add_output('{}   "{}"'.format(spacing, '", "'.join(row)))
         if not inline:
             # If not inline, seprarate the directive from additional content
-            self.blank_line
+            self.blank_line()
 
     def _set_output(self):
         self.update_suffix()
