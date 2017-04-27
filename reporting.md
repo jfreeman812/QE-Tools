@@ -3,8 +3,9 @@
 To support our requirement to generate test coverage reporting,
 we have some data, tools, and conventions.
 
+
 ### Data:
-* tags.md 
+* tags.md
   * describes the groups / categories for reporting
   * defines values within those groups, both as tags for Gherkin and string equivalents for reporting.
 
