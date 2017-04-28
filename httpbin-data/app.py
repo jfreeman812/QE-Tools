@@ -8,6 +8,7 @@ from httpbin.core import app, jsonify
 from httpbin.helpers import get_dict
 
 DATA = collections.defaultdict(dict)
+COUNTER = collections.defaultdict(int)
 KEYS = ('url', 'args', 'form', 'data', 'origin', 'headers', 'files', 'json')
 
 
@@ -21,6 +22,30 @@ def validate_and_jsonify(f):
             flask.abort(404)
         return jsonify(f(*args, **kwargs))
     return decorator
+
+
+class CounterAPI(MethodView):
+    decorators = [validate_and_jsonify]
+
+    def get(self, counter_name):
+        return {counter_name: COUNTER[counter_name]}
+
+    def put(self, counter_name):
+        COUNTER[counter_name] += 1
+        count = COUNTER[counter_name]
+        error_on_first = flask.request.values.get('error_on_first', False)
+        if error_on_first and count == 1:
+            flask.abort(409)
+        return {counter_name: count}
+
+    def delete(self, counter_name):
+        del COUNTER[counter_name]
+        return {'message': '{} deleted!'.format(counter_name)}
+
+
+counter_view = CounterAPI.as_view('counter_view')
+app.add_url_rule('/counter/<counter_name>', view_func=counter_view, methods=['GET', 'PUT',
+                                                                             'DELETE'])
 
 
 class GroupAPI(MethodView):

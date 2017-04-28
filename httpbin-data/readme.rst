@@ -17,6 +17,9 @@ Endpoint                            Method  Description
 `/data-check/:group_name/:data_id`  GET     Get the data dictionary for the given `data_id`.
 `/data-check/:group_name/:data_id`  PUT     Update the data dictionary for the given `data_id`
 `/data-check/:group_name/:data_id`  DELETE  Delete the data dictionary for the given `data_id`
+`/counter/:counter_name`            GET     Return the hit count for counter name
+`/counter/:counter_name`            PUT     Increment hit count for counter name and return value
+`/counter/:counter_name`            DELETE  Delete the counter (reset to 0)
 ==================================  ======  ==========================================================================
 
 Description
@@ -113,4 +116,31 @@ $ curl -X DELETE http://localhost:5000/data-check/test
 
     {
       "message": "test deleted successfully"
+    }
+
+
+$ curl http://localhost:5000/counter/test
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+::
+    {
+      "test": 0
+    }
+
+
+$ curl -X PUT http://localhost:5000/counter/test
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+::
+    {
+      "test": 1
+    }
+
+
+$ curl -X DELETE http://localhost:5000/counter/test
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+::
+    {
+      "message": "test deleted!"
     }
