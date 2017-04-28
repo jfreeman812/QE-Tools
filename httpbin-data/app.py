@@ -38,9 +38,14 @@ class CounterAPI(MethodView):
             flask.abort(409)
         return {counter_name: count}
 
+    def delete(self, counter_name):
+        del COUNTER[counter_name]
+        return {'message': '{} deleted!'.format(counter_name)}
+
 
 counter_view = CounterAPI.as_view('counter_view')
-app.add_url_rule('/counter/<counter_name>', view_func=counter_view, methods=['GET', 'PUT'])
+app.add_url_rule('/counter/<counter_name>', view_func=counter_view, methods=['GET', 'PUT',
+                                                                             'DELETE'])
 
 
 class GroupAPI(MethodView):
