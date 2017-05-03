@@ -1,5 +1,6 @@
 import argparse
 import collections
+from distutils.util import strtobool
 import uuid
 
 import flask
@@ -33,7 +34,7 @@ class CounterAPI(MethodView):
     def put(self, counter_name):
         COUNTER[counter_name] += 1
         count = COUNTER[counter_name]
-        error_on_first = flask.request.values.get('error_on_first', False)
+        error_on_first = strtobool(flask.request.values.get('error_on_first', False))
         if error_on_first and count == 1:
             flask.abort(409)
         return {counter_name: count}
