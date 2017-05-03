@@ -14,8 +14,10 @@ HostData = namedtuple('HostData', ['hostname', 'etcd_name', 'host_ip'])
 
 def get_parser():
     parser = argparse.ArgumentParser()
-    parser.add_argument('-l', '--local')
-    parser.add_argument('-p', '--peer', action='append', dest='peers')
+    parser.add_argument('-l', '--local',
+                        help='Full domain name for this machine')
+    parser.add_argument('-p', '--peer', action='append', dest='peers',
+                        help='Full domain name for peer machine')
     return parser
 
 
