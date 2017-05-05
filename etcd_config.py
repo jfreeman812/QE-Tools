@@ -1,6 +1,7 @@
 import argparse
 from subprocess import call, Popen, PIPE
 import os
+import socket
 
 GROUPNAME = 'etcd'
 USERNAME = 'etcd'
@@ -10,7 +11,7 @@ ETCD_VERSION = 'v3.1.7'
 
 def get_parser():
     parser = argparse.ArgumentParser()
-    parser.add_argument('-l', '--local',
+    parser.add_argument('-l', '--local', default=socket.getfqdn(),
                         help='FQDN for this machine')
     parser.add_argument('--proxy-url', default=PROXY_URL,
                         help='Proxy url to use for downloads')
