@@ -19,6 +19,10 @@ def get_parser():
                         help='Proxy url to use for downloads')
     parser.add_argument('--etcd-version', default=ETCD_VERSION,
                         help='Version of etcd to install')
+    parser.add_argument('--etcd-cert-path', default=None,
+                        help='local path to cert file')
+    parser.add_argument('--etcd-key-path', default=None,
+                        help='local path to key file')
     parser.add_argument('peers', nargs='+',
                         help='FQDN for peer machine')
     return parser
@@ -147,9 +151,10 @@ def write_etcd_service_config(user_name):
             f.write('\n')
 
 
-def write_etcd_app_config(host, peers, etcd_version):
+def write_etcd_app_config(host, peers, etcd_version, config_data):
     all_nodes = peers + [host]
     etcd_config = _etcd_config(host, all_nodes)
+    etcd_config.update(config_data)
     etcd_version = etcd_version[1:]
     link = "https://coreos.com/etcd/docs/{}/op-guide/configuration.html".format(etcd_version)
     with open('/etc/etcd/etcd.conf', 'w') as f:
@@ -215,12 +220,23 @@ def etcd_initial_start():
     etcd_start()
 
 
+def _build_cert_configs(args):
+    message = '--etcd-cert-path and --etcd-key-path must be provided together!'
+    assert bool(args.etcd_cert_path) == bool(args.etcd_key_path), message
+    if not args.etcd_cert_path:
+        return {}
+    return {'security': {'CERT_FILE': {'value': args.etcd_cert_path, 'disabled': False},
+                         'KEY_FILE': {'value': args.etcd_key_path, 'disabled': False},
+                         'AUTO_TLS': {'value': 'false', 'disabled': True}}}
+
+
 def setup():
     args = get_parser().parse_args()
+    cert_configs = _build_cert_configs(args)
     make_dirs()
     setup_user(GROUPNAME, USERNAME)
     write_etcd_service_config(USERNAME)
-    write_etcd_app_config(args.local, args.peers, args.etcd_version)
+    write_etcd_app_config(args.local, args.peers, args.etcd_version, cert_configs)
     download_and_install(USERNAME, args.proxy_url, args.etcd_version)
     forward_ports()
     etcd_initial_start()
