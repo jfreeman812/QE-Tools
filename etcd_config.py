@@ -193,8 +193,6 @@ def etcd_initial_start():
 
 def setup():
     args = get_parser().parse_args()
-    print('HOST IS: {}'.format(args.local))
-    print('PEERS ARE: {}'.format(args.peers))
     make_dirs()
     setup_user(GROUPNAME, USERNAME)
     write_etcd_service_config(USERNAME)
