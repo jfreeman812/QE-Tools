@@ -1,33 +1,28 @@
 import argparse
 from subprocess import call, Popen, PIPE
-from collections import namedtuple
 import os
-import socket
 
 GROUPNAME = 'etcd'
 USERNAME = 'etcd'
 PROXY_URL = 'proxy1.dfw1.corp.rackspace.com:3128'
 ETCD_VERSION = 'v3.1.7'
 
-HostData = namedtuple('HostData', ['hostname', 'etcd_name', 'host_ip'])
-
 
 def get_parser():
     parser = argparse.ArgumentParser()
     parser.add_argument('-l', '--local',
-                        help='Full domain name for this machine')
-    parser.add_argument('-p', '--peer', action='append', dest='peers',
-                        help='Full domain name for peer machine')
+                        help='FQDN for this machine')
+    parser.add_argument('--proxy-url', default=PROXY_URL,
+                        help='Proxy url to use for downloads')
+    parser.add_argument('--etcd-version', default=ETCD_VERSION,
+                        help='Version of etcd to install')
+    parser.add_argument('peers', nargs='+',
+                        help='FQDN for peer machine')
     return parser
 
 
 def _root_name_from_fqdn(dns_entry):
     return dns_entry.split('.', 1)[0]
-
-
-def hostdata_from_dns(hostname):
-    return HostData(hostname, _root_name_from_fqdn(hostname),
-                    socket.gethostbyname(hostname))
 
 
 def _service_config(user_name):
@@ -51,29 +46,27 @@ def _service_config(user_name):
 
 
 def _etcd_config(host, all_nodes):
-    host_client_url = 'https://{}'.format(host.hostname)
+    host_client_url = 'https://{}'.format(host)
     return {
         'member': {
-            'NAME': {'value': host.etcd_name},
+            'NAME': {'value': _root_name_from_fqdn(host)},
             'DATA_DIR': {'value': '/var/lib/etcd/default.etcd'},
             'SNAPSHOT_COUNTER': {'value': '10000', 'disabled': True},
             'HEARTBEAT_INTERVAL': {'value': "100", 'disabled': True},
             'ELECTION_TIMEOUT': {'value': '1000', 'disabled': True},
             'LISTEN_PEER_URLS': {'value': 'http://0.0.0.0:2380'},
             'LISTEN_CLIENT_URLS': {'value': 'https://0.0.0.0:2379'},
-            'ADVERTISE_CLIENT_URLS': {'value': 'https://0.0.0.0:2379',
-                                      'disabled': False},
+            'ADVERTISE_CLIENT_URLS': {'value': 'https://0.0.0.0:2379'},
             'MAX_SNAPSHOTS': {'value': '5', 'disabled': True},
             'MAX_WALS': {'value': '5', 'disabled': True},
             'CORS': {'value': '', 'disabled': True}
         },
         'cluster': {
             'INITIAL_ADVERTISE_PEER_URLS': {
-                'value': 'http://{}:2380'.format(host.host_ip),
+                'value': 'http://{}:2380'.format(host),
             },
             'INITIAL_CLUSTER': {
-                'value': ','.join(['{}=http://{}:2380'.format(x.etcd_name,
-                                                              x.host_ip)
+                'value': ','.join(['{}=http://{}:2380'.format(_root_name_from_fqdn(x), x)
                                    for x in all_nodes]),
             },
             'INITIAL_CLUSTER_STATE': {
@@ -200,13 +193,13 @@ def etcd_initial_start():
 
 def setup():
     args = get_parser().parse_args()
-    host = hostdata_from_dns(args.local)
-    peers = list(map(hostdata_from_dns, args.peers))
+    print('HOST IS: {}'.format(args.local))
+    print('PEERS ARE: {}'.format(args.peers))
     make_dirs()
     setup_user(GROUPNAME, USERNAME)
     write_etcd_service_config(USERNAME)
-    write_etcd_app_config(host, peers)
-    download_and_install(USERNAME, PROXY_URL, ETCD_VERSION)
+    write_etcd_app_config(args.local, args.peers)
+    download_and_install(USERNAME, args.proxy_url, args.etcd_version)
     forward_ports()
     etcd_initial_start()
 
