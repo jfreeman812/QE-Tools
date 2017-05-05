@@ -127,11 +127,11 @@ def setup_user(group_name, user_name):
         call(['groupadd', '-r', '{}'.format(group_name)])
     if not _user_exists(user_name):
         call(['useradd',
-            '-r',
-            '-g', '{}'.format(group_name),
-            '-d', '/var/lib/etcd',
-            '-s', '/sbin/nologin',
-            '-c', '"{} user"'.format(user_name), user_name])
+              '-r',
+              '-g', '{}'.format(group_name),
+              '-d', '/var/lib/etcd',
+              '-s', '/sbin/nologin',
+              '-c', '"{} user"'.format(user_name), user_name])
     call(['chown',
           '-R', '{}:{}'.format(group_name, user_name),
           '/var/lib/etcd'])
