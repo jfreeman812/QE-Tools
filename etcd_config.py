@@ -150,6 +150,7 @@ def write_etcd_service_config(user_name):
 def write_etcd_app_config(host, peers, etcd_version):
     all_nodes = peers + [host]
     etcd_config = _etcd_config(host, all_nodes)
+    etcd_version = etcd_version[1:]
     link = "https://coreos.com/etcd/docs/{}/op-guide/configuration.html".format(etcd_version)
     with open('/etc/etcd/etcd.conf', 'w') as f:
         f.write("# For additional information, reference online configs docs:\n")
