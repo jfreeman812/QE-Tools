@@ -1,6 +1,8 @@
 import argparse
 from subprocess import call, Popen, PIPE
+import grp
 import os
+import pwd
 import socket
 
 GROUPNAME = 'etcd'
@@ -24,6 +26,22 @@ def get_parser():
 
 def _root_name_from_fqdn(dns_entry):
     return dns_entry.split('.', 1)[0]
+
+
+def _group_exists(group_name):
+    try:
+        grp.getgrnam(group_name)
+    except KeyError:
+        return False
+    return True
+
+
+def _user_exists(user_name):
+    try:
+        pwd.getpwnam(user_name)
+    except KeyError:
+        return False
+    return True
 
 
 def _service_config(user_name):
@@ -101,17 +119,19 @@ def _etcd_config(host, all_nodes):
 
 def make_dirs():
     for dir_ in ('/var/lib/etcd', '/etc/etcd'):
-        call(['mkdir', dir_])
+        call(['mkdir', '-p', dir_])
 
 
 def setup_user(group_name, user_name):
-    call(['groupadd', '-r', '{}'.format(group_name)])
-    call(['useradd',
-          '-r',
-          '-g', '{}'.format(group_name),
-          '-d', '/var/lib/etcd',
-          '-s', '/sbin/nologin',
-          '-c', '"{} user"'.format(user_name), user_name])
+    if not _group_exists(group_name):
+        call(['groupadd', '-r', '{}'.format(group_name)])
+    if not _user_exists(user_name):
+        call(['useradd',
+            '-r',
+            '-g', '{}'.format(group_name),
+            '-d', '/var/lib/etcd',
+            '-s', '/sbin/nologin',
+            '-c', '"{} user"'.format(user_name), user_name])
     call(['chown',
           '-R', '{}:{}'.format(group_name, user_name),
           '/var/lib/etcd'])
