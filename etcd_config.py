@@ -176,10 +176,10 @@ def download_and_install(user_name, proxy_url, etcd_version):
     # download and unzip the etcd program
     etcd_file_name = 'etcd-{}-linux-amd64.tar.gz'.format(etcd_version)
     url_template = 'https://github.com/coreos/etcd/releases/download/{}/{}'
+    dl_path = '/usr/local/src/{}'.format(etcd_file_name)
     etcd_dl_url = url_template.format(etcd_version, etcd_file_name)
-    dl = Popen(['curl', '-L', etcd_dl_url], stdout=PIPE)
-    call(['tar', 'xz', '--strip-components=1', '-C', etcd_dir], stdin=dl.stdout)
-    dl.wait()
+    call(['curl', '-L', '-o', dl_path, etcd_dl_url])
+    call(['tar', 'xf', dl_path, '--strip-components=1', '-C', etcd_dir])
 
     # symlink downloaded etcd programs to the bin directories
     call(['ln', '-sf', '{}/etcd'.format(etcd_dir), '/usr/bin/etcd'])
