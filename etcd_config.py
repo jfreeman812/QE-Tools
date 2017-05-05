@@ -47,7 +47,6 @@ def _service_config(user_name):
 
 
 def _etcd_config(host, all_nodes):
-    host_client_url = 'https://{}'.format(host)
     return {
         'member': {
             'NAME': {'value': _root_name_from_fqdn(host)},
@@ -77,7 +76,7 @@ def _etcd_config(host, all_nodes):
                 'value': 'etcd-cluster',
             },
             'ADVERTISE_CLIENT_URLS': {
-                'value': 'https://0.0.0.0:2379,{}'.format(host_client_url),
+                'value': 'https://0.0.0.0:2379,{}'.format('https://{}'.format(host)),
                 'disabled': True
             },
             'DISCOVERY': {'value': '', 'disabled': True},
