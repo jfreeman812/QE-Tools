@@ -147,10 +147,13 @@ def write_etcd_service_config(user_name):
             f.write('\n')
 
 
-def write_etcd_app_config(host, peers):
+def write_etcd_app_config(host, peers, etcd_version):
     all_nodes = peers + [host]
     etcd_config = _etcd_config(host, all_nodes)
+    link = "https://coreos.com/etcd/docs/{}/op-guide/configuration.html".format(etcd_version)
     with open('/etc/etcd/etcd.conf', 'w') as f:
+        f.write("# For additional information, reference online configs docs:\n")
+        f.write('# {}\n'.format(link))
         for section in etcd_config.keys():
             f.write('#[{}]\n'.format(section))
             for key, value_dict in etcd_config[section].iteritems():
@@ -216,7 +219,7 @@ def setup():
     make_dirs()
     setup_user(GROUPNAME, USERNAME)
     write_etcd_service_config(USERNAME)
-    write_etcd_app_config(args.local, args.peers)
+    write_etcd_app_config(args.local, args.peers, args.etcd_version)
     download_and_install(USERNAME, args.proxy_url, args.etcd_version)
     forward_ports()
     etcd_initial_start()
