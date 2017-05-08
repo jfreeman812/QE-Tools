@@ -221,8 +221,6 @@ def etcd_initial_start():
 
 
 def _build_cert_configs(args):
-    message = '--etcd-cert-path and --etcd-key-path must be provided together!'
-    assert bool(args.etcd_cert_path) == bool(args.etcd_key_path), message
     if not args.etcd_cert_path:
         return {}
     return {'security': {'CERT_FILE': {'value': args.etcd_cert_path, 'disabled': False},
@@ -231,7 +229,10 @@ def _build_cert_configs(args):
 
 
 def setup():
-    args = get_parser().parse_args()
+    parser = get_parser()
+    args = parser.parse_args()
+    if bool(args.etcd_cert_path) != bool(args.etcd_key_path):
+        parser.error('--etcd-cert-path and --etcd-key-path must be provided together!')
     cert_configs = _build_cert_configs(args)
     make_dirs()
     setup_user(GROUPNAME, USERNAME)
