@@ -39,6 +39,7 @@ class DefaultDictHandler(object):
         data.pop(key)
 
     def update(self, *layers, update_dict=_DEFAULT_VALUE):
+        layers, key = layers[:-1], layers[-1]
         if update_dict is _DEFAULT_VALUE:
             raise ValueError('no update dict provided')
         data = self._dig_layers(*layers)
