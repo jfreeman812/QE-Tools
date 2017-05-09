@@ -15,10 +15,10 @@ _DEFAULT_VALUE = object()
 
 class DefaultDictHandler(object):
     def __init__(self, default_factory):
-        self.__dict__ = collections.defaultdict(default_factory)
+        self._dict = collections.defaultdict(default_factory)
 
     def _dig_layers(self, *layers):
-        data = self.__dict__
+        data = self._dict
         for layer in layers:
             data = data[layer]
         return data
@@ -46,7 +46,7 @@ class DefaultDictHandler(object):
         data[key].update(update_dict)
 
     def keys(self):
-        return self.__dict__.keys()
+        return self._dict.keys()
 
 
 def _get_handler(args, name, default_factory=dict):
@@ -73,8 +73,8 @@ class CounterAPI(MethodView):
         return {counter_name: counter.get(counter_name)}
 
     def put(self, counter_name):
-        counter.set(counter_name, value=counter.get(counter_name) + 1)
-        count = counter.get(counter_name)
+        count = counter.get(counter_name) + 1
+        counter.set(counter_name, value=count)
         error_on_first = strtobool(flask.request.values.get('error_on_first', 'False'))
         if error_on_first and count == 1:
             flask.abort(409)
@@ -117,8 +117,7 @@ class DataAPI(MethodView):
     decorators = [validate_and_jsonify]
 
     def get(self, group_name, data_id):
-        layers = filter(None, (group_name, data_id))
-        return data.get(*layers)
+        return data.get(*filter(None, (group_name, data_id)))
 
     def post(self, group_name):
         data_id = str(uuid.uuid4())
