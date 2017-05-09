@@ -76,6 +76,8 @@ class CounterAPI(MethodView):
         count = counter.get(counter_name) + 1
         counter.set(counter_name, value=count)
         error_on_first = strtobool(flask.request.values.get('error_on_first', 'False'))
+        # error_on_first allows support to test RBAN-6974, which requires the
+        # server calling in a callback to get a 409 response on first attempt
         if error_on_first and count == 1:
             flask.abort(409)
         return {counter_name: count}
