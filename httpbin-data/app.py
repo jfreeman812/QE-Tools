@@ -3,6 +3,8 @@ import collections
 from distutils.util import strtobool
 import uuid
 
+import etcd
+
 import flask
 from flask.views import MethodView
 from httpbin.core import app, jsonify
@@ -11,6 +13,79 @@ from httpbin.helpers import get_dict
 KEYS = ('url', 'args', 'form', 'data', 'origin', 'headers', 'files', 'json')
 
 _DEFAULT_VALUE = object()
+
+ETCD_TTL = 24 * 60 * 60
+
+
+class ETCDHandler(object):
+    def __init__(self, default_factory, client, name, etcd_ttl):
+        self.default_factory = default_factory
+        self.client = client
+        self.name = name
+        self.etcd_ttl = etcd_ttl
+
+    def _defined_or_default(self, key, default):
+        return key if key is not _DEFAULT_VALUE else default
+
+    def _get_subname(self, *layers):
+        return '/'.join([self.name, *layers])
+
+    def _keyname_from_child(self, child, *layers):
+        header = '/{}/'.format(self._get_subname(*layers))
+        return child['key'][len(header):]
+
+    def _write_default(self, *layers):
+        if isinstance(self.default_factory(), dict):
+            self.client.write(self._get_subname(*layers), None, dir=True, ttl=self.etcd_ttl)
+            return
+        self.client.write(self._get_subname(*layers), self.default_factory())
+
+    def _recursive_read(self, *layers):
+        response = self.client.read(self._get_subname(*layers))
+        if not response.dir:
+            return int(response.value) if response.value.isdigit() else response.value
+        keys = self.keys(*layers)
+        return {k: self._recursive_read(*layers, k) for k in keys}
+
+    def _recursive_write(self, *layers, value, ttl):
+        if not isinstance(value, dict):
+            self.client.write(self._get_subname(*layers), value, ttl=ttl)
+            return
+        try:
+            self.client.write(self._get_subname(*layers), None, dir=True, ttl=ttl)
+        except etcd.EtcdNotFile:
+            pass
+        for k, v in value.items():
+            self._recursive_write(*layers, k, value=v, ttl=ttl)
+
+    def get(self, *layers):
+        try:
+            return self._recursive_read(*layers)
+        except etcd.EtcdKeyNotFound:
+            self._write_default(*layers)
+            return self._recursive_read(*layers)
+
+    def set(self, *layers, value=_DEFAULT_VALUE, ttl=_DEFAULT_VALUE):
+        ttl = self._defined_or_default(ttl, self.etcd_ttl)
+        return self._recursive_write(*layers, value=value, ttl=ttl)
+
+    def delete(self, *layers):
+        return self.client.delete(self._get_subname(*layers), recursive=True)
+
+    def update(self, *layers, update_dict=_DEFAULT_VALUE, ttl=_DEFAULT_VALUE):
+        ttl = self._defined_or_default(ttl, self.etcd_ttl)
+        if update_dict is _DEFAULT_VALUE:
+            raise ValueError('no update dict provided')
+        self._recursive_write(*layers, value=update_dict, ttl=ttl)
+
+    def keys(self, *layers):
+        higherarchy = self._get_subname(*layers)
+        try:
+            namespace_data = self.client.read(higherarchy)
+        except etcd.EtcdKeyNotFound:
+            self.client.write(higherarchy, None, dir=True)
+            namespace_data = self.client.read(self.name)
+        return [self._keyname_from_child(child, *layers) for child in namespace_data._children]
 
 
 class DefaultDictHandler(object):
@@ -51,7 +126,20 @@ class DefaultDictHandler(object):
 
 def _get_handler(args, name, default_factory=dict):
     dict_handler = DefaultDictHandler(default_factory)
-    return dict_handler
+    if not args.etcd_hostnames:
+        print('NO HOSTNAMES PROVIDED: Running from local datastore.')
+        return dict_handler
+    port = args.etcd_port
+    host_tuple = tuple((x, port) for x in args.etcd_hostnames)
+    etcd_client = etcd.Client(host=host_tuple, protocol=args.etcd_protocol, allow_reconnect=True,
+                              ca_cert=args.etcd_ca_cert_path)
+    try:
+        etcd_client.machines
+    except etcd.EtcdException:
+        print('CAN NOT CONNECT TO HOST: Running from local datastore.')
+        return dict_handler
+    print('Connection test successful! Running from distributed datastore.')
+    return ETCDHandler(default_factory, etcd_client, name, etcd_ttl=args.etcd_ttl)
 
 
 def validate_and_jsonify(f):
@@ -147,6 +235,12 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("--port", type=int, default=5000)
     parser.add_argument("--host", default="127.0.0.1")
+    parser.add_argument("--etcd-hostnames", nargs="*", help="FQDNs of etcd cluster nodes")
+    parser.add_argument("--etcd-port", default=443, help="port to use for etcd cluster hosts")
+    parser.add_argument("--etcd-protocol", default="https", help="protocol for etcd connection")
+    parser.add_argument("--etcd-ca-cert-path", default='httpbin-data/rs_ca_level1.crt',
+                        help="path to ca cert")
+    parser.add_argument("--etcd-ttl", default=ETCD_TTL, help="ttl (in seconds) to expire etcd data")
     args = parser.parse_args()
     data = _get_handler(args, 'data')
     counter = _get_handler(args, 'counter', default_factory=int)
