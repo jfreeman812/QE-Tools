@@ -30,10 +30,19 @@ class ETCDHandler(object):
     def _get_subname(self, *layers):
         return '/'.join([self.name, *layers])
 
-    def _keyname_from_child(self, child, *layers):
+    def _keyname_from_child(self, child):
         return child['key'].split('/')[-1]
 
+    def _value_handler(self, value):
+        if not isinstance(self.default_factory(), int):
+            return value
+        if value.isdigit():
+            return int(value)
+        return value
+
     def _write_default(self, *layers):
+        # in etcd, a dict is treated as a set of slash-path "layers", so an empty dict
+        # is equivalent to an empty directory, whereas an int (or str) is defined with key/value
         if isinstance(self.default_factory(), dict):
             self.client.write(self._get_subname(*layers), None, dir=True, ttl=self.etcd_ttl)
             return
@@ -42,7 +51,7 @@ class ETCDHandler(object):
     def _recursive_read(self, *layers):
         response = self.client.read(self._get_subname(*layers))
         if not response.dir:
-            return int(response.value) if response.value.isdigit() else response.value
+            return self._value_handler(response.value)
         keys = self.keys(*layers)
         return {k: self._recursive_read(*layers, k) for k in keys}
 
@@ -50,6 +59,8 @@ class ETCDHandler(object):
         if not isinstance(value, dict):
             self.client.write(self._get_subname(*layers), value, ttl=ttl)
             return
+        # the etcd client does have advanced support for all potential write/overwrite situations
+        # so allow the EtcdNotFile error (indicating dir already exists) to pass silently
         try:
             self.client.write(self._get_subname(*layers), None, dir=True, ttl=ttl)
         except etcd.EtcdNotFile:
@@ -128,8 +139,7 @@ def _get_handler(args, name, default_factory=dict):
     if not args.etcd_hostnames:
         print('NO HOSTNAMES PROVIDED: Running from local datastore.')
         return dict_handler
-    port = args.etcd_port
-    host_tuple = tuple((x, port) for x in args.etcd_hostnames)
+    host_tuple = tuple((x, args.etcd_port) for x in args.etcd_hostnames)
     etcd_client = etcd.Client(host=host_tuple, protocol=args.etcd_protocol, allow_reconnect=True,
                               ca_cert=args.etcd_ca_cert_path)
     try:
@@ -234,7 +244,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("--port", type=int, default=5000)
     parser.add_argument("--host", default="127.0.0.1")
-    parser.add_argument("--etcd-hostnames", nargs="*", help="FQDNs of etcd cluster nodes")
+    parser.add_argument("--etcd-hostnames", nargs="+", help="FQDNs of etcd cluster nodes")
     parser.add_argument("--etcd-port", default=443, help="port to use for etcd cluster hosts")
     parser.add_argument("--etcd-protocol", default="https", help="protocol for etcd connection")
     parser.add_argument("--etcd-ca-cert-path", default='httpbin-data/rs_ca_level1.crt',
