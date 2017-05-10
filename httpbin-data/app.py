@@ -79,11 +79,11 @@ class ETCDHandler(object):
         self._recursive_write(*layers, value=update_dict, ttl=ttl)
 
     def keys(self, *layers):
-        higherarchy = self._get_subname(*layers)
+        hierarchy = self._get_subname(*layers)
         try:
-            namespace_data = self.client.read(higherarchy)
+            namespace_data = self.client.read(hierarchy)
         except etcd.EtcdKeyNotFound:
-            self.client.write(higherarchy, None, dir=True)
+            self.client.write(hierarchy, None, dir=True)
             namespace_data = self.client.read(self.name)
         return [self._keyname_from_child(child, *layers) for child in namespace_data._children]
 
