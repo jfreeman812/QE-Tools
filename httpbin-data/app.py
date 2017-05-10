@@ -31,8 +31,7 @@ class ETCDHandler(object):
         return '/'.join([self.name, *layers])
 
     def _keyname_from_child(self, child, *layers):
-        header = '/{}/'.format(self._get_subname(*layers))
-        return child['key'][len(header):]
+        return child['key'].split('/')[-1]
 
     def _write_default(self, *layers):
         if isinstance(self.default_factory(), dict):
