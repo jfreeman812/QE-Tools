@@ -1,5 +1,6 @@
 import argparse
 import collections
+import os
 from distutils.util import strtobool
 import uuid
 
@@ -242,13 +243,18 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("--port", type=int, default=5000)
     parser.add_argument("--host", default="127.0.0.1")
-    parser.add_argument("--etcd-hostnames", nargs="+",
+    parser.add_argument("--etcd-hostnames", nargs="+", default=os.environ.get('ETCD_HOSTNAMES'),
                         help="FQDNs of etcd cluster nodes. Uses local datastore if none provided.")
-    parser.add_argument("--etcd-port", default=443, help="port to use for etcd cluster hosts")
-    parser.add_argument("--etcd-protocol", default="https", help="protocol for etcd connection")
-    parser.add_argument("--etcd-ca-cert-path", default='httpbin-data/rs_ca_level1.crt',
+    parser.add_argument("--etcd-port", default=os.environ.get('ETCD_PORT', 443),
+                        help="port to use for etcd cluster hosts")
+    parser.add_argument("--etcd-protocol", default=os.environ.get('ETCD_PROTOCOL', "https"),
+                        help="protocol for etcd connection")
+    parser.add_argument("--etcd-ca-cert-path",
+                        default=os.environ.get('ETCD_CA_CERT_PATH',
+                                               'httpbin-data/rs_ca_level1.crt'),
                         help="path to ca cert")
-    parser.add_argument("--etcd-ttl", default=ETCD_TTL, help="ttl (in seconds) to expire etcd data")
+    parser.add_argument("--etcd-ttl", default=os.environ.get('ETCD_TTL', ETCD_TTL),
+                        help="ttl (in seconds) to expire etcd data")
     args = parser.parse_args()
     data = _get_handler(args, 'data')
     counter = _get_handler(args, 'counter', default_factory=int)
