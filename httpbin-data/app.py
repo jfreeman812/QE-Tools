@@ -137,7 +137,6 @@ class DefaultDictHandler(object):
 def _get_handler(args, name, default_factory=dict):
     dict_handler = DefaultDictHandler(default_factory)
     if not args.etcd_hostnames:
-        print('NO HOSTNAMES PROVIDED: Running from local datastore.')
         return dict_handler
     host_tuple = tuple((x, args.etcd_port) for x in args.etcd_hostnames)
     etcd_client = etcd.Client(host=host_tuple, protocol=args.etcd_protocol, allow_reconnect=True,
@@ -145,9 +144,8 @@ def _get_handler(args, name, default_factory=dict):
     try:
         etcd_client.machines
     except etcd.EtcdException:
-        print('CAN NOT CONNECT TO HOST: Running from local datastore.')
+        print('ERROR CONNECTING TO HOST: Falling back to local datastore.')
         return dict_handler
-    print('Connection test successful! Running from distributed datastore.')
     return ETCDHandler(default_factory, etcd_client, name, etcd_ttl=args.etcd_ttl)
 
 
@@ -244,7 +242,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("--port", type=int, default=5000)
     parser.add_argument("--host", default="127.0.0.1")
-    parser.add_argument("--etcd-hostnames", nargs="+", help="FQDNs of etcd cluster nodes")
+    parser.add_argument("--etcd-hostnames", nargs="+",
+                        help="FQDNs of etcd cluster nodes. Uses local datastore if none provided.")
     parser.add_argument("--etcd-port", default=443, help="port to use for etcd cluster hosts")
     parser.add_argument("--etcd-protocol", default="https", help="protocol for etcd connection")
     parser.add_argument("--etcd-ca-cert-path", default='httpbin-data/rs_ca_level1.crt',
