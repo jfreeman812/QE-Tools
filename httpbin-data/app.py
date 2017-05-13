@@ -261,7 +261,7 @@ def _cli_args(env_args):
                              help="port to use for etcd cluster hosts")
     etcd_parser.add_argument("--etcd-protocol", default=env_args.etcd_protocol,
                              help="protocol for etcd connection")
-    etcd_parser.add_argument("--etcd-ca-cert-path", default=env_args.etcd_cert_path,
+    etcd_parser.add_argument("--etcd-ca-cert-path", default=env_args.etcd_ca_cert_path,
                              help="path to ca cert")
     etcd_parser.add_argument("--etcd-ttl", default=env_args.etcd_ttl,
                              help="ttl (in seconds) to expire etcd data")
