@@ -3,7 +3,6 @@ import collections
 import os
 from types import SimpleNamespace
 from distutils.util import strtobool
-import sys
 import uuid
 
 import etcd
@@ -243,10 +242,11 @@ app.add_url_rule('/data-check/<group_name>/<data_id>', view_func=data_view,
 
 def _env_args():
     env_args = SimpleNamespace()
-    env_args.etcd_hostnames = os.environ.get('ETCD_HOSTNAMES').split(',')
+    hostnames = os.environ.get('ETCD_HOSTNAMES', '')
+    env_args.etcd_hostnames = hostnames.split(',') if hostnames else None
     env_args.etcd_port = os.environ.get('ETCD_PORT', 443)
     env_args.etcd_protocol = os.environ.get('ETCD_PROTOCOL', 'https')
-    env_args.etcd_ca_cert_path = os.environ.get('ETCD_CA_CERT_PATH', 'httbin-data/rs_ca_level1.crt')
+    env_args.etcd_ca_cert_path = os.environ.get('ETCD_CA_CERT_PATH', 'rs_ca_level1.crt')
     env_args.etcd_ttl = os.environ.get('ETCD_TTL', ETCD_TTL)
     return env_args
 
