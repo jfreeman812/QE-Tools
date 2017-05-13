@@ -239,7 +239,7 @@ app.add_url_rule('/data-check/<group_name>/<data_id>', view_func=data_view,
                  methods=['GET', 'PUT', 'DELETE'])
 
 
-if __name__ == '__main__':
+def setup_data():
     parser = argparse.ArgumentParser()
     parser.add_argument("--port", type=int, default=5000)
     parser.add_argument("--host", default="127.0.0.1")
@@ -258,4 +258,11 @@ if __name__ == '__main__':
     args = parser.parse_args()
     data = _get_handler(args, 'data')
     counter = _get_handler(args, 'counter', default_factory=int)
+    return data, counter
+
+
+data, counter = setup_data()
+
+
+if __name__ == '__main__':
     app.run(port=args.port, host=args.host)
