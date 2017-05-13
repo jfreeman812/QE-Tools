@@ -3,6 +3,7 @@ import collections
 import os
 from types import SimpleNamespace
 from distutils.util import strtobool
+import sys
 import uuid
 
 import etcd
@@ -277,7 +278,7 @@ def setup_data(args):
 env_args = _env_args()
 
 
-if __name__ == '__main__':
+if sys.stdout.isatty():
     args = _cli_args(env_args)
     data, counter = setup_data(args)
     app.run(port=args.port, host=args.host)
