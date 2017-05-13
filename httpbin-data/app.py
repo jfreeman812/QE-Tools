@@ -278,7 +278,7 @@ def setup_data(args):
 env_args = _env_args()
 
 
-if sys.stdout.isatty():
+if __name__ == '__main__':
     args = _cli_args(env_args)
     data, counter = setup_data(args)
     app.run(port=args.port, host=args.host)
