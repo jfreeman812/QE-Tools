@@ -1,6 +1,9 @@
 import argparse
 import collections
+import os
+from types import SimpleNamespace
 from distutils.util import strtobool
+import sys
 import uuid
 
 import etcd
@@ -238,18 +241,46 @@ app.add_url_rule('/data-check/<group_name>/<data_id>', view_func=data_view,
                  methods=['GET', 'PUT', 'DELETE'])
 
 
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--port", type=int, default=5000)
-    parser.add_argument("--host", default="127.0.0.1")
-    parser.add_argument("--etcd-hostnames", nargs="+",
-                        help="FQDNs of etcd cluster nodes. Uses local datastore if none provided.")
-    parser.add_argument("--etcd-port", default=443, help="port to use for etcd cluster hosts")
-    parser.add_argument("--etcd-protocol", default="https", help="protocol for etcd connection")
-    parser.add_argument("--etcd-ca-cert-path", default='httpbin-data/rs_ca_level1.crt',
-                        help="path to ca cert")
-    parser.add_argument("--etcd-ttl", default=ETCD_TTL, help="ttl (in seconds) to expire etcd data")
-    args = parser.parse_args()
+def _env_args():
+    env_args = SimpleNamespace()
+    env_args.etcd_hostnames = os.environ.get('ETCD_HOSTNAMES').split(',')
+    env_args.etcd_port = os.environ.get('ETCD_PORT', 443)
+    env_args.etcd_protocol = os.environ.get('ETCD_PROTOCOL', 'https')
+    env_args.etcd_ca_cert_path = os.environ.get('ETCD_CA_CERT_PATH', 'httbin-data/rs_ca_level1.crt')
+    env_args.etcd_ttl = os.environ.get('ETCD_TTL', ETCD_TTL)
+    return env_args
+
+
+def _cli_args(env_args):
+    etcd_parser = argparse.ArgumentParser()
+    etcd_parser.add_argument("--port", type=int, default=5000)
+    etcd_parser.add_argument("--host", default="127.0.0.1")
+    etcd_parser.add_argument("--etcd-hostnames", nargs="+", default=env_args.etcd_hostnames,
+                             help="FQDNs of etcd cluster nodes. Falls back to local datastore.")
+    etcd_parser.add_argument("--etcd-port", default=env_args.etcd_port,
+                             help="port to use for etcd cluster hosts")
+    etcd_parser.add_argument("--etcd-protocol", default=env_args.etcd_protocol,
+                             help="protocol for etcd connection")
+    etcd_parser.add_argument("--etcd-ca-cert-path", default=env_args.etcd_cert_path,
+                             help="path to ca cert")
+    etcd_parser.add_argument("--etcd-ttl", default=env_args.etcd_ttl,
+                             help="ttl (in seconds) to expire etcd data")
+    args = etcd_parser.parse_args()
+    return args
+
+
+def setup_data(args):
     data = _get_handler(args, 'data')
     counter = _get_handler(args, 'counter', default_factory=int)
+    return data, counter
+
+
+env_args = _env_args()
+
+
+if sys.stdout.isatty():
+    args = _cli_args(env_args)
+    data, counter = setup_data(args)
     app.run(port=args.port, host=args.host)
+else:
+    data, counter = setup_data(env_args)
