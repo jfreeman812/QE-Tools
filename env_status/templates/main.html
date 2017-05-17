@@ -1,0 +1,32 @@
+<!doctype html>
+<head>
+    <title>Testing Status by Environment</title>
+<style>
+table {
+    width: 325px;
+    border: 1px solid black;
+    border-collapse: collapse;
+}
+td, tr, th {
+    border: 1px solid black;
+    border-collapse: collapse;
+}
+</style>
+</head>
+<body>
+<h2>Testing Status by Environment</h2>
+<table id='environments'>
+    <tr><th>Environment</th><th>Status</th></tr>
+{% for env in environments %}
+<tr><td>{{ env.name }}</td>
+<td>
+{% if env.status == True %}
+<span style="color:green; font-weight:bold">Enabled</span> <a href='{{ url_for('disable_env', env_name=env.name) }}'>Disable</a>
+{% else %}
+<a href='{{ url_for('enable_env', env_name=env.name) }}'>Enable</a> <span style="color:red; font-weight:bold">Disabled</span>
+{% endif %}
+</td>
+</tr>
+{% endfor %}
+</table>
+</body>
