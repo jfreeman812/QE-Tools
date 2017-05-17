@@ -1,17 +1,12 @@
+import argparse
+import os
+from types import SimpleNamespace
 from distutils.util import strtobool
 
 import etcd
 from flask import Flask, render_template, url_for, redirect
 
 app = Flask(__name__)
-
-ETCD_HOST_TUPLES = (('etcd01.rba.rackspace.com', 443),
-                    ('etcd02.rba.rackspace.com', 443),
-                    ('etcd03.rba.rackspace.com', 443))
-
-
-etcd_client = etcd.Client(ETCD_HOST_TUPLES, protocol='https',
-                          allow_reconnect=True, ca_cert='rs_ca_level1.crt')
 
 
 def _lowest_level_only(key):
@@ -54,3 +49,52 @@ def enable_env(env_name):
 def disable_env(env_name):
     _set_env_status(env_name, False)
     return redirect(url_for('get_statuses'))
+
+
+def _host_tuples(hosts, port):
+    return tuple(((host, port) for host in hosts))
+
+
+def _env_args():
+    args = SimpleNamespace()
+    hostnames = os.environ.get('ETCD_HOSTNAMES', '')
+    args.etcd_hostnames = hostnames.split(',') if hostnames else None
+    args.etcd_port = os.environ.get('ETCD_PORT', 443)
+    args.etcd_protocol = os.environ.get('ETCD_PROTOCOL', 'https')
+    args.etcd_ca_cert_path = os.environ.get('ETCD_CA_CERT_PATH', 'env_status/rs_ca_level1.crt')
+    return args
+
+
+def _cli_args(env_args):
+    etcd_parser = argparse.ArgumentParser()
+    etcd_parser.add_argument("--port", type=int, default=5000)
+    etcd_parser.add_argument("--host", default="127.0.0.1")
+    etcd_parser.add_argument("--etcd-hostnames", nargs="+", default=env_args.etcd_hostnames,
+                             help="FQDNs of etcd cluster nodes. Falls back to local datastore.")
+    etcd_parser.add_argument("--etcd-port", type=int, default=env_args.etcd_port,
+                             help="port to use for etcd cluster hosts")
+    etcd_parser.add_argument("--etcd-protocol", default=env_args.etcd_protocol,
+                             help="protocol for etcd connection")
+    etcd_parser.add_argument("--etcd-ca-cert-path", default=env_args.etcd_ca_cert_path,
+                             help="path to ca cert")
+    args = etcd_parser.parse_args()
+    return args
+
+
+def _get_etcd_client(args):
+    if not args.etcd_hostnames:
+        raise KeyError('No etcd hostnames provided, can not connect!')
+    etcd_client = etcd.Client(_host_tuples(args.etcd_hostnames, args.etcd_port),
+                              protocol=args.etcd_protocol,
+                              allow_reconnect=True, ca_cert=args.etcd_ca_cert_path)
+    return etcd_client
+
+
+env_args = _env_args()
+
+if __name__ == '__main__':
+    args = _cli_args(env_args)
+    etcd_client = _get_etcd_client(args)
+    app.run(host=args.host, port=args.port)
+else:
+    etcd_client = _get_etcd_client(env_args)
