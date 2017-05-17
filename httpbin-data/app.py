@@ -172,11 +172,11 @@ class CounterAPI(MethodView):
     def put(self, counter_name):
         count = counter.get(counter_name) + 1
         counter.set(counter_name, value=count)
-        error_on_first = strtobool(flask.request.values.get('error_on_first', 'False'))
-        # error_on_first allows support to test RBAN-6974, which requires the
-        # server calling in a callback to get a 409 response on first attempt
-        if error_on_first and count == 1:
-            flask.abort(409)
+        error_on_first = flask.request.values.get('error_on_first', None)
+        # error_on_first allows support to test RBAN-6974, RBAN-6990, and RBAN-7157,
+        # which require the server calling in a callback to get an error response on first attempt
+        if error_on_first and error_on_first.isdigit() and count == 1:
+            flask.abort(int(error_on_first))
         return {counter_name: count}
 
     def delete(self, counter_name):
