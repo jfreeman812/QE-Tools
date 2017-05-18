@@ -81,14 +81,21 @@ class ParseSource(ParseBase):
             if not isinstance(description, (list, tuple)):
                 description = [description]
             self.add_output('.. pull-quote::', line_breaks=2)
-            self.add_output('   {}'.format('\n   '.join(description)),
-                            line_breaks=2)
+            for line in description:
+                self.add_output('    {}'.format(line))
+                # Since behave strips newlines, a reasonable guess must be made
+                # as to when a newline should be re-inserted
+                if line[-1] == '.' or line == description[-1]:
+                    self.blank_line()
 
-    def tags(self, tags):
-        if tags:
+    def tags(self, tags, *parent_objs):
+        parent_with_tags = (x for x in parent_objs if x.tags)
+        if tags or parent_with_tags:
             self.add_output('::', line_breaks=2)
-            self.add_output('   Tagged: {}'.format(', '.join(tags)),
-                            line_breaks=2)
+            tag_str = ', '.join(tags)
+            for obj in parent_with_tags:
+                tag_str += ' (Inherited from {}: {})'.format(obj.keyword, ', '.join(obj.tags))
+            self.add_output('    Tagged: {}'.format(tag_str.strip()), line_breaks=2)
 
     def steps(self, steps):
         for step in steps:
@@ -136,14 +143,13 @@ class ParseSource(ParseBase):
         try:
             feature = behave.parser.parse_file(self.source_path)
             self.section(1, feature)
-            self.tags(feature.tags)
             self.description(feature.description)
             if feature.background:
                 self.section(2, feature.background)
                 self.steps(feature.background.steps)
             for scenario in feature.scenarios:
                 self.section(2, scenario)
-                self.tags(scenario.tags)
+                self.tags(scenario.tags, feature)
                 self.description(scenario.description)
                 self.steps(scenario.steps)
                 self.examples(getattr(scenario, 'examples', []))
