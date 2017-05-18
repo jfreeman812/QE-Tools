@@ -89,10 +89,11 @@ class ParseSource(ParseBase):
                     self.blank_line()
 
     def tags(self, tags, *parent_objs):
-        if tags or any(x.tags for x in parent_objs):
+        parent_with_tags = (x for x in parent_objs if x.tags)
+        if tags or parent_with_tags:
             self.add_output('::', line_breaks=2)
             tag_str = ', '.join(tags)
-            for obj in (x for x in parent_objs if x.tags):
+            for obj in parent_with_tags:
                 tag_str += ' (Inherited from {}: {})'.format(obj.keyword, ', '.join(obj.tags))
             self.add_output('    Tagged: {}'.format(tag_str.strip()), line_breaks=2)
 
