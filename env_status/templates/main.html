@@ -21,9 +21,9 @@ td, tr, th {
 <tr><td>{{ env.name }}</td>
 <td>
 {% if env.status == True %}
-<span style="color:green; font-weight:bold">Enabled</span> <a href='{{ url_for('disable_env', env_name=env.name) }}'>Disable</a>
+<span style="color:green; font-weight:bold">Enabled</span> <a href='{{ url_for('bp.disable_env', env_name=env.name) }}'>Disable</a>
 {% else %}
-<a href='{{ url_for('enable_env', env_name=env.name) }}'>Enable</a> <span style="color:red; font-weight:bold">Disabled</span>
+<a href='{{ url_for('bp.enable_env', env_name=env.name) }}'>Enable</a> <span style="color:red; font-weight:bold">Disabled</span>
 {% endif %}
 </td>
 </tr>
