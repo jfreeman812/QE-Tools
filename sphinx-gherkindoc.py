@@ -88,12 +88,13 @@ class ParseSource(ParseBase):
                 if line[-1] == '.' or line == description[-1]:
                     self.blank_line()
 
-    def tags(self, *tags):
-        tags_list = list(itertools.chain(*tags))
-        if tags_list:
+    def tags(self, tags, *parent_objs):
+        if tags or any(x.tags for x in parent_objs):
             self.add_output('::', line_breaks=2)
-            self.add_output('   Tagged: {}'.format(', '.join(tags_list)),
-                            line_breaks=2)
+            tag_str = ', '.join(tags)
+            for obj in (x for x in parent_objs if x.tags):
+                tag_str += ' (Inherited from {}: {})'.format(obj.keyword, ', '.join(obj.tags))
+            self.add_output('    Tagged: {}'.format(tag_str.strip()), line_breaks=2)
 
     def steps(self, steps):
         for step in steps:
@@ -147,7 +148,7 @@ class ParseSource(ParseBase):
                 self.steps(feature.background.steps)
             for scenario in feature.scenarios:
                 self.section(2, scenario)
-                self.tags(scenario.tags, feature.tags)
+                self.tags(scenario.tags, feature)
                 self.description(scenario.description)
                 self.steps(scenario.steps)
                 self.examples(getattr(scenario, 'examples', []))
