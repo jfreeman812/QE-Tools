@@ -4,9 +4,11 @@ from types import SimpleNamespace
 from distutils.util import strtobool
 
 import etcd
-from flask import Flask, render_template, url_for, redirect
+from flask import Blueprint, Flask, render_template, url_for, redirect
 
 app = Flask(__name__)
+
+bp = Blueprint('bp', __name__, template_folder='templates')
 
 
 def _lowest_level_only(key):
@@ -34,21 +36,21 @@ def _get_all_statuses():
     return [{'name': x, 'status': _get_env_status(x)} for x in sorted(_get_env_list())]
 
 
-@app.route('/')
+@bp.route('/')
 def get_statuses():
     return render_template('main.html', environments=_get_all_statuses())
 
 
-@app.route('/enable/<env_name>')
+@bp.route('/enable/<env_name>')
 def enable_env(env_name):
     _set_env_status(env_name, True)
-    return redirect(url_for('get_statuses'))
+    return redirect(url_for('bp.get_statuses'))
 
 
-@app.route('/disable/<env_name>')
+@bp.route('/disable/<env_name>')
 def disable_env(env_name):
     _set_env_status(env_name, False)
-    return redirect(url_for('get_statuses'))
+    return redirect(url_for('bp.get_statuses'))
 
 
 def _host_tuples(hosts, port):
@@ -58,6 +60,7 @@ def _host_tuples(hosts, port):
 def _env_args():
     args = SimpleNamespace()
     hostnames = os.environ.get('ETCD_HOSTNAMES', '')
+    args.flask_url_prefix = os.environ.get('FLASK_URL_PREFIX', '/environments')
     args.etcd_hostnames = hostnames.split(',') if hostnames else None
     args.etcd_port = os.environ.get('ETCD_PORT', 443)
     args.etcd_protocol = os.environ.get('ETCD_PROTOCOL', 'https')
@@ -69,6 +72,8 @@ def _cli_args(env_args):
     etcd_parser = argparse.ArgumentParser()
     etcd_parser.add_argument("--port", type=int, default=5000)
     etcd_parser.add_argument("--host", default="127.0.0.1")
+    etcd_parser.add_argument('---flask-url-prefix', default=env_args.flask_url_prefix,
+                             help="URL prefix off FQDN where app runs")
     etcd_parser.add_argument("--etcd-hostnames", nargs="+", default=env_args.etcd_hostnames,
                              help="FQDNs of etcd cluster nodes. Falls back to local datastore.")
     etcd_parser.add_argument("--etcd-port", type=int, default=env_args.etcd_port,
@@ -95,6 +100,8 @@ env_args = _env_args()
 if __name__ == '__main__':
     args = _cli_args(env_args)
     etcd_client = _get_etcd_client(args)
+    app.register_blueprint(bp, url_prefix=args.flask_url_prefix)
     app.run(host=args.host, port=args.port)
 else:
     etcd_client = _get_etcd_client(env_args)
+    app.register_blueprint(bp, url_prefix=env_args.flask_url_prefix)
