@@ -97,7 +97,7 @@ class ETCDHandler(object):
         except etcd.EtcdKeyNotFound:
             self.client.write(hierarchy, None, dir=True)
             namespace_data = self.client.read(self.name)
-        return [self._keyname_from_child(child) for child in namespace_data._children]
+        return list(map(self._keyname_from_child, namespace_data._children))
 
 
 class DefaultDictHandler(object):
