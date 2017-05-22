@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import argparse
+from collections import defaultdict
 import fnmatch
 import functools
 import itertools
@@ -12,6 +13,34 @@ import sphinx
 import sphinx.util
 
 SOURCE_PATTERNS = ('*.feature', '*.md', '*.rst')
+
+
+def dict_of_list():
+    return defaultdict(list)
+
+
+# Keep track of each step by name, then file name used in, then list of line numbers in that file.
+step_glossary = defaultdict(dict_of_list)
+
+
+def step_glossary_key(glossary_entry):
+    """Sort by number of files used in, then number of uses, then name."""
+    key, location_dict = glossary_entry
+    uses = sum(map(len, location_dict.values()))
+    return (len(location_dict), uses, key)
+
+
+def write_steps_glossary(filename):
+    if not step_glossary:
+        return
+    with open(filename, 'w') as f:
+        for step_name, locations in sorted(step_glossary.items(), key=step_glossary_key,
+                                           reverse=True):
+            print(step_name, file=f)
+            for location, line_numbers in sorted(locations.items()):
+                line_numbers = map(str, line_numbers)
+                print("    {}:{}".format(location, ', '.join(line_numbers)), file=f)
+            print(file=f)
 
 
 def rst_escape(unescaped):
@@ -99,6 +128,7 @@ class ParseSource(ParseBase):
 
     def steps(self, steps):
         for step in steps:
+            step_glossary['{} {}'.format(step.keyword, step.name)][step.filename].append(step.line)
             bold_step = re.sub(r'(\<.*?\>)', r'**\1**', rst_escape(step.name))
             self.add_output('- {} {}'.format(step.keyword, bold_step))
             if step.table:
@@ -271,6 +301,8 @@ def main():
     parser.add_argument('-s', '--suffix', help='file suffix (default: rst)', default='rst')
     parser.add_argument('-H', '--doc-project', help='Project name (default: root module name)')
     parser.add_argument('-q', '--quiet', action='store_true', help='Silence any output to screen')
+    parser.add_argument('-G', '--step-usage-glossary-name',
+                        help='File name for Glossary of Steps used')
     parser.add_argument('--version', action='store_true', help='Show version information and exit')
     args = parser.parse_args()
     if args.version:
@@ -292,6 +324,8 @@ def main():
         toc_file = ParseTOC(args.toc_name or 'features', args)
         toc_file.parse(feature_set)
         toc_file.write_file()
+    if args.step_usage_glossary_name:
+        write_steps_glossary(args.step_usage_glossary_name)
 
 
 if __name__ == '__main__':
