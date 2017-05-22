@@ -13,6 +13,11 @@ import sphinx
 import sphinx.util
 
 SOURCE_PATTERNS = ('*.feature', '*.md', '*.rst')
+# The csv-table parser for restructuredtext does not allow for escaping so use
+# a unicode character that looks like a quote but will not be in any Gherkin
+QUOTE = '\u201C'
+_escape_mappings = {ord(x): r'\{}'.format(x) for x in ('*', '"', '#')}
+INDENT_DEPTH = 4
 
 
 def dict_of_list():
@@ -45,7 +50,7 @@ def write_steps_glossary(filename):
 
 def rst_escape(unescaped):
     '''Escape reST-ful characters to prevent parsing errors.'''
-    return unescaped.replace('*', '\*')
+    return unescaped.translate(_escape_mappings)
 
 
 def _get_source_files(files):
@@ -62,8 +67,9 @@ class ParseBase(object):
         self.dest_suffix = args.suffix
         self._output = []
 
-    def add_output(self, line, line_breaks=1):
-        self._output.append('{}{}'.format(line, '\n' * line_breaks))
+    def add_output(self, line, line_breaks=1, indent_by=0):
+        self._output.append('{}{}{}'.format(' ' * indent_by, line,
+                                            '\n' * line_breaks))
 
     def blank_line(self):
         self.add_output('')
@@ -102,29 +108,46 @@ class ParseSource(ParseBase):
         self.dest_suffix = self.source_suffix.lstrip(os.extsep)
 
     def section(self, level, obj):
-        section_name = '{}: {}'.format(obj.keyword, obj.name).rstrip(': ')
-        self.create_section(level, section_name)
+        section_name = '{}: {}'.format(obj.keyword, rst_escape(obj.name))
+        self.create_section(level, section_name.rstrip(': '))
 
     def description(self, description):
-        if description:
-            if not isinstance(description, (list, tuple)):
-                description = [description]
-            self.add_output('.. pull-quote::', line_breaks=2)
-            for line in description:
-                self.add_output('    {}'.format(line))
-                # Since behave strips newlines, a reasonable guess must be made
-                # as to when a newline should be re-inserted
-                if line[-1] == '.' or line == description[-1]:
-                    self.blank_line()
+        if not description:
+            return
+        if not isinstance(description, (list, tuple)):
+            description = [description]
+        for line in description:
+            self.add_output(rst_escape(line), indent_by=INDENT_DEPTH)
+            # Since behave strips newlines, a reasonable guess must be made as
+            # to when a newline should be re-inserted
+            if line[-1] == '.' or line == description[-1]:
+                self.blank_line()
+
+    def text(self, text):
+        if not text:
+            return
+        self.blank_line()
+        if not isinstance(text, (list, tuple)):
+            text = [text]
+        self.add_output('::', line_breaks=2)
+        # Since text blocks are treated as raw text, any new lines in the
+        # Gherkin are preserved. To convert the text block into a code block,
+        # each new line must be indented.
+        for line in itertools.chain(*(x.splitlines() for x in text)):
+            self.add_output(rst_escape(line), line_breaks=2,
+                            indent_by=INDENT_DEPTH)
 
     def tags(self, tags, *parent_objs):
-        parent_with_tags = (x for x in parent_objs if x.tags)
-        if tags or parent_with_tags:
-            self.add_output('::', line_breaks=2)
-            tag_str = ', '.join(tags)
-            for obj in parent_with_tags:
-                tag_str += ' (Inherited from {}: {})'.format(obj.keyword, ', '.join(obj.tags))
-            self.add_output('    Tagged: {}'.format(tag_str.strip()), line_breaks=2)
+        parent_with_tags = tuple(x for x in parent_objs if x.tags)
+        if not (tags or parent_with_tags):
+            return
+        self.add_output('.. pull-quote::', line_breaks=2)
+        tag_str = ', '.join(tags)
+        for obj in parent_with_tags:
+            tag_str += ' (Inherited from {}: {})'.format(obj.keyword,
+                                                         ', '.join(obj.tags))
+        self.add_output('*Tagged: {}*'.format(tag_str.strip()), line_breaks=2,
+                        indent_by=INDENT_DEPTH)
 
     def steps(self, steps):
         for step in steps:
@@ -132,34 +155,31 @@ class ParseSource(ParseBase):
             bold_step = re.sub(r'(\<.*?\>)', r'**\1**', rst_escape(step.name))
             self.add_output('- {} {}'.format(step.keyword, bold_step))
             if step.table:
-                self.table(step, inline=True)
+                self.blank_line()
+                self.table(step.table, inline=True)
             if step.text:
-                self.description(step.text)
+                self.text(step.text)
         self.blank_line()
 
-    def examples(self, examples):
-        for example in examples:
-            self.table(example)
+    def examples(self, scenario, feature):
+        for example in getattr(scenario, 'examples', []):
+            self.section(3, example)
+            self.tags(example.tags, scenario, feature)
+            self.table(example.table)
+            self.blank_line()
 
-    def table(self, obj, inline=False):
-        spacing = '   ' if inline else ''
-        if inline:
-            # When inline, add a new line to separate it from the inline
-            # content because it causes problems for the reST converter
-            self.blank_line()
-        else:
-            self.section(3, obj)
+    def table(self, table, inline=False):
+        indent_by = INDENT_DEPTH if inline else 0
         directive = '.. csv-table::'
-        self.add_output('{}{}'.format(spacing, directive))
-        headers = '", "'.join(obj.table.headings)
-        self.add_output('{}   :header: "{}"'.format(spacing, headers),
-                        line_breaks=2)
-        for row in obj.table.rows:
-            row = (rst_escape(item.strip('"')) for item in row)
-            self.add_output('{}   "{}"'.format(spacing, '", "'.join(row)))
-        if not inline:
-            # If not inline, seprarate the directive from additional content
-            self.blank_line()
+        self.add_output(directive, indent_by=indent_by)
+        headers = '", "'.join(table.headings)
+        indent_by += INDENT_DEPTH
+        self.add_output(':header: "{}"'.format(headers), indent_by=indent_by)
+        self.add_output(':quote: {}'.format(QUOTE), line_breaks=2,
+                        indent_by=indent_by)
+        for row in table.rows:
+            row = '{0}, {0}'.format(QUOTE).join(map(rst_escape, row))
+            self.add_output('{0}{1}{0}'.format(QUOTE, row), indent_by=indent_by)
 
     def _set_output(self):
         self.update_suffix()
@@ -182,24 +202,24 @@ class ParseSource(ParseBase):
                 self.tags(scenario.tags, feature)
                 self.description(scenario.description)
                 self.steps(scenario.steps)
-                self.examples(getattr(scenario, 'examples', []))
+                self.examples(scenario, feature)
         except behave.parser.ParserError:
             self._set_output()
 
 
 class ParseTOC(ParseBase):
-    def parse(self, feature_set, section=None):
+    def parse(self, feature_set, section=None, include_subs=False):
         self.create_section(1, section or self.args.doc_project)
         self.add_output('.. toctree::')
-        self.add_output('   :maxdepth: {}'.format(self.args.maxdepth),
-                        line_breaks=2)
+        self.add_output(':maxdepth: {}'.format(self.args.maxdepth),
+                        line_breaks=2, indent_by=INDENT_DEPTH)
         prev_feature = ''
         for feature in sorted(feature_set):
             # look if the feature is a sub-category and, if yes, ignore it
-            if feature.startswith('{}.'.format(prev_feature)):
+            if feature.startswith('{}.'.format(prev_feature)) and not include_subs:
                 continue
             prev_feature = feature
-            self.add_output('   {}'.format(feature))
+            self.add_output(feature, indent_by=INDENT_DEPTH)
 
 
 def _path_to_category(walk_root, root_path):
@@ -322,7 +342,7 @@ def main():
     feature_set = tree.parse()
     if not args.no_toc:
         toc_file = ParseTOC(args.toc_name or 'features', args)
-        toc_file.parse(feature_set)
+        toc_file.parse(feature_set, include_subs=True)
         toc_file.write_file()
     if args.step_usage_glossary_name:
         write_steps_glossary(args.step_usage_glossary_name)
