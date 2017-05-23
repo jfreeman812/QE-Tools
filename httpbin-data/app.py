@@ -180,6 +180,8 @@ class CounterAPI(MethodView):
         return {counter_name: count}
 
     def delete(self, counter_name):
+        if counter_name not in counter.keys():
+            flask.abort(404)
         counter.delete(counter_name)
         return {'message': '{} deleted!'.format(counter_name)}
 
