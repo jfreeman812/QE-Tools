@@ -27,6 +27,10 @@ class GlossaryEntry(object):
         self.step_set = set()
         self.locations = defaultdict(list)
 
+    def add_reference(self, step_name, filename, line_number):
+        self.step_set.add(step_name)
+        self.locations[filename].append(line_number)
+
     def tuple_len(self):
         return (len(self.locations), sum(map(len, self.locations.values())))
 
@@ -165,9 +169,7 @@ class ParseSource(SphinxWriter):
 
     def steps(self, steps):
         for step in steps:
-            gloss_key = step.name.lower()
-            step_glossary[gloss_key].step_set.add(step.name)
-            step_glossary[gloss_key].locations[step.filename].append(step.line)
+            step_glossary[step.name.lower()].add_reference(step.name, step.filename, step.line)
             bold_step = re.sub(r'(\\\<.*?\>)', r'**\1**', rst_escape(step.name))
             self.add_output('- {} {}'.format(step.keyword, bold_step))
             if step.table:
