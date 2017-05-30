@@ -27,15 +27,18 @@ class GlossaryEntry(object):
         self.step_set = set()
         self.locations = defaultdict(list)
 
+    def add_reference(self, step_name, filename, line_number):
+        self.step_set.add(step_name)
+        self.locations[filename].append(line_number)
+
+    def tuple_len(self):
+        return (len(self.locations), sum(map(len, self.locations.values())))
+
     def __gt__(self, other):
-        left = (len(self.locations), sum(map(len, self.locations.values())))
-        right = (len(other.locations), sum(map(len, other.locations.values())))
-        return left > right
+        return self.tuple_len() > other.tuple_len()
 
     def __eq__(self, other):
-        left = (len(self.locations), sum(map(len, self.locations.values())))
-        right = (len(other.locations), sum(map(len, other.locations.values())))
-        return left == right
+        return self.tuple_len() == other.tuple_len()
 
 
 step_glossary = defaultdict(GlossaryEntry)
@@ -46,9 +49,9 @@ def write_steps_glossary(glossary_name, args):
         return
     glossary = SphinxWriter(glossary_name, args)
     glossary.create_section(1, '{} Glossary'.format(args.doc_project))
-    for step_set in (x.step_set for x in sorted(step_glossary.values(), reverse=True)):
-        for term in step_set:
-            glossary.add_output('- :term:`{}`'.format(rst_escape(term, slash_escape=True)))
+    master_step_names = {name for gloss in step_glossary.values() for name in gloss.step_set}
+    for term in sorted(master_step_names):
+        glossary.add_output('- :term:`{}`'.format(rst_escape(term, slash_escape=True)))
     glossary.blank_line()
     glossary.add_output('.. glossary::')
     for entry in sorted(step_glossary.values(), reverse=True):
@@ -166,9 +169,7 @@ class ParseSource(SphinxWriter):
 
     def steps(self, steps):
         for step in steps:
-            gloss_key = '{} {}'.format(step.keyword, step.name.lower())
-            step_glossary[gloss_key].step_set.add(step.name)
-            step_glossary[gloss_key].locations[step.filename].append(step.line)
+            step_glossary[step.name.lower()].add_reference(step.name, step.filename, step.line)
             bold_step = re.sub(r'(\\\<.*?\>)', r'**\1**', rst_escape(step.name))
             self.add_output('- {} {}'.format(step.keyword, bold_step))
             if step.table:
