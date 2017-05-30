@@ -27,15 +27,14 @@ class GlossaryEntry(object):
         self.step_set = set()
         self.locations = defaultdict(list)
 
+    def tuple_len(self):
+        return (len(self.locations), sum(map(len, self.locations.values())))
+
     def __gt__(self, other):
-        left = (len(self.locations), sum(map(len, self.locations.values())))
-        right = (len(other.locations), sum(map(len, other.locations.values())))
-        return left > right
+        return self.tuple_len() > other.tuple_len()
 
     def __eq__(self, other):
-        left = (len(self.locations), sum(map(len, self.locations.values())))
-        right = (len(other.locations), sum(map(len, other.locations.values())))
-        return left == right
+        return self.tuple_len() == other.tuple_len()
 
 
 step_glossary = defaultdict(GlossaryEntry)
