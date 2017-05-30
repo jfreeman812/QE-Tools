@@ -31,7 +31,7 @@ step_glossary = defaultdict(dict_of_list)
 
 
 def step_glossary_key(glossary_entry):
-    """Sort by number of files used in, then number of uses, then name."""
+    '''Sort by number of files used in, then number of uses, then name.'''
     key, location_dict = glossary_entry
     uses = sum(map(len, location_dict.values()))
     return (len(location_dict), uses, key)
