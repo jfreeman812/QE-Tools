@@ -49,9 +49,9 @@ def write_steps_glossary(glossary_name, args):
         return
     glossary = SphinxWriter(glossary_name, args)
     glossary.create_section(1, '{} Glossary'.format(args.doc_project))
-    for step_set in (x.step_set for x in sorted(step_glossary.values(), reverse=True)):
-        for term in step_set:
-            glossary.add_output('- :term:`{}`'.format(rst_escape(term, slash_escape=True)))
+    master_step_names = {name for gloss in step_glossary.values() for name in gloss.step_set}
+    for term in sorted(master_step_names):
+        glossary.add_output('- :term:`{}`'.format(rst_escape(term, slash_escape=True)))
     glossary.blank_line()
     glossary.add_output('.. glossary::')
     for entry in sorted(step_glossary.values(), reverse=True):
