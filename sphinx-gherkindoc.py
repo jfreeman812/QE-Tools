@@ -16,7 +16,9 @@ SOURCE_PATTERNS = ('*.feature', '*.md', '*.rst')
 # The csv-table parser for restructuredtext does not allow for escaping so use
 # a unicode character that looks like a quote but will not be in any Gherkin
 QUOTE = '\u201C'
-_escape_mappings = {ord(x): r'\{}'.format(x) for x in ('*', '"', '#')}
+_escape_mappings = {ord(x): r'\{}'.format(x) for x in ('*', '"', '#', ':', '<', '>')}
+_advanced_escape_mappings = _escape_mappings.copy()
+_advanced_escape_mappings[ord('\\')] = '\\\\\\'
 INDENT_DEPTH = 4
 
 
@@ -35,22 +37,32 @@ def step_glossary_key(glossary_entry):
     return (len(location_dict), uses, key)
 
 
-def write_steps_glossary(filename):
+def sorted_glossary_items():
+    return sorted(step_glossary.items(), key=step_glossary_key, reverse=True)
+
+
+def write_steps_glossary(glossary_name, args):
     if not step_glossary:
         return
-    with open(filename, 'w') as f:
-        for step_name, locations in sorted(step_glossary.items(), key=step_glossary_key,
-                                           reverse=True):
-            print(step_name, file=f)
-            for location, line_numbers in sorted(locations.items()):
-                line_numbers = map(str, line_numbers)
-                print("    {}:{}".format(location, ', '.join(line_numbers)), file=f)
-            print(file=f)
+    glossary = SphinxWriter(glossary_name, args)
+    glossary.create_section(1, '{} Glossary'.format(args.doc_project))
+    for step_name, locations in sorted_glossary_items():
+        glossary.add_output('- :term:`{}`'.format(rst_escape(step_name, slash_escape=True)))
+    glossary.blank_line()
+    glossary.add_output('.. glossary::')
+    for step_name, locations in sorted_glossary_items():
+        glossary.add_output(rst_escape(step_name, slash_escape=True), indent_by=INDENT_DEPTH)
+        for location, line_numbers in sorted(locations.items()):
+            line_numbers = map(str, line_numbers)
+            definition = '| {}: {}'.format(location, ', '.join(line_numbers))
+            glossary.add_output(definition, indent_by=INDENT_DEPTH * 2)
+        glossary.blank_line()
+    glossary.write_file()
 
 
-def rst_escape(unescaped):
+def rst_escape(unescaped, slash_escape=False):
     '''Escape reST-ful characters to prevent parsing errors.'''
-    return unescaped.translate(_escape_mappings)
+    return unescaped.translate(_advanced_escape_mappings if slash_escape else _escape_mappings)
 
 
 def _get_source_files(files):
@@ -58,7 +70,7 @@ def _get_source_files(files):
     return list(itertools.chain(*map(filter_partial, SOURCE_PATTERNS)))
 
 
-class ParseBase(object):
+class SphinxWriter(object):
     sections = ['', '=', '-', '~', '.', '*', '+', '_', '<', '>', '/']
 
     def __init__(self, dest_prefix, args):
@@ -96,7 +108,7 @@ class ParseBase(object):
             f.write(''.join(self._output))
 
 
-class ParseSource(ParseBase):
+class ParseSource(SphinxWriter):
     def __init__(self, source_path, category, args):
         self.source_path = source_path
         source_name = os.path.basename(source_path)
@@ -151,8 +163,9 @@ class ParseSource(ParseBase):
 
     def steps(self, steps):
         for step in steps:
-            step_glossary['{} {}'.format(step.keyword, step.name)][step.filename].append(step.line)
-            bold_step = re.sub(r'(\<.*?\>)', r'**\1**', rst_escape(step.name))
+            gloss_key = '{} {}'.format(step.keyword, step.name.lower())
+            step_glossary[gloss_key][step.filename].append(step.line)
+            bold_step = re.sub(r'(\\\<.*?\>)', r'**\1**', rst_escape(step.name))
             self.add_output('- {} {}'.format(step.keyword, bold_step))
             if step.table:
                 self.blank_line()
@@ -207,7 +220,7 @@ class ParseSource(ParseBase):
             self._set_output()
 
 
-class ParseTOC(ParseBase):
+class ParseTOC(SphinxWriter):
     def parse(self, feature_set, section=None, include_subs=False):
         self.create_section(1, section or self.args.doc_project)
         self.add_output('.. toctree::')
@@ -321,8 +334,8 @@ def main():
     parser.add_argument('-s', '--suffix', help='file suffix (default: rst)', default='rst')
     parser.add_argument('-H', '--doc-project', help='Project name (default: root module name)')
     parser.add_argument('-q', '--quiet', action='store_true', help='Silence any output to screen')
-    parser.add_argument('-G', '--step-usage-glossary-name',
-                        help='File name for Glossary of Steps used')
+    parser.add_argument('-G', '--step-glossary', action='store_true',
+                        help='Include steps glossary')
     parser.add_argument('--version', action='store_true', help='Show version information and exit')
     args = parser.parse_args()
     if args.version:
@@ -344,8 +357,9 @@ def main():
         toc_file = ParseTOC(args.toc_name or 'features', args)
         toc_file.parse(feature_set, include_subs=True)
         toc_file.write_file()
-    if args.step_usage_glossary_name:
-        write_steps_glossary(args.step_usage_glossary_name)
+    if args.step_glossary:
+        glossary_name = '{}_glossary'.format(toc_file.dest_prefix)
+        write_steps_glossary(glossary_name, args)
 
 
 if __name__ == '__main__':
