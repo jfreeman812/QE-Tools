@@ -166,7 +166,7 @@ class ParseSource(SphinxWriter):
 
     def steps(self, steps):
         for step in steps:
-            gloss_key = '{} {}'.format(step.keyword, step.name.lower())
+            gloss_key = step.name.lower()
             step_glossary[gloss_key].step_set.add(step.name)
             step_glossary[gloss_key].locations[step.filename].append(step.line)
             bold_step = re.sub(r'(\\\<.*?\>)', r'**\1**', rst_escape(step.name))
