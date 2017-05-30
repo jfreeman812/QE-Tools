@@ -22,23 +22,23 @@ _advanced_escape_mappings[ord('\\')] = '\\\\\\'
 INDENT_DEPTH = 4
 
 
-def dict_of_list():
-    return defaultdict(list)
+class GlossaryEntry(object):
+    def __init__(self):
+        self.step_set = set()
+        self.locations = defaultdict(list)
+
+    def __gt__(self, other):
+        left = (len(self.locations), sum(map(len, self.locations.values())))
+        right = (len(other.locations), sum(map(len, other.locations.values())))
+        return left > right
+
+    def __eq__(self, other):
+        left = (len(self.locations), sum(map(len, self.locations.values())))
+        right = (len(other.locations), sum(map(len, other.locations.values())))
+        return left == right
 
 
-# Keep track of each step by name, then file name used in, then list of line numbers in that file.
-step_glossary = defaultdict(dict_of_list)
-
-
-def step_glossary_key(glossary_entry):
-    '''Sort by number of files used in, then number of uses, then name.'''
-    key, location_dict = glossary_entry
-    uses = sum(map(len, location_dict.values()))
-    return (len(location_dict), uses, key)
-
-
-def sorted_glossary_items():
-    return sorted(step_glossary.items(), key=step_glossary_key, reverse=True)
+step_glossary = defaultdict(GlossaryEntry)
 
 
 def write_steps_glossary(glossary_name, args):
@@ -46,13 +46,16 @@ def write_steps_glossary(glossary_name, args):
         return
     glossary = SphinxWriter(glossary_name, args)
     glossary.create_section(1, '{} Glossary'.format(args.doc_project))
-    for step_name, locations in sorted_glossary_items():
-        glossary.add_output('- :term:`{}`'.format(rst_escape(step_name, slash_escape=True)))
+    for step_set in (x.step_set for x in sorted(step_glossary.values(), reverse=True)):
+        for term in step_set:
+            glossary.add_output('- :term:`{}`'.format(rst_escape(term, slash_escape=True)))
     glossary.blank_line()
     glossary.add_output('.. glossary::')
-    for step_name, locations in sorted_glossary_items():
-        glossary.add_output(rst_escape(step_name, slash_escape=True), indent_by=INDENT_DEPTH)
-        for location, line_numbers in sorted(locations.items()):
+    for entry in sorted(step_glossary.values(), reverse=True):
+        for term in entry.step_set:
+            glossary.add_output(rst_escape(term, slash_escape=True),
+                                indent_by=INDENT_DEPTH)
+        for location, line_numbers in sorted(entry.locations.items()):
             line_numbers = map(str, line_numbers)
             definition = '| {}: {}'.format(location, ', '.join(line_numbers))
             glossary.add_output(definition, indent_by=INDENT_DEPTH * 2)
@@ -164,7 +167,8 @@ class ParseSource(SphinxWriter):
     def steps(self, steps):
         for step in steps:
             gloss_key = '{} {}'.format(step.keyword, step.name.lower())
-            step_glossary[gloss_key][step.filename].append(step.line)
+            step_glossary[gloss_key].step_set.add(step.name)
+            step_glossary[gloss_key].locations[step.filename].append(step.line)
             bold_step = re.sub(r'(\\\<.*?\>)', r'**\1**', rst_escape(step.name))
             self.add_output('- {} {}'.format(step.keyword, bold_step))
             if step.table:
