@@ -7,6 +7,9 @@ fi
 echo Setting up "$VIRTUAL_ENV"
 echo
 pip install -U flake8
+for extra in "${@:1}"; do
+    pip install -e .[$extra]
+done
 echo
 echo
 echo
