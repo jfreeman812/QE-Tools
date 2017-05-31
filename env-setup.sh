@@ -6,10 +6,7 @@ if [ -z "${VIRTUAL_ENV+x}" ] ; then
 fi
 echo Setting up "$VIRTUAL_ENV"
 echo
-pip install -U flake8 "pbr==1.10.0"
-for extra in "${@:1}"; do
-    pip install -e .[$extra]
-done
+pip install -U flake8
 echo
 echo
 echo
