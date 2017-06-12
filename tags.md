@@ -21,7 +21,7 @@ tag              | purpose          | report as   | description
 -----------      | ---------------- | ----------- | -----------
 @nyi             | status           | pending     | Not Yet Implemented - test is a skeleton for generating data on scoping.
 @not-tested      | status           | pending     | Test is ready, but the service / subject is not ready
-@needs-work      | status           | needs Work  | Test offline; problem with test; QE needs to fix (JIRA ID in comments).
+@needs-work      | status           | needs work  | Test offline; problem with test; QE needs to fix (JIRA ID in comments).
 @quarantined     | status           | quarantined | Test offline; bug in application/system/etc. outside QE's scope to fix. (JIRA ID in comments).
                  | status           | operational | *Default when no tag for this purpose is used.*
 -----------      | ---------------- | ----------- | -----------
