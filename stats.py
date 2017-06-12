@@ -182,7 +182,7 @@ class Scenario:
                      for group_name in group_list}
         # By convention, we take the top level directory to be the product name
         stat_json['product'] = self.location.dir_list[0]
-        stat_json['project'] = 'TBD'
+        stat_json['project'] = 'N/A'
         stat_json['test name'] = self.scenario
         stat_json['interface type'] = args.interface
         stat_json['feature'] = self.feature
@@ -294,7 +294,8 @@ print_error_log()
 all_stats = [scenario.stats() for scenario in sorted(all_scenarios, key=Scenario.sort_key)]
 
 if args.report:
-    fixed_fields = group_list + ['product', 'test name', 'feature', 'feature file']
+    fixed_fields = group_list + ['product', 'project', 'interface type', 'test name',
+                                 'feature', 'feature file']
     category_headers = ['level %d' % (x + 1) for x in range(DIRECTORY_DEPTH_MAX)]
 
     write_csv_row(fixed_fields + category_headers)
