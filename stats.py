@@ -101,7 +101,7 @@ parser.add_argument('-t', '--tagsfile', type=str, default=tags_file_name, metava
                     help="Specify a different tags file to consult")
 parser.add_argument('-e', type=str, default='one_line', choices=error_reporters,
                     help="which format for error logging")
-parser.add_argument('-i', '--interface', type=str, default='API', choices=('API', 'UI'),
+parser.add_argument('-i', '--interface', type=str, default='api', choices=('api', 'ui'),
                     help="which kind of tests are in this report")
 
 args = parser.parse_args()
@@ -182,7 +182,7 @@ class Scenario:
                      for group_name in group_list}
         # By convention, we take the top level directory to be the product name
         stat_json['product'] = self.location.dir_list[0]
-        stat_json['project'] = 'N/A'
+        stat_json['project'] = 'n/a'
         stat_json['test name'] = self.scenario
         stat_json['interface type'] = args.interface
         stat_json['feature'] = self.feature
