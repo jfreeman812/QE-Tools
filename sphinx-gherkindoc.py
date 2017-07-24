@@ -13,6 +13,7 @@ import sphinx
 import sphinx.util
 
 SOURCE_PATTERNS = ('*.feature', '*.md', '*.rst')
+SKIPPED_SET = set()
 # The csv-table parser for restructuredtext does not allow for escaping so use
 # a unicode character that looks like a quote but will not be in any Gherkin
 QUOTE = '\u201C'
@@ -226,8 +227,26 @@ class ParseSource(SphinxWriter):
 
 
 class ParseTOC(SphinxWriter):
+    def parse_with_docs(self, toc_path, section=None):
+        self.create_section(1, section or self.args.doc_project)
+        toc_files = {os.path.join(toc_path, x) for x in
+                     _get_source_files(os.listdir(toc_path))}
+        for file_path in fnmatch.filter(toc_files, '*.rst'):
+            with open(file_path, 'r') as doc_fo:
+                self.add_output(doc_fo.read(), line_breaks=2)
+            SKIPPED_SET.add(file_path)
+            toc_files.remove(file_path)
+        name_partial = functools.partial(str.format, '{}.{}', self.dest_prefix)
+        toc_names = list(map(name_partial, map(os.path.basename, toc_files)))
+        feature_set = set(map(lambda x: os.path.splitext(x)[0], toc_names))
+        self.toctree(feature_set)
+
     def parse(self, feature_set, section=None, include_subs=False):
         self.create_section(1, section or self.args.doc_project)
+        feature_set = set(feature_set)
+        self.toctree(feature_set, include_subs)
+
+    def toctree(self, feature_set, include_subs=False):
         self.add_output('.. toctree::')
         self.add_output(':maxdepth: {}'.format(self.args.maxdepth),
                         line_breaks=2, indent_by=INDENT_DEPTH)
@@ -280,17 +299,10 @@ class RecurseTree(object):
     def _parse_category(self, root, project, category):
         category_name = self._build_name(root, project, category)
         category_path = os.path.join(root, category)
-
-        name_partial = functools.partial(str.format, '{}.{}', category_name)
-        category_files = list(map(name_partial, os.listdir(category_path)))
-
-        category_map = map(lambda x: os.path.splitext(x)[0],
-                           _get_source_files(category_files))
-
         display_name = self._display_name(category_name, root, category)
         # Each parsed category needs a TOC for sphinx so we write it here
         toc_file = ParseTOC(category_name, self.args)
-        toc_file.parse(category_map, section=display_name)
+        toc_file.parse_with_docs(category_path, section=display_name)
         toc_file.write_file()
         return category_name
 
@@ -303,11 +315,11 @@ class RecurseTree(object):
             base_category = _path_to_category(root, self.root_path)
             source_files = _get_source_files(files)
             path_partial = functools.partial(os.path.join, root)
-            source_paths = sorted(filter(self._is_included, map(path_partial,
-                                                                source_files)))
+            source_paths = set(filter(self._is_included, map(path_partial,
+                                                             source_files)))
             for category in self._filter_categories(root, categories):
                 feature_set.add(self._parse_category(root, project, category))
-            for source_path in source_paths:
+            for source_path in sorted(source_paths - SKIPPED_SET):
                 feature = ParseSource(source_path, base_category, self.args)
                 feature.parse()
                 feature.write_file()
