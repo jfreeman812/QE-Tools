@@ -4,9 +4,7 @@
 github_root="git@github.rackspace.com:"
 
 # Create a temporary directory for the repos we want to run the reports on to be cloned into.
-temp_dir=`tempfile`
-rm -f "$temp_dir"
-mkdir "$temp_dir"
+temp_dir=$(mktemp -d)
 
 # Clone the repos into a temp directory.
 for repo_name in "$@"
