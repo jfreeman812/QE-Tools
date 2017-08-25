@@ -13,6 +13,9 @@ INACTIVE_INDICATORS = {'nyi', 'not-tested', 'needs-work'}
 QUARANTINED_STATISTICS_FILE = 'reports/{repo_name}_quarantined_statistics_{time_stamp}.csv'
 QUARANTINED_TESTS_FILE = 'reports/{repo_name}_quarantined_tests_{time_stamp}.csv'
 
+QUARANTINED_STATS_COLS = ['PRODUCT_NAME', 'TOTAL_TEST_COUNT', 'ACTIVE_TEST_COUNT',
+                          'QUARANTINED_TEST_COUNT', 'QUARANTINED_PERCENTAGE', 'ACTIVE_PERCENTAGE']
+
 
 ####################################################################################################
 # Object Definitions
@@ -114,18 +117,13 @@ def _quarantine_stats_report(products, repo_name):
     products.  Products must be provided as an iterable of product objects.
     '''
     def row(product_name, total_count, active_count, quarantined_count):
-        return {
-            'PRODUCT_NAME': _product_name(product_name),
-            'TOTAL_TEST_COUNT': total_count,
-            'ACTIVE_TEST_COUNT': active_count,
-            'QUARANTINED_TEST_COUNT': quarantined_count,
-            'QUARANTINED_PERCENTAGE': _safe_round_percent(quarantined_count, active_count),
-            'ACTIVE_PERCENTAGE': _safe_round_percent(active_count, total_count)
-        }
+        values = [_product_name(product_name), total_count, active_count, quarantined_count,
+                  _safe_round_percent(quarantined_count, active_count),
+                  _safe_round_percent(active_count, total_count)]
+        return {col_name: value for col_name, value in zip(QUARANTINED_STATS_COLS, values)}
 
-    stats_report = CSVLogger(_format_file_name(QUARANTINED_STATISTICS_FILE, repo_name), [
-        'PRODUCT_NAME', 'TOTAL_TEST_COUNT', 'ACTIVE_TEST_COUNT',
-        'QUARANTINED_TEST_COUNT', 'QUARANTINED_PERCENTAGE', 'ACTIVE_PERCENTAGE'])
+    stats_report = CSVLogger(_format_file_name(QUARANTINED_STATISTICS_FILE, repo_name),
+                             QUARANTINED_STATS_COLS)
 
     for product in products:
         stats_report.writerow(row(product.name, product.total_test_count, product.active_test_count,
