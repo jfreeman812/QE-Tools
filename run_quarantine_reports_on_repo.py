@@ -7,6 +7,8 @@ import argparse
 import behave.parser
 import datetime
 
+from shared.utilities import category_or_product_name
+
 
 QUARANTINED_INDICATOR = 'quarantined'
 INACTIVE_INDICATORS = {'nyi', 'not-tested', 'needs-work'}
@@ -118,7 +120,7 @@ def _quarantine_stats_report(products, repo_name):
     products.  Products must be provided as an iterable of product objects.
     '''
     def row(product_name, total_count, active_count, quarantined_count):
-        values = [_product_name(product_name), total_count, active_count, quarantined_count,
+        values = [product_name, total_count, active_count, quarantined_count,
                   _safe_round_percent(quarantined_count, active_count),
                   _safe_round_percent(active_count, total_count)]
         return {col_name: value for col_name, value in zip(QUARANTINED_STATS_COLS, values)}
@@ -145,7 +147,7 @@ def _quarantine_jira_report(products, repo_name):
 
     def row(product_name, feature_name, scenario_name, jira_tag):
         return {col_name: value for col_name, value in zip(QUARANTINED_TESTS_COLS, [
-            jira_tag, _product_name(product_name), feature_name, scenario_name])}
+            jira_tag, product_name, feature_name, scenario_name])}
 
     for product in products:
         for scenario in product.quarantined_scenarios:
@@ -170,13 +172,17 @@ def _add_custom_tags(scenario, feature_tags):
     return scenario
 
 
+def _product_name_for(file_path):
+    return category_or_product_name(*os.path.split(os.path.dirname(file_path)))
+
+
 def _feature_for(file_path):
     '''
     Uses the behave parser to create a Feature object form the file_path supplied, also adding the
     product, and a list of all scenarios with a custom report_tags attributed added to them.
     '''
     feature = behave.parser.parse_file(file_path)
-    feature.product = os.path.basename(os.path.split(file_path)[0])
+    feature.product = _product_name_for(file_path)
     feature.all_scenarios = [_add_custom_tags(s, feature.tags) for s in feature.walk_scenarios()]
     return feature
 
