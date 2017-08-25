@@ -13,9 +13,9 @@ INACTIVE_INDICATORS = {'nyi', 'not-tested', 'needs-work'}
 QUARANTINED_STATISTICS_FILE = 'reports/{repo_name}_quarantined_statistics_{time_stamp}.csv'
 QUARANTINED_TESTS_FILE = 'reports/{repo_name}_quarantined_tests_{time_stamp}.csv'
 
-QUARANTINED_STATS_COLS = ['PRODUCT_NAME', 'TOTAL_TEST_COUNT', 'ACTIVE_TEST_COUNT',
-                          'QUARANTINED_TEST_COUNT', 'QUARANTINED_PERCENTAGE', 'ACTIVE_PERCENTAGE']
-QUARANTINED_TESTS_COLS = ['JIRA', 'PRODUCT_NAME', 'FEATURE_NAME', 'SCENARIO_NAME']
+QUARANTINED_STATS_COLS = ['Product Name', 'Total Tests', 'Active Tests',
+                          'Quarantined Tests', 'Quarantined Percentage', 'Active Percentage']
+QUARANTINED_TESTS_COLS = ['JIRA', 'Product Name', 'Feature Name', 'Scenario Name']
 
 
 ####################################################################################################
