@@ -15,6 +15,7 @@ QUARANTINED_TESTS_FILE = 'reports/{repo_name}_quarantined_tests_{time_stamp}.csv
 
 QUARANTINED_STATS_COLS = ['PRODUCT_NAME', 'TOTAL_TEST_COUNT', 'ACTIVE_TEST_COUNT',
                           'QUARANTINED_TEST_COUNT', 'QUARANTINED_PERCENTAGE', 'ACTIVE_PERCENTAGE']
+QUARANTINED_TESTS_COLS = ['JIRA', 'PRODUCT_NAME', 'FEATURE_NAME', 'SCENARIO_NAME']
 
 
 ####################################################################################################
@@ -139,16 +140,12 @@ def _quarantine_jira_report(products, repo_name):
     Creates a quarantined JIRA report for the repo_name provided by using the provided products.
     Products must be provided as an iterable of product objects.
     '''
-    jira_report = CSVLogger(_format_file_name(QUARANTINED_TESTS_FILE, repo_name), [
-        'JIRA', 'PRODUCT_NAME', 'FEATURE_NAME', 'SCENARIO_NAME'])
+    jira_report = CSVLogger(_format_file_name(QUARANTINED_TESTS_FILE, repo_name),
+                            QUARANTINED_TESTS_COLS)
 
-    def row(product_name, feature_name, scenario_name, jira):
-        return {
-            'PRODUCT_NAME': _product_name(product_name),
-            'FEATURE_NAME': feature_name,
-            'SCENARIO_NAME': scenario_name,
-            'JIRA': jira
-        }
+    def row(product_name, feature_name, scenario_name, jira_tag):
+        return {col_name: value for col_name, value in zip(QUARANTINED_TESTS_COLS, [
+            jira_tag, _product_name(product_name), feature_name, scenario_name])}
 
     for product in products:
         for scenario in product.quarantined_scenarios:
