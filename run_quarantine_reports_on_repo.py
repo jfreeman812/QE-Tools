@@ -170,8 +170,7 @@ def _quarantine_jira_report(products, repo_name):
 
 
 def _add_custom_tags(scenario, feature_tags):
-    # Behave scenarios do not inherit feature tags by default, but for our reporting purposes we
-    # we do.
+    # Behave scenarios do not inherit feature tags by default, but for our reporting purposes we do.
     scenario.report_tags = Tags(feature_tags + scenario.tags)
     return scenario
 
