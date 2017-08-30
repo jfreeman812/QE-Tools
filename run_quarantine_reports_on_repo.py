@@ -72,7 +72,7 @@ class Product(object):
         self.active_test_count += len([s for s in feature.all_scenarios if s.report_tags.is_active])
 
 
-class CSVLogger(object):
+class CSVWriter(object):
     def __init__(self, path, columns):
         self.path = path
         if os.path.exists(self.path):
@@ -123,7 +123,7 @@ def _quarantine_stats_report(products, repo_name):
                   _safe_round_percent(active_count, total_count)]
         return {col_name: value for col_name, value in zip(QUARANTINED_STATS_COLS, values)}
 
-    stats_report = CSVLogger(_format_file_name(QUARANTINED_STATISTICS_FILE, repo_name),
+    stats_report = CSVWriter(_format_file_name(QUARANTINED_STATISTICS_FILE, repo_name),
                              QUARANTINED_STATS_COLS)
 
     for product in products:
@@ -140,7 +140,7 @@ def _quarantine_jira_report(products, repo_name):
     Creates a quarantined JIRA report for the repo_name provided by using the provided products.
     Products must be provided as an iterable of product objects.
     '''
-    jira_report = CSVLogger(_format_file_name(QUARANTINED_TESTS_FILE, repo_name),
+    jira_report = CSVWriter(_format_file_name(QUARANTINED_TESTS_FILE, repo_name),
                             QUARANTINED_TESTS_COLS)
 
     def row(product_name, feature_name, scenario_name, jira_tag):
