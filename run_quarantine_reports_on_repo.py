@@ -7,7 +7,7 @@ import argparse
 import behave.parser
 import datetime
 
-from shared.utilities import category_or_product_name
+from shared.utilities import display_name
 
 
 QUARANTINED_INDICATOR = 'quarantined'
@@ -173,7 +173,7 @@ def _add_custom_tags(scenario, feature_tags):
 
 
 def _product_name_for(file_path):
-    return category_or_product_name(*os.path.split(os.path.dirname(file_path)))
+    return display_name(*os.path.split(os.path.dirname(file_path)))
 
 
 def _feature_for(file_path):

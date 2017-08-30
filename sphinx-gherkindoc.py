@@ -11,7 +11,7 @@ import behave.parser
 import sphinx
 import sphinx.util
 
-from shared.utilities import category_or_product_name
+from shared.utilities import display_name
 
 SOURCE_PATTERNS = ('*.feature', '*.md', '*.rst')
 SKIPPED_SET = set()
@@ -293,10 +293,10 @@ class RecurseTree(object):
     def _parse_category(self, root, project, category):
         category_name = self._build_name(root, project, category)
         category_path = os.path.join(root, category)
-        display_name = category_or_product_name(root, category, category_name=category_name)
+        category_display_name = display_name(root, category, category_name=category_name)
         # Each parsed category needs a TOC for sphinx so we write it here
         toc_file = ParseTOC(category_name, self.args)
-        toc_file.parse_with_docs(category_path, section=display_name)
+        toc_file.parse_with_docs(category_path, section=category_display_name)
         toc_file.write_file()
         return category_name
 
