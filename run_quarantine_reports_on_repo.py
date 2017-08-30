@@ -8,6 +8,7 @@ import behave.parser
 import datetime
 
 from contextlib import closing
+from fnmatch import fnmatch
 
 from shared.utilities import display_name
 
@@ -183,10 +184,6 @@ def _feature_for(file_path):
     return feature
 
 
-def _is_feature_file(name):
-    return name.lower().endswith('.feature')
-
-
 def _products_for_repo(repo_base_dir):
     '''
     Returns an iterable of Product objects created by searching the repo_base_dir for any feature
@@ -197,7 +194,7 @@ def _products_for_repo(repo_base_dir):
     for dir_path, dir_names, file_names in os.walk(repo_base_dir):
         if '.git' in dir_names:
             dir_names.remove('.git')
-        for file_name in filter(_is_feature_file, file_names):
+        for file_name in filter(lambda f: fnmatch(f, '*.feature'), file_names):
             feature = _feature_for(os.path.join(dir_path, file_name))
             if feature.product not in products:
                 products[feature.product] = Product(feature.product)
