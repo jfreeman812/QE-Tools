@@ -95,10 +95,6 @@ class CSVWriter(object):
 ####################################################################################################
 
 
-def _product_name(product_name):
-    return product_name.replace('_', ' ').title()
-
-
 def _format_file_name(file_name, repo_name):
     return file_name.format(repo_name=repo_name,
                             time_stamp='{:%Y_%m_%d_%H_%M_%S_%f}'.format(datetime.datetime.now()))
