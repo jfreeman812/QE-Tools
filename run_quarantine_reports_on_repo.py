@@ -7,6 +7,8 @@ import argparse
 import behave.parser
 import datetime
 
+from contextlib import closing
+
 from shared.utilities import display_name
 
 
@@ -119,16 +121,15 @@ def _quarantine_stats_report(products, repo_name):
                   _safe_round_percent(active_count, total_count)]
         return {col_name: value for col_name, value in zip(QUARANTINED_STATS_COLS, values)}
 
-    stats_report = CSVWriter(_format_file_name(QUARANTINED_STATISTICS_FILE, repo_name),
-                             QUARANTINED_STATS_COLS)
+    with closing(CSVWriter(_format_file_name(QUARANTINED_STATISTICS_FILE, repo_name),
+                           QUARANTINED_STATS_COLS)) as stats_report:
 
-    for product in products:
-        stats_report.writerow(row(product.name, product.total_test_count, product.active_test_count,
-                                  product.quarantined_test_count))
-    stats_report.writerow(row('All Products', _sum_all_of(products, 'total_test_count'),
-                              _sum_all_of(products, 'active_test_count'),
-                              _sum_all_of(products, 'quarantined_test_count')))
-    stats_report.close()
+        for product in products:
+            stats_report.writerow(row(product.name, product.total_test_count,
+                                      product.active_test_count, product.quarantined_test_count))
+        stats_report.writerow(row('All Products', _sum_all_of(products, 'total_test_count'),
+                                  _sum_all_of(products, 'active_test_count'),
+                                  _sum_all_of(products, 'quarantined_test_count')))
 
 
 def _quarantine_jira_report(products, repo_name):
@@ -136,23 +137,24 @@ def _quarantine_jira_report(products, repo_name):
     Creates a quarantined JIRA report for the repo_name provided by using the provided products.
     Products must be provided as an iterable of product objects.
     '''
-    jira_report = CSVWriter(_format_file_name(QUARANTINED_TESTS_FILE, repo_name),
-                            QUARANTINED_TESTS_COLS)
-
     def row(product_name, feature_name, scenario_name, jira_tag):
         return {col_name: value for col_name, value in zip(QUARANTINED_TESTS_COLS, [
             jira_tag, product_name, feature_name, scenario_name])}
 
-    for product in products:
-        for scenario in product.quarantined_scenarios:
-            if not scenario.report_tags.quarantined_jiras:
-                # Scenarios may be quarantined without JIRAs, though this is rare and undesirable.
-                jira_report.writerow(row(product.name, scenario.feature.name, scenario.name, ''))
-            for jira in scenario.report_tags.quarantined_jiras:
-                # If a test has multiple JIRAs associated with the quarantine, that test will be
-                # reported once for each associated JIRA.
-                jira_report.writerow(row(product.name, scenario.feature.name, scenario.name, jira))
-    jira_report.close()
+    with closing(CSVWriter(_format_file_name(QUARANTINED_TESTS_FILE, repo_name),
+                           QUARANTINED_TESTS_COLS)) as jira_report:
+        for product in products:
+            for scenario in product.quarantined_scenarios:
+                if not scenario.report_tags.quarantined_jiras:
+                    warning = 'WARNING: {}, {}, {} Reported quarantined without a JIRA'
+                    print(warning.format(product.name, scenario.feature.name, scenario.name))
+                    jira_report.writerow(row(product.name, scenario.feature.name, scenario.name,
+                                             ''))
+                for jira in scenario.report_tags.quarantined_jiras:
+                    # If a test has multiple JIRAs associated with the quarantine, that test will be
+                    # reported once for each associated JIRA.
+                    jira_report.writerow(row(product.name, scenario.feature.name, scenario.name,
+                                             jira))
 
 
 ####################################################################################################
