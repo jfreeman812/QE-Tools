@@ -184,7 +184,7 @@ def _feature_for(file_path):
     return feature
 
 
-def _products_for_repo(repo_base_dir):
+def _products_for_repo(repo_base_dir, search_hidden=False):
     '''
     Returns an iterable of Product objects created by searching the repo_base_dir for any feature
     files, parsing them into features, and then compiling those features into products.
@@ -192,8 +192,9 @@ def _products_for_repo(repo_base_dir):
 
     products = {}
     for dir_path, dir_names, file_names in os.walk(repo_base_dir):
-        if '.git' in dir_names:
-            dir_names.remove('.git')
+        if not search_hidden:
+            # If items are removed from dir_names, os.walk will not search them.
+            dir_names[:] = [x for x in dir_names if not x.startswith('.')]
         for file_name in filter(lambda f: fnmatch(f, '*.feature'), file_names):
             feature = _feature_for(os.path.join(dir_path, file_name))
             if feature.product not in products:
@@ -207,8 +208,8 @@ def _products_for_repo(repo_base_dir):
 ####################################################################################################
 
 
-def run_reports(repo_base_dir):
-    products = _products_for_repo(repo_base_dir)
+def run_reports(repo_base_dir, **product_kwargs):
+    products = _products_for_repo(repo_base_dir, **product_kwargs)
     repo_name = os.path.basename(os.path.normpath(repo_base_dir))
 
     _quarantine_stats_report(products, repo_name)
@@ -219,5 +220,6 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Test Reports')
     parser.add_argument('repo_base_directory',
                         help='The Absolute directory of the repo to run reports against')
+    parser.add_argument('--search_hidden', action='store_true', help='Include ".hidden" folders')
     args = parser.parse_args()
-    run_reports(args.repo_base_directory)
+    run_reports(args.repo_base_directory, search_hidden=args.search_hidden)
