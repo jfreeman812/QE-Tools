@@ -1,7 +1,6 @@
 #!/bin/sh
 
 # Generate quarantined reports for every repo given as an argument.
-github_root="git@github.rackspace.com:"
 
 # Create a temporary directory for the repos we want to run the reports on to be cloned into.
 temp_dir=$(mktemp -d)
@@ -12,7 +11,7 @@ cd "$temp_dir"
 # Clone the repos into a temp directory.
 for repo_name in "$@"
 do
-    git clone "$github_root"/"$repo_name".git --depth 1
+    git clone "git@github.rackspace.com:"/"$repo_name".git --depth 1
 done
 
 cd "$working_dir"
