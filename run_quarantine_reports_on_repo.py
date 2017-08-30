@@ -32,7 +32,6 @@ class Tags(object):
         # is_quarantined will be set when checking the quarantined_jiras
         self.is_quarantined = False
         self.quarantined_jiras = self._quarantined_jiras()
-        self.is_active = self._is_active()
 
     def _quarantined_jiras(self):
         '''
@@ -51,7 +50,8 @@ class Tags(object):
                 quarantined_jiras.append(tag)
         return quarantined_jiras
 
-    def _is_active(self):
+    @property
+    def is_active(self):
         return not set(self.tags) & INACTIVE_INDICATORS
 
 
