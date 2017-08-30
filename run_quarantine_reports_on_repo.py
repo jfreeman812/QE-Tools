@@ -86,7 +86,7 @@ class CSVWriter(object):
         self.rowwriter.writerow(row)
         self.file.flush()
 
-    def done(self):
+    def close(self):
         self.file.close()
 
 
@@ -132,7 +132,7 @@ def _quarantine_stats_report(products, repo_name):
     stats_report.writerow(row('All Products', _sum_all_of(products, 'total_test_count'),
                               _sum_all_of(products, 'active_test_count'),
                               _sum_all_of(products, 'quarantined_test_count')))
-    stats_report.done()
+    stats_report.close()
 
 
 def _quarantine_jira_report(products, repo_name):
@@ -156,7 +156,7 @@ def _quarantine_jira_report(products, repo_name):
                 # If a test has multiple JIRAs associated with the quarantine, that test will be
                 # reported once for each associated JIRA.
                 jira_report.writerow(row(product.name, scenario.feature.name, scenario.name, jira))
-    jira_report.done()
+    jira_report.close()
 
 
 ####################################################################################################
