@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import os
+import fnmatch
 import re
 import csv
 import argparse
@@ -8,7 +9,6 @@ import behave.parser
 import datetime
 
 from contextlib import closing
-from fnmatch import fnmatch
 
 from shared.utilities import display_name
 
@@ -195,7 +195,7 @@ def _products_for_repo(repo_base_dir, search_hidden=False):
         if not search_hidden:
             # If items are removed from dir_names, os.walk will not search them.
             dir_names[:] = [x for x in dir_names if not x.startswith('.')]
-        for file_name in filter(lambda f: fnmatch(f, '*.feature'), file_names):
+        for file_name in fnmatch.filter(file_names, '*.feature'):
             feature = _feature_for(os.path.join(dir_path, file_name))
             if feature.product not in products:
                 products[feature.product] = Product(feature.product)
