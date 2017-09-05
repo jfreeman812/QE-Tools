@@ -30,7 +30,7 @@ def get_reviews(token):
             secs_since_last_update = (NOW - pull.updated_at).total_seconds()
             if set([pull.user]) != assignees and secs_since_last_update > PULL_WAIT:  # noqa
                 for assignee in assignees:
-                    reviews[assignee].add((pull.title, pull.issue_url))
+                    reviews[assignee].add((pull.title, pull.html_url))
     return reviews
 
 
