@@ -111,26 +111,26 @@ def _safe_round_percent(sub_section, whole):
     return round((sub_section / whole) * 100, 2) if whole else 0.0
 
 
-def _quarantine_stats_report(products, repo_name):
+def _quarantine_stats_report(test_groupings, product_name):
     '''
-    Creates a quarantined statistics report for the repo_name provided by using the provided
-    products.  Products must be provided as an iterable of product objects.
+    Creates a quarantined statistics report for the product_name provided by using the provided
+    TestGroupings.  TestGroupings must be provided as an iterable of TestGrouping objects.
     '''
-    def row(product_name, total_count, active_count, quarantined_count):
-        values = [product_name, total_count, active_count, quarantined_count,
+    def row(grouping_name, total_count, active_count, quarantined_count):
+        values = [grouping_name, total_count, active_count, quarantined_count,
                   _safe_round_percent(quarantined_count, active_count),
                   _safe_round_percent(active_count, total_count)]
         return {col_name: value for col_name, value in zip(QUARANTINED_STATS_COLS, values)}
 
-    with closing(CSVWriter(_format_file_name(QUARANTINED_STATISTICS_FILE, repo_name),
+    with closing(CSVWriter(_format_file_name(QUARANTINED_STATISTICS_FILE, product_name),
                            QUARANTINED_STATS_COLS)) as stats_report:
 
-        for product in products:
-            stats_report.writerow(row(product.name, product.total_test_count,
-                                      product.active_test_count, product.quarantined_test_count))
-        stats_report.writerow(row('All Products', _sum_all_of(products, 'total_test_count'),
-                                  _sum_all_of(products, 'active_test_count'),
-                                  _sum_all_of(products, 'quarantined_test_count')))
+        for group in test_groupings:
+            stats_report.writerow(row(group.name, group.total_test_count,
+                                      group.active_test_count, group.quarantined_test_count))
+        stats_report.writerow(row('Product Total', _sum_all_of(test_groupings, 'total_test_count'),
+                                  _sum_all_of(test_groupings, 'active_test_count'),
+                                  _sum_all_of(test_groupings, 'quarantined_test_count')))
 
 
 def _quarantine_jira_report(products, repo_name):
