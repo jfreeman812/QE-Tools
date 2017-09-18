@@ -133,28 +133,27 @@ def _quarantine_stats_report(test_groupings, product_name):
                                   _sum_all_of(test_groupings, 'quarantined_test_count')))
 
 
-def _quarantine_jira_report(products, repo_name):
+def _quarantine_jira_report(test_groupings, product_name):
     '''
-    Creates a quarantined JIRA report for the repo_name provided by using the provided products.
-    Products must be provided as an iterable of product objects.
+    Creates a quarantined JIRA report for the product_name provided by using the provided
+    TestGroupings.  TestGroupings must be provided as an iterable of TestGrouping objects.
     '''
-    def row(product_name, feature_name, scenario_name, jira_tag):
+    def row(grouping_name, feature_name, scenario_name, jira_tag):
         return {col_name: value for col_name, value in zip(QUARANTINED_TESTS_COLS, [
-            jira_tag, product_name, feature_name, scenario_name])}
+            jira_tag, grouping_name, feature_name, scenario_name])}
 
-    with closing(CSVWriter(_format_file_name(QUARANTINED_TESTS_FILE, repo_name),
+    with closing(CSVWriter(_format_file_name(QUARANTINED_TESTS_FILE, product_name),
                            QUARANTINED_TESTS_COLS)) as jira_report:
-        for product in products:
-            for scenario in product.quarantined_scenarios:
+        for group in test_groupings:
+            for scenario in group.quarantined_scenarios:
                 if not scenario.report_tags.quarantined_jiras:
                     warning = 'WARNING: {}, {}, {} Reported quarantined without a JIRA'
-                    print(warning.format(product.name, scenario.feature.name, scenario.name))
-                    jira_report.writerow(row(product.name, scenario.feature.name, scenario.name,
-                                             ''))
+                    print(warning.format(group.name, scenario.feature.name, scenario.name))
+                    jira_report.writerow(row(group.name, scenario.feature.name, scenario.name, ''))
                 for jira in scenario.report_tags.quarantined_jiras:
                     # If a test has multiple JIRAs associated with the quarantine, that test will be
                     # reported once for each associated JIRA.
-                    jira_report.writerow(row(product.name, scenario.feature.name, scenario.name,
+                    jira_report.writerow(row(group.name, scenario.feature.name, scenario.name,
                                              jira))
 
 
