@@ -18,9 +18,10 @@ INACTIVE_INDICATORS = {'nyi', 'not-tested', 'needs-work'}
 QUARANTINED_STATISTICS_FILE = 'reports/{repo_name}_quarantined_statistics_{time_stamp}.csv'
 QUARANTINED_TESTS_FILE = 'reports/{repo_name}_quarantined_tests_{time_stamp}.csv'
 
-QUARANTINED_STATS_COLS = ['Product Name', 'Total Tests', 'Active Tests',
+QUARANTINED_STATS_COLS = ['Product Name', 'Classification 1', 'Total Tests', 'Active Tests',
                           'Quarantined Tests', 'Quarantined Percentage', 'Active Percentage']
-QUARANTINED_TESTS_COLS = ['JIRA', 'Product Name', 'Feature Name', 'Scenario Name']
+QUARANTINED_TESTS_COLS = ['JIRA', 'Product Name', 'Classification 1', 'Feature Name',
+                          'Scenario Name']
 
 
 ####################################################################################################
@@ -117,7 +118,7 @@ def _quarantine_stats_report(test_groupings, product_name):
     TestGroupings.  TestGroupings must be provided as an iterable of TestGrouping objects.
     '''
     def row(grouping_name, total_count, active_count, quarantined_count):
-        values = [grouping_name, total_count, active_count, quarantined_count,
+        values = [product_name, grouping_name, total_count, active_count, quarantined_count,
                   _safe_round_percent(quarantined_count, active_count),
                   _safe_round_percent(active_count, total_count)]
         return {col_name: value for col_name, value in zip(QUARANTINED_STATS_COLS, values)}
@@ -128,7 +129,7 @@ def _quarantine_stats_report(test_groupings, product_name):
         for group in test_groupings:
             stats_report.writerow(row(group.name, group.total_test_count,
                                       group.active_test_count, group.quarantined_test_count))
-        stats_report.writerow(row('Product Total', _sum_all_of(test_groupings, 'total_test_count'),
+        stats_report.writerow(row('Total', _sum_all_of(test_groupings, 'total_test_count'),
                                   _sum_all_of(test_groupings, 'active_test_count'),
                                   _sum_all_of(test_groupings, 'quarantined_test_count')))
 
@@ -140,7 +141,7 @@ def _quarantine_jira_report(test_groupings, product_name):
     '''
     def row(grouping_name, feature_name, scenario_name, jira_tag):
         return {col_name: value for col_name, value in zip(QUARANTINED_TESTS_COLS, [
-            jira_tag, grouping_name, feature_name, scenario_name])}
+            jira_tag, product_name, grouping_name, feature_name, scenario_name])}
 
     with closing(CSVWriter(_format_file_name(QUARANTINED_TESTS_FILE, product_name),
                            QUARANTINED_TESTS_COLS)) as jira_report:
@@ -207,9 +208,8 @@ def _test_groupings_for_repo(product_base_dir, search_hidden=False):
 ####################################################################################################
 
 
-def run_reports(product_base_dir, **product_kwargs):
+def run_reports(product_base_dir, product_name, **product_kwargs):
     groupings = _test_groupings_for_repo(product_base_dir, **product_kwargs)
-    product_name = os.path.basename(os.path.normpath(product_base_dir))
 
     _quarantine_stats_report(groupings, product_name)
     _quarantine_jira_report(groupings, product_name)
@@ -224,4 +224,4 @@ if __name__ == '__main__':
                         help='The interface type of the product')
     parser.add_argument('--search_hidden', action='store_true', help='Include ".hidden" folders')
     args = parser.parse_args()
-    run_reports(args.product_base_directory, search_hidden=args.search_hidden)
+    run_reports(args.product_base_directory, args.product, search_hidden=args.search_hidden)
