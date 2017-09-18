@@ -218,8 +218,11 @@ def run_reports(repo_base_dir, **product_kwargs):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Test Reports')
-    parser.add_argument('repo_base_directory',
-                        help='The Absolute directory of the repo to run reports against')
+    parser.add_argument('product_base_directory',
+                        help='The Absolute directory of the product to run reports against')
+    parser.add_argument('product', help='The product name for the report')
+    parser.add_argument('interface_type', choices=['api', 'gui'],
+                        help='The interface type of the product')
     parser.add_argument('--search_hidden', action='store_true', help='Include ".hidden" folders')
     args = parser.parse_args()
-    run_reports(args.repo_base_directory, search_hidden=args.search_hidden)
+    run_reports(args.product_base_directory, search_hidden=args.search_hidden)
