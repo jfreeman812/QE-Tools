@@ -67,7 +67,7 @@ class TestGrouping(object):
         self.active_test_count = 0
 
     def add_feature_data(self, feature):
-        ''' Adds a behave features useful data to the product.'''
+        ''' Adds a behave features useful data to the TestGrouping.'''
         self.total_test_count += len(feature.all_scenarios)
         quarantined_scenarios = [s for s in feature.all_scenarios if s.report_tags.is_quarantined]
         self.quarantined_test_count += len(quarantined_scenarios)
