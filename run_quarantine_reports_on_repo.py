@@ -58,7 +58,7 @@ class Tags(object):
         return not set(self.tags) & INACTIVE_INDICATORS
 
 
-class Product(object):
+class TestGrouping(object):
     def __init__(self, name):
         self.name = name
         self.quarantined_scenarios = []
@@ -159,7 +159,7 @@ def _quarantine_jira_report(products, repo_name):
 
 
 ####################################################################################################
-# Product Object Creation
+# TestGrouping Object Creation
 ####################################################################################################
 
 
@@ -169,38 +169,38 @@ def _add_custom_tags(scenario):
     return scenario
 
 
-def _product_name_for(file_path):
+def _grouping_name_for(file_path):
     return display_name(*os.path.split(os.path.dirname(file_path)))
 
 
 def _feature_for(file_path):
     '''
     Uses the behave parser to create a Feature object form the file_path supplied, also adding the
-    product, and a list of all scenarios with a custom report_tags attributed added to them.
+    grouping_name, and a list of all scenarios with a custom report_tags attributed added to them.
     '''
     feature = behave.parser.parse_file(file_path)
-    feature.product = _product_name_for(file_path)
+    feature.grouping_name = _grouping_name_for(file_path)
     feature.all_scenarios = [_add_custom_tags(s) for s in feature.walk_scenarios()]
     return feature
 
 
-def _products_for_repo(repo_base_dir, search_hidden=False):
+def _test_groupings_for_repo(product_base_dir, search_hidden=False):
     '''
-    Returns an iterable of Product objects created by searching the repo_base_dir for any feature
-    files, parsing them into features, and then compiling those features into products.
+    Returns an iterable of TestGrouping objects created by searching the product base dir for any
+    feature files, parsing them into features, and then compiling those features into TestGroupings.
     '''
 
-    products = {}
-    for dir_path, dir_names, file_names in os.walk(repo_base_dir):
+    groupings = {}
+    for dir_path, dir_names, file_names in os.walk(product_base_dir):
         if not search_hidden:
             # If items are removed from dir_names, os.walk will not search them.
             dir_names[:] = [x for x in dir_names if not x.startswith('.')]
         for file_name in fnmatch.filter(file_names, '*.feature'):
             feature = _feature_for(os.path.join(dir_path, file_name))
-            if feature.product not in products:
-                products[feature.product] = Product(feature.product)
-            products[feature.product].add_feature_data(feature)
-    return products.values()
+            if feature.grouping_name not in groupings:
+                groupings[feature.grouping_name] = TestGrouping(feature.grouping_name)
+            groupings[feature.grouping_name].add_feature_data(feature)
+    return groupings.values()
 
 
 ####################################################################################################
@@ -208,12 +208,12 @@ def _products_for_repo(repo_base_dir, search_hidden=False):
 ####################################################################################################
 
 
-def run_reports(repo_base_dir, **product_kwargs):
-    products = _products_for_repo(repo_base_dir, **product_kwargs)
-    repo_name = os.path.basename(os.path.normpath(repo_base_dir))
+def run_reports(product_base_dir, **product_kwargs):
+    groupings = _test_groupings_for_repo(product_base_dir, **product_kwargs)
+    product_name = os.path.basename(os.path.normpath(product_base_dir))
 
-    _quarantine_stats_report(products, repo_name)
-    _quarantine_jira_report(products, repo_name)
+    _quarantine_stats_report(groupings, product_name)
+    _quarantine_jira_report(groupings, product_name)
 
 
 if __name__ == '__main__':
