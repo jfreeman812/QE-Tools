@@ -1,6 +1,8 @@
 import os
 import string
 
+from itertools import chain, repeat, islice
+
 
 def _name_from_file(root, category):
     name_path = os.path.join(root, category, 'display_name.txt')
@@ -17,3 +19,7 @@ def display_name(root, category, category_name=None):
     if category_name:
         category = category_name.split('.')[-1]
     return string.capwords(category.replace('_', ' '))
+
+
+def padded_list(iterable, size, padding=None):
+    return list(islice(chain(iterable, repeat(padding)), size))
