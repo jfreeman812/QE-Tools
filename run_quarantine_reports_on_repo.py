@@ -10,7 +10,7 @@ import datetime
 
 from contextlib import closing
 
-from shared.utilities import display_name
+from shared.utilities import display_name, padded_list
 
 
 QUARANTINED_INDICATOR = 'quarantined'
@@ -18,11 +18,12 @@ INACTIVE_INDICATORS = {'nyi', 'not-tested', 'needs-work'}
 QUARANTINED_STATISTICS_FILE = 'reports/{repo_name}_quarantined_statistics_{time_stamp}.csv'
 QUARANTINED_TESTS_FILE = 'reports/{repo_name}_quarantined_tests_{time_stamp}.csv'
 
-QUARANTINED_STATS_COLS = ['Interface Type', 'Product Name', 'Classification 1', 'Total Tests',
-                          'Active Tests', 'Quarantined Tests', 'Quarantined Percentage',
-                          'Active Percentage']
+QUARANTINED_STATS_COLS = ['Interface Type', 'Product Name', 'Classification 1', 'Classification 2',
+                          'Classification 3', 'Total Tests', 'Active Tests', 'Quarantined Tests',
+                          'Quarantined Percentage', 'Active Percentage']
 QUARANTINED_TESTS_COLS = ['JIRA', 'Interface Type', 'Product Name', 'Classification 1',
-                          'Feature Name', 'Scenario Name']
+                          'Classification 2', 'Classification 3', 'Feature Name', 'Scenario Name']
+MAX_CLASSIFICATIONS = 3
 
 
 ####################################################################################################
@@ -61,8 +62,9 @@ class Tags(object):
 
 
 class TestGrouping(object):
-    def __init__(self, name):
+    def __init__(self, name, classifications):
         self.name = name
+        self.classifications = classifications
         self.quarantined_scenarios = []
         self.total_test_count = 0
         self.quarantined_test_count = 0
@@ -118,9 +120,9 @@ def _quarantine_stats_report(test_groupings, product_name, interface_type):
     Creates a quarantined statistics report for the product_name provided by using the provided
     TestGroupings.  TestGroupings must be provided as an iterable of TestGrouping objects.
     '''
-    def row(grouping_name, total_count, active_count, quarantined_count):
-        values = [interface_type, product_name, grouping_name, total_count, active_count,
-                  quarantined_count,  _safe_round_percent(quarantined_count, active_count),
+    def row(classifications, total_count, active_count, quarantined_count):
+        values = [interface_type, product_name, *classifications, total_count, active_count,
+                  quarantined_count, _safe_round_percent(quarantined_count, active_count),
                   _safe_round_percent(active_count, total_count)]
         return {col_name: value for col_name, value in zip(QUARANTINED_STATS_COLS, values)}
 
@@ -128,9 +130,10 @@ def _quarantine_stats_report(test_groupings, product_name, interface_type):
                            QUARANTINED_STATS_COLS)) as stats_report:
 
         for group in test_groupings:
-            stats_report.writerow(row(group.name, group.total_test_count,
+            stats_report.writerow(row(group.classifications, group.total_test_count,
                                       group.active_test_count, group.quarantined_test_count))
-        stats_report.writerow(row('Total', _sum_all_of(test_groupings, 'total_test_count'),
+        stats_report.writerow(row(padded_list(['Total'], MAX_CLASSIFICATIONS),
+                                  _sum_all_of(test_groupings, 'total_test_count'),
                                   _sum_all_of(test_groupings, 'active_test_count'),
                                   _sum_all_of(test_groupings, 'quarantined_test_count')))
 
@@ -140,9 +143,9 @@ def _quarantine_jira_report(test_groupings, product_name, interface_type):
     Creates a quarantined JIRA report for the product_name provided by using the provided
     TestGroupings.  TestGroupings must be provided as an iterable of TestGrouping objects.
     '''
-    def row(grouping_name, feature_name, scenario_name, jira_tag):
+    def row(classifications, feature_name, scenario_name, jira_tag):
         return {col_name: value for col_name, value in zip(QUARANTINED_TESTS_COLS, [
-            jira_tag, interface_type, product_name, grouping_name, feature_name, scenario_name])}
+            jira_tag, interface_type, product_name, *classifications, feature_name, scenario_name])}
 
     with closing(CSVWriter(_format_file_name(QUARANTINED_TESTS_FILE, product_name),
                            QUARANTINED_TESTS_COLS)) as jira_report:
@@ -151,12 +154,13 @@ def _quarantine_jira_report(test_groupings, product_name, interface_type):
                 if not scenario.report_tags.quarantined_jiras:
                     warning = 'WARNING: {}, {}, {} Reported quarantined without a JIRA'
                     print(warning.format(group.name, scenario.feature.name, scenario.name))
-                    jira_report.writerow(row(group.name, scenario.feature.name, scenario.name, ''))
+                    jira_report.writerow(row(group.classifications, scenario.feature.name,
+                                             scenario.name, ''))
                 for jira in scenario.report_tags.quarantined_jiras:
                     # If a test has multiple JIRAs associated with the quarantine, that test will be
                     # reported once for each associated JIRA.
-                    jira_report.writerow(row(group.name, scenario.feature.name, scenario.name,
-                                             jira))
+                    jira_report.writerow(row(group.classifications, scenario.feature.name,
+                                             scenario.name, jira))
 
 
 ####################################################################################################
@@ -170,17 +174,29 @@ def _add_custom_tags(scenario):
     return scenario
 
 
-def _grouping_name_for(file_path):
-    return display_name(*os.path.split(os.path.dirname(file_path)))
+def _classifications(grouping_name, product_path):
+    '''
+    Returns a padded list of classifications for the grouping_name supplied.  The list is padded for
+    ease of use in reporting, where a certain number of classifications is expected.
+    Classifications are created by splitting the grouping name apart and turning each piece into a
+    display name.  The lowest level of the directory is returned as the first item, and the highest
+    level as the last.
+    Ex:  grouping_name = 'parent_dir/sub_dir/lowest_dir' -> ['lowest_dir', 'sub_dir', 'parent_dir']
+    '''
+    classifications = []
+    for classification in os.path.normpath(grouping_name).split(os.sep):
+        classifications.insert(0, display_name(product_path, classification))
+        product_path = os.path.join(product_path, classification)
+    return padded_list(classifications, MAX_CLASSIFICATIONS)
 
 
-def _feature_for(file_path):
+def _feature_for(file_path, product_path):
     '''
     Uses the behave parser to create a Feature object form the file_path supplied, also adding the
     grouping_name, and a list of all scenarios with a custom report_tags attributed added to them.
     '''
     feature = behave.parser.parse_file(file_path)
-    feature.grouping_name = _grouping_name_for(file_path)
+    feature.grouping_name = os.path.relpath(os.path.dirname(file_path), product_path)
     feature.all_scenarios = [_add_custom_tags(s) for s in feature.walk_scenarios()]
     return feature
 
@@ -197,9 +213,11 @@ def _test_groupings_for_repo(product_base_dir, search_hidden=False):
             # If items are removed from dir_names, os.walk will not search them.
             dir_names[:] = [x for x in dir_names if not x.startswith('.')]
         for file_name in fnmatch.filter(file_names, '*.feature'):
-            feature = _feature_for(os.path.join(dir_path, file_name))
+            feature = _feature_for(os.path.join(dir_path, file_name), product_base_dir)
             if feature.grouping_name not in groupings:
-                groupings[feature.grouping_name] = TestGrouping(feature.grouping_name)
+                classifications = _classifications(feature.grouping_name, product_base_dir)
+                groupings[feature.grouping_name] = TestGrouping(feature.grouping_name,
+                                                                classifications)
             groupings[feature.grouping_name].add_feature_data(feature)
     return groupings.values()
 
