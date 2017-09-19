@@ -227,21 +227,25 @@ def _test_groupings_for_repo(product_base_dir, search_hidden=False):
 ####################################################################################################
 
 
-def run_reports(product_base_dir, *report_args, **product_kwargs):
+def run_reports(repo_base_directory, product_dir, *report_args, **product_kwargs):
+    product_base_dir = os.path.join(repo_base_directory, product_dir)
     groupings = _test_groupings_for_repo(product_base_dir, **product_kwargs)
 
-    _quarantine_stats_report(groupings, *report_args)
-    _quarantine_jira_report(groupings, *report_args)
+    product_name = display_name(*os.path.split(os.path.normpath(product_base_dir)))
+    _quarantine_stats_report(groupings, product_name, *report_args)
+    _quarantine_jira_report(groupings, product_name, *report_args)
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Test Reports')
-    parser.add_argument('product_base_directory',
-                        help='The Absolute directory of the product to run reports against')
-    parser.add_argument('product', help='The product name for the report')
+    parser.add_argument('repo_base_directory',
+                        help='The Absolute directory of the repo to run reports against')
     parser.add_argument('interface_type', choices=['api', 'gui'],
                         help='The interface type of the product')
+    product_help = 'The additional product directory, if not supplied the repo is assumed to be' \
+                   ' the product.'
+    parser.add_argument('-p', '--product', nargs='?', default='', help=product_help)
     parser.add_argument('--search_hidden', action='store_true', help='Include ".hidden" folders')
     args = parser.parse_args()
-    run_reports(args.product_base_directory, args.product, args.interface_type,
+    run_reports(args.repo_base_directory, args.product, args.interface_type,
                 search_hidden=args.search_hidden)
