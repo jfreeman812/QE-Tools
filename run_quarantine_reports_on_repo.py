@@ -185,7 +185,7 @@ def _classifications(grouping_name, product_path):
     '''
     classifications = []
     for classification in os.path.normpath(grouping_name).split(os.sep):
-        classifications.insert(0, display_name(product_path, classification))
+        classifications.append(display_name(product_path, classification))
         product_path = os.path.join(product_path, classification)
     return padded_list(classifications, MAX_CLASSIFICATIONS)
 
