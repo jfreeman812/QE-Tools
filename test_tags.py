@@ -31,21 +31,37 @@ class TestTags(dict):
 
     @staticmethod
     def is_group_name_reportable(group_name):
-        """Should the given group name be part of coverage reports."""
+        '''Should the given group name be part of coverage reports.'''
         return not group_name.startswith('-')
 
     def report_groups(self):
-        """Return the list of group names to be part of coverage reports."""
+        '''Return the list of group names to be part of coverage reports.'''
         return filter(self.is_group_name_reportable, self.groups)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     from pprint import pprint
     tags = TestTags('tags.md')
 
-    pprint(tags.groups)
+    print('Tag groups:')
+    for k, v in sorted(tags.groups.items()):
+        print('Group {} contains: {}'.format(k, ', '.join(v)))
     print()
-    pprint(tags.report_names)
     print()
+    print('How tags are reported:')
+    for k, v in sorted(tags.report_names.items()):
+        group_name = tags[k].purpose
+        if not tags.is_group_name_reportable(group_name):
+            print('{} is not a reported tag (part of {})'.format(k, group_name))
+            continue
+        print("{} is reported as: '{}' (part of {})".format(k, v, group_name))
+    print()
+    print()
+    print('Group Default values:')
+    for k, v in tags.group_default.items():
+        print('Default for {} is: {}'.format(k, v))
+    print()
+    print()
+    print('Tag details:')
     for t in tags.values():
         pprint(t)
