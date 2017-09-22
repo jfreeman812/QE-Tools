@@ -10,7 +10,7 @@ import datetime
 
 from contextlib import closing
 
-from shared.utilities import display_name
+from shared.utilities import display_name, padded_list
 
 
 QUARANTINED_INDICATOR = 'quarantined'
@@ -18,9 +18,12 @@ INACTIVE_INDICATORS = {'nyi', 'not-tested', 'needs-work'}
 QUARANTINED_STATISTICS_FILE = 'reports/{repo_name}_quarantined_statistics_{time_stamp}.csv'
 QUARANTINED_TESTS_FILE = 'reports/{repo_name}_quarantined_tests_{time_stamp}.csv'
 
-QUARANTINED_STATS_COLS = ['Product Name', 'Total Tests', 'Active Tests',
-                          'Quarantined Tests', 'Quarantined Percentage', 'Active Percentage']
-QUARANTINED_TESTS_COLS = ['JIRA', 'Product Name', 'Feature Name', 'Scenario Name']
+QUARANTINED_STATS_COLS = ['Interface Type', 'Product Name', 'Classification 1', 'Classification 2',
+                          'Classification 3', 'Total Tests', 'Active Tests', 'Quarantined Tests',
+                          'Quarantined Percentage', 'Active Percentage']
+QUARANTINED_TESTS_COLS = ['JIRA', 'Interface Type', 'Product Name', 'Classification 1',
+                          'Classification 2', 'Classification 3', 'Feature Name', 'Scenario Name']
+MAX_CLASSIFICATIONS = 3
 
 
 ####################################################################################################
@@ -58,16 +61,17 @@ class Tags(object):
         return not set(self.tags) & INACTIVE_INDICATORS
 
 
-class Product(object):
-    def __init__(self, name):
+class TestGrouping(object):
+    def __init__(self, name, classifications):
         self.name = name
+        self.classifications = classifications
         self.quarantined_scenarios = []
         self.total_test_count = 0
         self.quarantined_test_count = 0
         self.active_test_count = 0
 
     def add_feature_data(self, feature):
-        ''' Adds a behave features useful data to the product.'''
+        ''' Adds a behave features useful data to the TestGrouping.'''
         self.total_test_count += len(feature.all_scenarios)
         quarantined_scenarios = [s for s in feature.all_scenarios if s.report_tags.is_quarantined]
         self.quarantined_test_count += len(quarantined_scenarios)
@@ -111,55 +115,56 @@ def _safe_round_percent(sub_section, whole):
     return round((sub_section / whole) * 100, 2) if whole else 0.0
 
 
-def _quarantine_stats_report(products, repo_name):
+def _quarantine_stats_report(test_groupings, product_name, interface_type):
     '''
-    Creates a quarantined statistics report for the repo_name provided by using the provided
-    products.  Products must be provided as an iterable of product objects.
+    Creates a quarantined statistics report for the product_name provided by using the provided
+    TestGroupings.  TestGroupings must be provided as an iterable of TestGrouping objects.
     '''
-    def row(product_name, total_count, active_count, quarantined_count):
-        values = [product_name, total_count, active_count, quarantined_count,
-                  _safe_round_percent(quarantined_count, active_count),
+    def row(classifications, total_count, active_count, quarantined_count):
+        values = [interface_type, product_name, *classifications, total_count, active_count,
+                  quarantined_count, _safe_round_percent(quarantined_count, active_count),
                   _safe_round_percent(active_count, total_count)]
         return {col_name: value for col_name, value in zip(QUARANTINED_STATS_COLS, values)}
 
-    with closing(CSVWriter(_format_file_name(QUARANTINED_STATISTICS_FILE, repo_name),
+    with closing(CSVWriter(_format_file_name(QUARANTINED_STATISTICS_FILE, product_name),
                            QUARANTINED_STATS_COLS)) as stats_report:
 
-        for product in products:
-            stats_report.writerow(row(product.name, product.total_test_count,
-                                      product.active_test_count, product.quarantined_test_count))
-        stats_report.writerow(row('All Products', _sum_all_of(products, 'total_test_count'),
-                                  _sum_all_of(products, 'active_test_count'),
-                                  _sum_all_of(products, 'quarantined_test_count')))
+        for group in test_groupings:
+            stats_report.writerow(row(group.classifications, group.total_test_count,
+                                      group.active_test_count, group.quarantined_test_count))
+        stats_report.writerow(row(padded_list(['Total'], MAX_CLASSIFICATIONS),
+                                  _sum_all_of(test_groupings, 'total_test_count'),
+                                  _sum_all_of(test_groupings, 'active_test_count'),
+                                  _sum_all_of(test_groupings, 'quarantined_test_count')))
 
 
-def _quarantine_jira_report(products, repo_name):
+def _quarantine_jira_report(test_groupings, product_name, interface_type):
     '''
-    Creates a quarantined JIRA report for the repo_name provided by using the provided products.
-    Products must be provided as an iterable of product objects.
+    Creates a quarantined JIRA report for the product_name provided by using the provided
+    TestGroupings.  TestGroupings must be provided as an iterable of TestGrouping objects.
     '''
-    def row(product_name, feature_name, scenario_name, jira_tag):
+    def row(classifications, feature_name, scenario_name, jira_tag):
         return {col_name: value for col_name, value in zip(QUARANTINED_TESTS_COLS, [
-            jira_tag, product_name, feature_name, scenario_name])}
+            jira_tag, interface_type, product_name, *classifications, feature_name, scenario_name])}
 
-    with closing(CSVWriter(_format_file_name(QUARANTINED_TESTS_FILE, repo_name),
+    with closing(CSVWriter(_format_file_name(QUARANTINED_TESTS_FILE, product_name),
                            QUARANTINED_TESTS_COLS)) as jira_report:
-        for product in products:
-            for scenario in product.quarantined_scenarios:
+        for group in test_groupings:
+            for scenario in group.quarantined_scenarios:
                 if not scenario.report_tags.quarantined_jiras:
                     warning = 'WARNING: {}, {}, {} Reported quarantined without a JIRA'
-                    print(warning.format(product.name, scenario.feature.name, scenario.name))
-                    jira_report.writerow(row(product.name, scenario.feature.name, scenario.name,
-                                             ''))
+                    print(warning.format(group.name, scenario.feature.name, scenario.name))
+                    jira_report.writerow(row(group.classifications, scenario.feature.name,
+                                             scenario.name, ''))
                 for jira in scenario.report_tags.quarantined_jiras:
                     # If a test has multiple JIRAs associated with the quarantine, that test will be
                     # reported once for each associated JIRA.
-                    jira_report.writerow(row(product.name, scenario.feature.name, scenario.name,
-                                             jira))
+                    jira_report.writerow(row(group.classifications, scenario.feature.name,
+                                             scenario.name, jira))
 
 
 ####################################################################################################
-# Product Object Creation
+# TestGrouping Object Creation
 ####################################################################################################
 
 
@@ -169,38 +174,52 @@ def _add_custom_tags(scenario):
     return scenario
 
 
-def _product_name_for(file_path):
-    return display_name(*os.path.split(os.path.dirname(file_path)))
+def _classifications(grouping_name, product_path):
+    '''
+    Returns a padded list of classifications for the grouping_name supplied.  The list is padded for
+    ease of use in reporting, where a certain number of classifications is expected.
+    Classifications are created by splitting the grouping name apart and turning each piece into a
+    display name.  The lowest level of the directory is returned as the first item, and the highest
+    level as the last.
+    Ex:  grouping_name = 'parent_dir/sub_dir/lowest_dir' -> ['lowest_dir', 'sub_dir', 'parent_dir']
+    '''
+    classifications = []
+    for classification in os.path.normpath(grouping_name).split(os.sep):
+        classifications.append(display_name(product_path, classification))
+        product_path = os.path.join(product_path, classification)
+    return padded_list(classifications, MAX_CLASSIFICATIONS)
 
 
-def _feature_for(file_path):
+def _feature_for(file_path, product_path):
     '''
     Uses the behave parser to create a Feature object form the file_path supplied, also adding the
-    product, and a list of all scenarios with a custom report_tags attributed added to them.
+    grouping_name, and a list of all scenarios with a custom report_tags attributed added to them.
     '''
     feature = behave.parser.parse_file(file_path)
-    feature.product = _product_name_for(file_path)
+    feature.grouping_name = os.path.relpath(os.path.dirname(file_path), product_path)
     feature.all_scenarios = [_add_custom_tags(s) for s in feature.walk_scenarios()]
     return feature
 
 
-def _products_for_repo(repo_base_dir, search_hidden=False):
+def _test_groupings_for_repo(product_base_dir, search_hidden=False):
     '''
-    Returns an iterable of Product objects created by searching the repo_base_dir for any feature
-    files, parsing them into features, and then compiling those features into products.
+    Returns an iterable of TestGrouping objects created by searching the product base dir for any
+    feature files, parsing them into features, and then compiling those features into TestGroupings.
     '''
 
-    products = {}
-    for dir_path, dir_names, file_names in os.walk(repo_base_dir):
+    groupings = {}
+    for dir_path, dir_names, file_names in os.walk(product_base_dir):
         if not search_hidden:
             # If items are removed from dir_names, os.walk will not search them.
             dir_names[:] = [x for x in dir_names if not x.startswith('.')]
         for file_name in fnmatch.filter(file_names, '*.feature'):
-            feature = _feature_for(os.path.join(dir_path, file_name))
-            if feature.product not in products:
-                products[feature.product] = Product(feature.product)
-            products[feature.product].add_feature_data(feature)
-    return products.values()
+            feature = _feature_for(os.path.join(dir_path, file_name), product_base_dir)
+            if feature.grouping_name not in groupings:
+                classifications = _classifications(feature.grouping_name, product_base_dir)
+                groupings[feature.grouping_name] = TestGrouping(feature.grouping_name,
+                                                                classifications)
+            groupings[feature.grouping_name].add_feature_data(feature)
+    return groupings.values()
 
 
 ####################################################################################################
@@ -208,18 +227,25 @@ def _products_for_repo(repo_base_dir, search_hidden=False):
 ####################################################################################################
 
 
-def run_reports(repo_base_dir, **product_kwargs):
-    products = _products_for_repo(repo_base_dir, **product_kwargs)
-    repo_name = os.path.basename(os.path.normpath(repo_base_dir))
+def run_reports(repo_base_directory, product_dir, *report_args, **product_kwargs):
+    product_base_dir = os.path.join(repo_base_directory, product_dir)
+    groupings = _test_groupings_for_repo(product_base_dir, **product_kwargs)
 
-    _quarantine_stats_report(products, repo_name)
-    _quarantine_jira_report(products, repo_name)
+    product_name = display_name(*os.path.split(os.path.normpath(product_base_dir)))
+    _quarantine_stats_report(groupings, product_name, *report_args)
+    _quarantine_jira_report(groupings, product_name, *report_args)
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Test Reports')
     parser.add_argument('repo_base_directory',
                         help='The Absolute directory of the repo to run reports against')
+    parser.add_argument('interface_type', choices=['api', 'gui'],
+                        help='The interface type of the product')
+    product_help = 'The additional product directory, if not supplied the repo is assumed to be' \
+                   ' the product.'
+    parser.add_argument('-p', '--product', nargs='?', default='', help=product_help)
     parser.add_argument('--search_hidden', action='store_true', help='Include ".hidden" folders')
     args = parser.parse_args()
-    run_reports(args.repo_base_directory, search_hidden=args.search_hidden)
+    run_reports(args.repo_base_directory, args.product, args.interface_type,
+                search_hidden=args.search_hidden)
