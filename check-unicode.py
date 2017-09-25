@@ -1,12 +1,13 @@
 #!/usr/bin/env python
 
-"""
+'''
 A very simple script that will check over our "source" files to see if
 there any lines which will fail Unicode->ASCII conversion which happens
 as part of iterating over file lines.
-"""
+'''
 
 import os
+
 
 def check_file(dir_path, file_name):
     full_path_file_name = os.path.join(dir_path, file_name)
@@ -21,10 +22,13 @@ def check_file(dir_path, file_name):
             print(ude)
             print()
 
+
 extensions_to_check = ['.feature', '.rb', '.py']
+
 
 def should_check(file_name):
     return any(map(file_name.lower().endswith, extensions_to_check))
+
 
 for dir_path, dir_names, file_names in os.walk(os.curdir):
     if '.git' in dir_names:
