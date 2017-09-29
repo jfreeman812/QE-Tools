@@ -20,7 +20,7 @@ cd "$working_dir"
 # Process the reports for the repo.
 for repo_dir in "$temp_dir"/*
 do
-    ./run_quarantine_reports_on_repo.py "$repo_dir" "$@"
+    ./run_test_reports_on_repo.py "$repo_dir" "$@"
 done
 
 # Cleanup the temp directory

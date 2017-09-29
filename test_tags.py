@@ -5,7 +5,7 @@ Tag = namedtuple('Tag', ['tag', 'purpose', 'report_as', 'description'])
 
 
 class TestTags(dict):
-    def __init__(self, file_name):
+    def __init__(self, file_name, strip_at=False):
         assert os.path.exists(file_name), \
             'Missing tag markdown file at %s' % file_name
 
@@ -14,6 +14,8 @@ class TestTags(dict):
         self.group_default = dict()
 
         text = open(file_name, 'r').read()
+        if strip_at:
+            text = text.replace('@', '')
         data = text.split('\n---', 1)[1]
         for row in data.splitlines()[1:]:
             if row.count('|'):
