@@ -38,6 +38,8 @@ def get_reviews(token, organization, pr_age, name_filter=''):
             if not assignees:
                 continue
             secs_since_last_update = (NOW - pull.updated_at).total_seconds()
+            # Check the assignee list and ensure it is not solely the author. In the case of
+            # ambiguity, err on the side of caution and alert all parties involved.
             if {pull.user} != assignees and secs_since_last_update > pr_age:
                 for assignee in assignees:
                     reviews[assignee].add((pull.title, pull.html_url))
