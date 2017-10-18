@@ -30,7 +30,7 @@ def get_reviews(token, organization, pr_age, name_filter=''):
     gh = github3.login(token=token, url='https://github.rackspace.com')
     org = gh.organization(organization)
     repos = set()
-    for team in (x for x in org.iter_teams() if x.name.startswith('')):
+    for team in (x for x in org.iter_teams() if x.name.startswith(name_filter)):
         repos.update(team.iter_repos())
     for repo in repos:
         for pull in (x for x in repo.iter_pulls() if x.state == 'open'):
