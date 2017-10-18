@@ -70,18 +70,18 @@ def _env_args():
 
 def _cli_args(env_args):
     etcd_parser = argparse.ArgumentParser()
-    etcd_parser.add_argument("--port", type=int, default=5000)
-    etcd_parser.add_argument("--host", default="127.0.0.1")
+    etcd_parser.add_argument('--port', type=int, default=5000)
+    etcd_parser.add_argument('--host', default='127.0.0.1')
     etcd_parser.add_argument('---flask-url-prefix', default=env_args.flask_url_prefix,
-                             help="URL prefix off FQDN where app runs")
-    etcd_parser.add_argument("--etcd-hostnames", nargs="+", default=env_args.etcd_hostnames,
-                             help="FQDNs of etcd cluster nodes. Falls back to local datastore.")
-    etcd_parser.add_argument("--etcd-port", type=int, default=env_args.etcd_port,
-                             help="port to use for etcd cluster hosts")
-    etcd_parser.add_argument("--etcd-protocol", default=env_args.etcd_protocol,
-                             help="protocol for etcd connection")
-    etcd_parser.add_argument("--etcd-ca-cert-path", default=env_args.etcd_ca_cert_path,
-                             help="path to ca cert")
+                             help='URL prefix off FQDN where app runs')
+    etcd_parser.add_argument('--etcd-hostnames', nargs='+', default=env_args.etcd_hostnames,
+                             help='FQDNs of etcd cluster nodes. Falls back to local datastore.')
+    etcd_parser.add_argument('--etcd-port', type=int, default=env_args.etcd_port,
+                             help='port to use for etcd cluster hosts')
+    etcd_parser.add_argument('--etcd-protocol', default=env_args.etcd_protocol,
+                             help='protocol for etcd connection')
+    etcd_parser.add_argument('--etcd-ca-cert-path', default=env_args.etcd_ca_cert_path,
+                             help='path to ca cert')
     args = etcd_parser.parse_args()
     return args
 

@@ -74,7 +74,7 @@ def _etcd_config(host, all_nodes):
             'NAME': {'value': _root_name_from_fqdn(host)},
             'DATA_DIR': {'value': '/var/lib/etcd/default.etcd'},
             'SNAPSHOT_COUNTER': {'value': '10000', 'disabled': True},
-            'HEARTBEAT_INTERVAL': {'value': "100", 'disabled': True},
+            'HEARTBEAT_INTERVAL': {'value': '100', 'disabled': True},
             'ELECTION_TIMEOUT': {'value': '1000', 'disabled': True},
             'LISTEN_PEER_URLS': {'value': 'http://0.0.0.0:2380'},
             'LISTEN_CLIENT_URLS': {'value': 'https://0.0.0.0:2379'},
@@ -156,9 +156,9 @@ def write_etcd_app_config(host, peers, etcd_version, config_data):
     etcd_config = _etcd_config(host, all_nodes)
     etcd_config.update(config_data)
     etcd_version = etcd_version[1:]
-    link = "https://coreos.com/etcd/docs/{}/op-guide/configuration.html".format(etcd_version)
+    link = 'https://coreos.com/etcd/docs/{}/op-guide/configuration.html'.format(etcd_version)
     with open('/etc/etcd/etcd.conf', 'w') as f:
-        f.write("# For additional information, reference online configs docs:\n")
+        f.write('# For additional information, reference online configs docs:\n')
         f.write('# {}\n'.format(link))
         for section in etcd_config.keys():
             f.write('#[{}]\n'.format(section))
