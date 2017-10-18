@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""
+'''
 Scan the current directory tree for Gherkin feature files and check their
 use of tags against the given tags file. Tags are used to generate a test
 coverage report as well.
@@ -7,7 +7,7 @@ coverage report as well.
 NOTES: The --interface command line switch is because we anticipate that
        all tests in one place are of one type. If we find a case where
        API and UI tests are in the same tree we will have to revisit this.
-"""
+'''
 
 import argparse
 import csv
@@ -62,19 +62,19 @@ def print_error_log_csv():
 def print_error_log_one_line():
     for (msg, location) in error_log:
         if location is not None:
-            msg += ", at: {}".format(location)
+            msg += ', at: {}'.format(location)
         print(msg)
 
 
 def print_error_log_grep():
     for (msg, location) in error_log:
         if location is not None:
-            msg = "{}:{}:{}".format(location.full_path(), location.line_no,
+            msg = '{}:{}:{}'.format(location.full_path(), location.line_no,
                                     msg)
         print(msg)
 
 
-error_reporter_prefix = "print_error_log_"
+error_reporter_prefix = 'print_error_log_'
 
 
 def is_error_reporter_name(x):
@@ -98,11 +98,11 @@ parser.add_argument('-r', '--report', default=False, action='store_true',
 parser.add_argument('--json', default=False, action='store_true',
                     help='generate/print a JSON coverage report')
 parser.add_argument('-t', '--tagsfile', type=str, default=tags_file_name, metavar='FILE',
-                    help="Specify a different tags file to consult")
+                    help='Specify a different tags file to consult')
 parser.add_argument('-e', type=str, default='one_line', choices=error_reporters,
-                    help="which format for error logging")
+                    help='which format for error logging')
 parser.add_argument('-i', '--interface', type=str, default='api', choices=('api', 'ui'),
-                    help="which kind of tests are in this report")
+                    help='which kind of tests are in this report')
 
 args = parser.parse_args()
 
@@ -118,7 +118,7 @@ class Location(namedtuple('Location', ['dir_list', 'file_name', 'line_no'])):
         return os.path.join(*(self.dir_list + [self.file_name]))
 
     def __str__(self):
-        return "%s, line: %s" % (self.full_path(), self.line_no)
+        return '%s, line: %s' % (self.full_path(), self.line_no)
 
 
 _allow_unknown_tags = set('@quarantined @nyi @needs-work'.split())
@@ -131,7 +131,7 @@ def tags_from(line, location):
     tags = set(line.split())
     bad_tags = tags - master_tags
     if (not args.legacy) and bad_tags and (not _allow_unknown_tags & tags):
-        error("Unsupported tags: {}".format(", ".join(bad_tags)), location)
+        error('Unsupported tags: {}'.format(', '.join(bad_tags)), location)
     return tags
 
 
@@ -139,12 +139,12 @@ def one_tag_from(have_tags, group, location):
     tag_set = tags.groups[group]
     targets = have_tags & tag_set
     if len(targets) > 1:
-        error("Mutually exclusive tags: {}".format(" ".join(targets)),
+        error('Mutually exclusive tags: {}'.format(' '.join(targets)),
               location)
     if not targets:
         return tags.group_default.get(group)
     tag = targets.pop()
-    return tags.report_names.get(tag, "UNKNOWN TAG: %s" % (tag,))
+    return tags.report_names.get(tag, 'UNKNOWN TAG: %s' % (tag,))
 
 
 def summary_from(line):
@@ -172,9 +172,9 @@ class Scenario:
         for group in tags.groups:
             report_as = one_tag_from(self.tags, group, self.location)
             if report_as is None:
-                report_as = "MISSING TAG FOR %s" % (group,)
+                report_as = 'MISSING TAG FOR %s' % (group,)
                 error("Missing a tag for group '{}' ({})".format(
-                    group, " ".join(tags.groups[group])), self.location)
+                    group, ' '.join(tags.groups[group])), self.location)
             self.group[group] = report_as
 
     def stats(self):
@@ -202,12 +202,12 @@ class ScenarioOutline(Scenario):
 
     def add_example(self, columns, location):
         if len(columns) < MIN_EXAMPLE_TABLE_COLUMNS:
-            error("Examples table entry has too few columns", location)
+            error('Examples table entry has too few columns', location)
             return
         if not self.seen_examples_table_header_row:
             self.seen_examples_table_header_row = True
             return
-        row_name = "%s (%s)" % (self.scenario, columns[1].strip())
+        row_name = '%s (%s)' % (self.scenario, columns[1].strip())
         all_scenarios.append(Scenario(row_name, self.feature, location,
                                       self.tags | self.example_tags))
 
@@ -219,7 +219,7 @@ def process_feature_file(dir_path, file_name):
     if dir_list and dir_list[0].lower() == 'features':
         dir_list = dir_list[1:]
     if len(dir_list) > DIRECTORY_DEPTH_MAX:
-        error("Too many nested directories for feature file: {} -> {}".format(
+        error('Too many nested directories for feature file: {} -> {}'.format(
               file_name, dir_path), None)
     feature_tags = set()
     tags = set()
@@ -251,7 +251,7 @@ def process_feature_file(dir_path, file_name):
                 tags = set()
             elif line.lower().startswith('scenario:'):
                 if feature_name is None:
-                    error("Scenario occurred before/without Feature", here)
+                    error('Scenario occurred before/without Feature', here)
                 all_scenarios.append(Scenario(summary_from(line),
                                               feature_name, here,
                                               tags | feature_tags))
@@ -259,7 +259,7 @@ def process_feature_file(dir_path, file_name):
                 tags = set()
             elif line.lower().startswith('scenario outline:'):
                 if feature_name is None:
-                    error("Scenario Outline occurred before/without Feature",
+                    error('Scenario Outline occurred before/without Feature',
                           here)
                 scenario_outline = ScenarioOutline(summary_from(line),
                                                    feature_name, here,
@@ -267,7 +267,7 @@ def process_feature_file(dir_path, file_name):
                 tags = set()
             elif line.lower().startswith('examples:'):
                 if scenario_outline is None:
-                    error("Examples outside of a Scenario Outline", here)
+                    error('Examples outside of a Scenario Outline', here)
                     continue
                 scenario_outline.new_example_table(tags)
                 in_examples = True

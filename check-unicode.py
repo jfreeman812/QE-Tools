@@ -17,7 +17,7 @@ def check_file(dir_path, file_name):
             for line_no, line in enumerate(feature_file, 1):
                 last_line_number = line_no   # Otherwise line_no is not visible after the loop
         except UnicodeDecodeError as ude:
-            print("While processing line {} of {}, got a unicode failure:".format(
+            print('While processing line {} of {}, got a unicode failure:'.format(
                 last_line_number + 1, full_path_file_name))
             print(ude)
             print()
