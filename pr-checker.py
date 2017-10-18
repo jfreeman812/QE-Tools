@@ -1,11 +1,21 @@
 #!/usr/bin/env python
+'''
+Overdue PR Checker
+
+This PR checker is designed to signal a reviewer if a PR has not been reviewed within a given time
+period. This checker works by getting the repositories associated with a provided organization and
+(optionally) filtering by team name. This is done instead of providing a list of repositories to
+the script because when repository is created and associated with a team, no changes would need to
+be made to the arguments provided to this script.
+'''
+
+import argparse
 import collections
 import datetime
 import email.mime.multipart
 import email.mime.text
 import re
 import smtplib
-import sys
 
 import github3
 import github3.users
@@ -15,12 +25,12 @@ NOW = datetime.datetime.now().replace(tzinfo=datetime.timezone.utc)
 PULL_WAIT = 20 * 60 * 60
 
 
-def get_reviews(token):
+def get_reviews(token, organization, pr_age, name_filter=''):
     reviews = collections.defaultdict(set)
     gh = github3.login(token=token, url='https://github.rackspace.com')
-    org = gh.organization('AutomationServices')
+    org = gh.organization(organization)
     repos = set()
-    for team in (x for x in org.iter_teams() if x.name.startswith('rba-qe')):
+    for team in (x for x in org.iter_teams() if x.name.startswith('')):
         repos.update(team.iter_repos())
     for repo in repos:
         for pull in (x for x in repo.iter_pulls() if x.state == 'open'):
@@ -28,7 +38,7 @@ def get_reviews(token):
             if not assignees:
                 continue
             secs_since_last_update = (NOW - pull.updated_at).total_seconds()
-            if set([pull.user]) != assignees and secs_since_last_update > PULL_WAIT:  # noqa
+            if set([pull.user]) != assignees and secs_since_last_update > pr_age:
                 for assignee in assignees:
                     reviews[assignee].add((pull.title, pull.html_url))
     return reviews
@@ -37,7 +47,7 @@ def get_reviews(token):
 def send_email(user, review_list):
     msg = email.mime.multipart.MIMEMultipart('alternative')
     msg['Subject'] = 'Pull Requests Needing Attention'
-    msg['From'] = 'rba-qe@rackspace.com'
+    msg['From'] = 'pr-checker@rackspace.com'
     # Get Name and address from Hozer, since it's not in GitHub
     req = requests.get('https://finder.rackspace.net/mini.php?q={}'.format(user))
     for line in req.text.splitlines():
@@ -59,10 +69,18 @@ def send_email(user, review_list):
     s.quit()
 
 
-def main(token):
-    for user, review_list in get_reviews(token).items():
+def main(token, organization, name_filter, pr_age):
+    for user, review_list in get_reviews(token, organization, pr_age,
+                                         name_filter=name_filter).items():
         send_email(user, review_list)
 
 
 if __name__ == '__main__':
-    main(sys.argv[1])
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--name_filter', help='Filter for team names, if needed')
+    parser.add_argument('token', help='GitHub Token')
+    parser.add_argument('organization', help='GitHub Organization')
+    wait_help = 'Time, in seconds, to check the PR age against'
+    parser.add_argument('pr_age', default=PULL_WAIT, help=wait_help)
+    args = parser.parse_args()
+    main(args.token, args.organization, args.name_filter, args.pr_age)
