@@ -38,7 +38,7 @@ def get_reviews(token, organization, pr_age, name_filter=''):
             if not assignees:
                 continue
             secs_since_last_update = (NOW - pull.updated_at).total_seconds()
-            if set([pull.user]) != assignees and secs_since_last_update > pr_age:
+            if {pull.user} != assignees and secs_since_last_update > pr_age:
                 for assignee in assignees:
                     reviews[assignee].add((pull.title, pull.html_url))
     return reviews
