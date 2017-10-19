@@ -79,10 +79,10 @@ def main(token, organization, name_filter, pr_age):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--name-filter', help='Filter for team names, if needed')
+    parser.add_argument('--name-filter', help='Filter for team names, if needed', default='')
     parser.add_argument('token', help='GitHub Token')
     parser.add_argument('organization', help='GitHub Organization')
     wait_help = 'Time, in seconds, to check the PR age against'
-    parser.add_argument('pr-age', default=PULL_WAIT, help=wait_help)
+    parser.add_argument('--pr-age', default=PULL_WAIT, help=wait_help)
     args = parser.parse_args()
     main(args.token, args.organization, args.name_filter, args.pr_age)
