@@ -1,10 +1,10 @@
 # QE-Tools
-To hold tools and configurations used by the AF and ARIC QE Teams
+A collection of tools designed for use in the larger Rackspace QE Organization.
 
-
-* tags.md - describes the tagging we use for controlling our Gherkin tests and for generating test coverage reports.
-* reporting.md - describes how the pieces fit together and what conventions we use on top of the tooling.
-* stats.py - generate a Gherkin-based test coverage report.
-* checkboxestiming.py - a quick and dirty script that read the JSON of an executed CheckBoxes process and look-for/report-on slow APIs.
-* test_tags.py - helper for reading the tags.md file in Python.
-* tox.ini - initial stab at tox based testing.
+| File Name        | Description                                                                        |
+|------------------|------------------------------------------------------------------------------------|
+| check-unicode.py | Checks a directory structure for Unicode errors in Python, Ruby, and Feature files |
+| pr-checker.py    | Checks a GitHub organization for PRs that have not been updated in a given time    |
+| etcd/            | A collection of tools for using etcd                                               |
+| httpbin-data/    | An enhancement to httpbin that provides data-persistent endpoints                  |
+| reporting/       | A collection of tools for QE-related reporting                                     |
