@@ -18,17 +18,11 @@ from shared.utilities import display_name, padded_list
 QUARANTINED_INDICATOR = 'quarantined'
 
 TAG_DEFINITION_FILE = 'tags.md'
-QUARANTINED_STATISTICS_FILE = 'reports/{repo_name}_quarantined_statistics_{time_stamp}.csv'
-QUARANTINED_TESTS_FILE = 'reports/{repo_name}_quarantined_tests_{time_stamp}.csv'
-COVERAGE_REPORT_CSV = 'reports/{repo_name}_coverage_report_{time_stamp}.csv'
-COVERAGE_REPORT_JSON = 'reports/{repo_name}_coverage_report_{time_stamp}.json'
+QUARANTINED_STATISTICS_FILE = 'reports/{repo_name}_quarantined_statistics_{time_stamp}.{ext}'
+COVERAGE_REPORT_FILE = 'reports/{repo_name}_coverage_report_{time_stamp}.{ext}'
 
-QUARANTINED_STATS_COLS = ['Interface Type', 'Product Name', 'Project', 'Category 1', 'Category 2',
-                          'Category 3', 'Total Tests', 'Active Tests', 'Quarantined Tests',
-                          'Quarantined Percentage', 'Active Percentage']
-QUARANTINED_TESTS_COLS = ['JIRA', 'Interface Type', 'Product Name', 'Project', 'Category 1',
-                          'Category 2', 'Category 3', 'Feature Name', 'Scenario Name']
 MAX_CATEGORIES = 3
+MAX_JIRAS = 3
 tag_definitions = TestTags('tags.md', strip_at=True)
 
 ####################################################################################################
@@ -131,14 +125,18 @@ def _padded_categories(categories):
     return padded_list(categories, MAX_CATEGORIES, '')
 
 
-def _csv_categories(cat_csv_name, cat_list):
+def _padded_jiras(jiras):
+    jiras = jiras or []
+    return padded_list(jiras, MAX_JIRAS, '')
+
+
+def _csv_cols_from(base_csv_col_name, padded_values):
     '''
-    Takes the category base name as the cat_csv_name and category list value from the json (or none)
-    and returns a list of category CSV column names to category values, that is always the length of
-    MAX_CATEGORIES. [('Category 1', value1 or ''), ('Category 2', value2 or ''), ..]
+    Takes the base csv column name and padded values list and returns a list of CSV column names to
+    values: [('Column 1', value1 or ''), ('Column 2', value2 or ''), ..].  The padded values should
+    be supplied as the same length every time.
     '''
-    categories = _padded_categories(cat_list)
-    return [(cat_csv_name.format(count), value) for count, value in enumerate(categories, start=1)]
+    return [(base_csv_col_name.format(c), v) for c, v in enumerate(padded_values, start=1)]
 
 
 def _csv_data_from_json(json_data, mappings):
@@ -173,9 +171,10 @@ def _write_csv_to_file(file_name, json_data_list, mappings):
         csv_file.writerows([dict(_csv_data_from_json(d, mappings)) for d in json_data_list])
 
 
-def _format_file_name(file_name, repo_name):
+def _format_file_name(file_name, repo_name, extension):
     return file_name.format(repo_name=repo_name,
-                            time_stamp='{:%Y_%m_%d_%H_%M_%S_%f}'.format(datetime.datetime.now()))
+                            time_stamp='{:%Y_%m_%d_%H_%M_%S_%f}'.format(datetime.datetime.now()),
+                            ext=extension)
 
 
 def _sum_all_of(objects, attribute):
@@ -186,93 +185,106 @@ def _safe_round_percent(sub_section, whole):
     return round((sub_section / whole) * 100, 2) if whole else 0.0
 
 
-def _quarantine_stats_report(test_groupings, product_name, interface_type, project, *report_args):
+def _common_data(categories, product_name, interface_type, project):
+    return {
+        'product': product_name,
+        'project': project,
+        'interface': interface_type,
+        'categories': categories
+    }
+
+
+COMMON_MAPPINGS = [
+    ('product', 'Product'),
+    ('project', 'Project'),
+    ('interface', 'Interface Type'),
+    ('categories', lambda v: _csv_cols_from('Category {}', _padded_categories(v))),
+]
+
+QUARANTINED_STATS_MAPPINGS = [
+    *COMMON_MAPPINGS,
+    ('total_tests', 'Total Tests'),
+    ('active_tests', 'Active Tests'),
+    ('quarantined_tests', 'Quarantined Tests'),
+    ('quarantined_percentage', 'Quarantined Percentage'),
+    ('active_percentage', 'Active Percentage'),
+]
+
+COVERAGE_MAPPINGS = [
+    *COMMON_MAPPINGS,
+    ('feature_name', 'Feature Name'),
+    ('test_name', 'Test Name'),
+    ('polarity', 'Polarity'),
+    ('priority', 'Priority'),
+    ('suite', 'Suite'),
+    ('status', 'Status'),
+    ('execution', 'Execution Method'),
+    ('JIRAs', lambda v: _csv_cols_from('JIRA {}', _padded_jiras(v))),
+]
+
+
+def _add_stats_to_data(stats_data, total_count, active_count, quarantined_count):
+    '''Add and return the stats data for a single item to the base data object'''
+    stats_data['total_tests'] = total_count
+    stats_data['active_tests'] = active_count
+    stats_data['quarantined_tests'] = quarantined_count
+    stats_data['quarantined_percentage'] = _safe_round_percent(quarantined_count, active_count)
+    stats_data['active_percentage'] = _safe_round_percent(active_count, total_count)
+    return stats_data
+
+
+def _quarantine_stats_data(test_groupings, *common_data_args):
     '''
-    Creates a quarantined statistics report for the product_name provided by using the provided
-    TestGroupings.  TestGroupings must be provided as an iterable of TestGrouping objects.
+    Return a list of dictionaries containing quarantined statistics for each test grouping, and
+    totals for all of the groupings.
     '''
-    def row(categories, total_count, active_count, quarantined_count):
-        values = [interface_type, product_name, project, *categories, total_count, active_count,
-                  quarantined_count, _safe_round_percent(quarantined_count, active_count),
-                  _safe_round_percent(active_count, total_count)]
-        return {col_name: value for col_name, value in zip(QUARANTINED_STATS_COLS, values)}
-
-    with closing(CSVWriter(_format_file_name(QUARANTINED_STATISTICS_FILE, product_name),
-                           QUARANTINED_STATS_COLS)) as stats_report:
-
-        for group in test_groupings:
-            stats_report.writerow(row(_padded_categories(group.categories),
-                                      group.total_test_count, group.active_test_count,
-                                      group.quarantined_test_count))
-        stats_report.writerow(row(_padded_categories(['Total']),
-                                  _sum_all_of(test_groupings, 'total_test_count'),
-                                  _sum_all_of(test_groupings, 'active_test_count'),
-                                  _sum_all_of(test_groupings, 'quarantined_test_count')))
-
-
-def _quarantine_jira_report(test_groupings, product_name, interface_type, project, *report_args):
-    '''
-    Creates a quarantined JIRA report for the product_name provided by using the provided
-    TestGroupings.  TestGroupings must be provided as an iterable of TestGrouping objects.
-    '''
-    def row(categories, feature_name, scenario_name, jira_tag):
-        return {col_name: value for col_name, value in zip(QUARANTINED_TESTS_COLS, [
-            jira_tag, interface_type, product_name, project, *categories, feature_name,
-            scenario_name])}
-
-    with closing(CSVWriter(_format_file_name(QUARANTINED_TESTS_FILE, product_name),
-                           QUARANTINED_TESTS_COLS)) as jira_report:
-        for group in test_groupings:
-            for scenario in group.quarantined_scenarios:
-                if not scenario.report_tags.quarantined_jiras:
-                    warning = 'WARNING: {}, {}, {} Reported quarantined without a JIRA'
-                    print(warning.format(group.name, scenario.feature.name, scenario.name))
-                    jira_report.writerow(row(_padded_categories(group.categories),
-                                             scenario.feature.name, scenario.name, ''))
-                for jira in scenario.report_tags.quarantined_jiras:
-                    # If a test has multiple JIRAs associated with the quarantine, that test will be
-                    # reported once for each associated JIRA.
-                    jira_report.writerow(row(_padded_categories(group.categories),
-                                             scenario.feature.name, scenario.name, jira))
-
-
-def _coverage_data(test_groupings, product_name, interface_type, project):
-    def _data():
-        return {
-            'product': product_name,
-            'project': project,
-            'interface': interface_type,
-        }
-
-    output = []
-    for group in test_groupings:
-        for scenario in group.all_scenarios:
-            coverage_data = _data()
-            coverage_data['test_name'] = scenario.name
-            coverage_data['categories'] = group.categories
-            # The below names share the same json key name and group name from tags.md
-            for name in ['polarity', 'priority', 'suite', 'status', 'execution']:
-                coverage_data[name] = scenario.report_tags.property_from_tags(name)
-            output.append(coverage_data)
+    output = [_add_stats_to_data(_common_data(g.categories, *common_data_args), g.total_test_count,
+                                 g.active_test_count, g.quarantined_test_count)
+              for g in test_groupings]
+    # Append the totals to the end, 'Total' will be sent as the category name.
+    output.append(_add_stats_to_data(_common_data(['Total'], *common_data_args),
+                                     _sum_all_of(test_groupings, 'total_test_count'),
+                                     _sum_all_of(test_groupings, 'active_test_count'),
+                                     _sum_all_of(test_groupings, 'quarantined_test_count')))
     return output
 
 
+def _data_for_scenario(coverage_data, scenario):
+    '''Add and return coverage data for a single scenario to the coverage data dictionary'''
+    coverage_data['test_name'] = scenario.name
+    coverage_data['feature_name'] = scenario.feature.name
+    coverage_data['JIRAs'] = scenario.report_tags.quarantined_jiras
+    # The below names share the same json key name and group name from tags.md
+    for name in ['polarity', 'priority', 'suite', 'status', 'execution']:
+        coverage_data[name] = scenario.report_tags.property_from_tags(name)
+    return coverage_data
+
+
+def _coverage_data(test_groupings, *common_data_args):
+    '''Return a list of dictionaries containing coverage data for each scenario'''
+    return [_data_for_scenario(_common_data(group.categories, *common_data_args), scenario)
+            for group in test_groupings for scenario in group.all_scenarios]
+
+
+def _quarantine_stats_report(test_groupings, product_name, interface_type, project, write_to_json):
+    '''Runs the Quarantined Statistics Report'''
+    output = _quarantine_stats_data(test_groupings, product_name, interface_type, project)
+    _write_report(output, QUARANTINED_STATISTICS_FILE, QUARANTINED_STATS_MAPPINGS, product_name,
+                  write_to_json)
+
+
 def _coverage_report(test_groupings, product_name, interface_type, project, write_to_json):
+    '''Runs the Coverage Report'''
     output = _coverage_data(test_groupings, product_name, interface_type, project)
+    _write_report(output, COVERAGE_REPORT_FILE, COVERAGE_MAPPINGS, product_name, write_to_json)
 
+
+def _write_report(data, base_file_name, csv_mappings, product_name, write_to_json):
+    '''Writes report data for the given file name and mappings'''
     if write_to_json:
-        _write_json_to_file(_format_file_name(COVERAGE_REPORT_JSON, product_name), output)
+        _write_json_to_file(_format_file_name(base_file_name, product_name, 'json'), data)
         return
-
-    # These mappings are tuples representing json data keys and csv column names (or a function) in
-    # the desired order for the coverage report csv.  [(json_key, csv_col_name), ....]
-    csv_mappings = [
-        ('product', 'Product'), ('project', 'Project'), ('interface', 'Interface Type'),
-        ('categories', lambda v: _csv_categories('Category {}', v)), ('test_name', 'Test Name'),
-        ('polarity', 'Polarity'), ('priority', 'Priority'), ('suite', 'Suite'),
-        ('status', 'Status'), ('execution', 'Execution Method')]
-
-    _write_csv_to_file(_format_file_name(COVERAGE_REPORT_CSV, product_name), output, csv_mappings)
+    _write_csv_to_file(_format_file_name(base_file_name, product_name, 'csv'), data, csv_mappings)
 
 
 ####################################################################################################
@@ -342,7 +354,6 @@ def run_reports(repo_base_directory, product_dir, *report_args, **product_kwargs
 
     product_name = display_name(*os.path.split(os.path.normpath(product_base_dir)))
     _quarantine_stats_report(groupings, product_name, *report_args)
-    _quarantine_jira_report(groupings, product_name, *report_args)
     _coverage_report(groupings, product_name, *report_args)
 
 
