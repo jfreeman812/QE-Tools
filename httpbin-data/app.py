@@ -1,11 +1,14 @@
 import argparse
 import collections
 import os
+from multiprocessing import Process
 from types import SimpleNamespace
+from time import sleep
 from distutils.util import strtobool
 import uuid
 
 import etcd
+import requests
 
 import flask
 from flask.views import MethodView
@@ -17,6 +20,33 @@ KEYS = ('url', 'args', 'form', 'data', 'origin', 'headers', 'files', 'json')
 _DEFAULT_VALUE = object()
 
 ETCD_TTL = 24 * 60 * 60
+
+
+class BackgroundCallback(object):
+    def __init__(self, url, delay, token):
+        p = Process(target=self.run, args=(url, delay, token))
+        p.daemon = True
+        p.start()
+
+    def run(self, url, delay, token):
+        sleep(delay)
+        headers = {'content-type': 'application/json', 'accept': 'application/json',
+                   'x-auth-token': token}
+        requests.put(url, headers=headers)
+
+
+class CallbackAPI(MethodView):
+    def post(self, delay):
+        json = flask.request.get_json(force=True, silent=True) or {}
+        callback_url = json.get('callback_url') or flask.request.values.get('callback_url', '')
+        token = json.get('token') or flask.request.values.get('token', '')
+        BackgroundCallback(callback_url, delay, token)
+        message = 'Callback will be called on {} in {} seconds'.format(callback_url, delay)
+        return jsonify({'message': message})
+
+
+callback_view = CallbackAPI.as_view('callback_view')
+app.add_url_rule('/callback/<int:delay>', view_func=callback_view, methods=['POST'])
 
 
 class ETCDHandler(object):
