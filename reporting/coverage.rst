@@ -44,6 +44,22 @@ needs-work   needs work           Test is offline due to a problem with the test
 quarantined  quarantined          Test is offline due to bug in application / system / etc. Outside of QE's scope to fix.
 ..           operational          Test is online and being executed.
 ===========  ===================  =======================================================================================
+Note: for any status tag that does not use the default, the tag should be followed by a list of tags that are the JIRA IDs that are causing the tag to be used. Once the status tag is removed, the JIRA ID tag should remain for traceability and allowing a test run to be executed against a specific JIRA.
+Example:
+
+.. code::
+
+    Gherkin
+    -------
+    @quarantined @JIRA-1234
+    @nyi @JIRA-4321
+    @needs-work @JIRA-5678
+
+
+    OpenCAFE
+    --------
+    @tags("quarantined", "JIRA-1234", "nyi", "JIRA-4321", "needs-work", "JIRA-5678")
+
 
 
 ===========  ===================  ======================================================================================
