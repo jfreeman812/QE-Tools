@@ -21,6 +21,8 @@ _DEFAULT_VALUE = object()
 
 ETCD_TTL = 24 * 60 * 60
 
+MAX_DELAY_SECONDS = 15 * 60
+
 
 class BackgroundCallback(object):
     def __init__(self, url, delay, token):
@@ -37,6 +39,7 @@ class BackgroundCallback(object):
 
 class CallbackAPI(MethodView):
     def post(self, delay):
+        delay = min(delay, MAX_DELAY_SECONDS)
         json = flask.request.get_json(force=True, silent=True) or {}
         callback_url = json.get('callback_url') or flask.request.values.get('callback_url', '')
         token = json.get('token') or flask.request.values.get('token', '')
@@ -47,6 +50,18 @@ class CallbackAPI(MethodView):
 
 callback_view = CallbackAPI.as_view('callback_view')
 app.add_url_rule('/callback/<int:delay>', view_func=callback_view, methods=['POST'])
+
+
+@app.route('/delay/<int:delay>')
+def delay_response_long_max(delay):
+    '''
+    Overwrites the built-in delay endpoint,
+    to allow much longer delays that the 10-sec max
+    that is hard-coded into the standard implementation.
+    '''
+    delay = min(delay, MAX_DELAY_SECONDS)
+    sleep(delay)
+    return jsonify(get_dict('url', 'args', 'form', 'data', 'origin', 'headers', 'files'))
 
 
 class ETCDHandler(object):
