@@ -22,4 +22,4 @@ In addition, this repository contains the reference document for the `Coverage M
 .. _run_test_reports_on_repo.py: run_test_reports_on_repo.rst
 .. _run_test_reports.sh: run_test_reports.rst
 .. _sphinx-gherkindoc.py: sphinx-gherkindoc.rst
-.. _Coverage Metrics standard: coverage.md
+.. _Coverage Metrics standard: coverage.rst
