@@ -113,6 +113,8 @@ The following tags have a structure for identifying the tag as a group, but the 
 :Format: ``project:<project_id>``
 :Description: The project designation allows work to be tracked for a particular project. While these tags can outlast a project, the tags allow for a historical record to the rationale for the test.
 
+..
+
 :Group: Categories
 :Format: ``category:<category_1>:<category_2>:<category_n>``
 :Description: The categories tag allows for a category hierarchy to be establish independent of directory structure (the default behavior for Gherkin-based tools). The hierarchy can be as deep as needed and represents a nested group of categories for a test.
@@ -123,6 +125,8 @@ The following groups are populated outside of tagging.
 
 :Group: Product
 :Description: The product name and is provided to the coverage tools.
+
+..
 
 :Group: Test Name
 :Description: This is the test name captured from the files. For Gherkin, this is the scenario title. For OpenCAFE, this is the function name.
