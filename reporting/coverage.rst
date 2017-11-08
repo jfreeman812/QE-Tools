@@ -158,37 +158,38 @@ Example JSON Object
 .. code:: json
 
     {
-    "coverage": [
-        {
-        "product": "Script Management",
-        "project": "",
-        "test_name": "Add a Module",
-        "interface": "api",
-        "polarity": "positive",
-        "priority": "p0",
-        "suite": "integration",
-        "categories": [
-            "modules",
-            "commands"
+        "coverage": [
+            {
+                "product": "Script Management",
+                "project": "",
+                "test_name": "Add a Module",
+                "interface": "api",
+                "polarity": "positive",
+                "priority": "p0",
+                "suite": "integration",
+                "categories": [
+                    "modules",
+                    "commands"
+                ],
+                "status": "operational",
+                "execution": "automated"
+            },
+            {
+                "product": "Script Management",
+                "project": "",
+                "test_name": "Missing Fields",
+                "interface": "api",
+                "polarity": "negative",
+                "priority": "p1",
+                "suite": "integration",
+                "categories": [
+                    "modules",
+                    "commands"
+                ],
+                "status": "operational",
+                "execution": "automated",
+                "JIRAs": ["JIRA-1234", "JIRA-4321"]
+            }
         ],
-        "status": "operational",
-        "execution": "automated"
-    },
-    {
-        "product": "Script Management",
-        "project": "",
-        "test_name": "Missing Fields",
-        "interface": "api",
-        "polarity": "negative",
-        "priority": "p1",
-        "suite": "integration",
-        "categories": [
-            "modules",
-            "commands"
-        ],
-        "status": "operational",
-        "execution": "automated"
-    }
-    ],
-    "report_date": "2016-10-11T22:57:43.511Z"
+        "report_date": "2016-10-11T22:57:43.511Z"
     }
