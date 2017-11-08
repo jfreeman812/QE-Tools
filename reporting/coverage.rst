@@ -20,9 +20,10 @@ Interface Type    Designation for the interface being targeted by the test.
 Polarity          Designation of a test for expected outcome (happy vs sad path)
 Priority          The importance assigned to a test.
 Suite             Designates the test suite, if any, to which the test belongs.
-Categories        Hierarchical levels of functional groups into which tests can be categorized
 Status            The operational status of the test.
 Execution Method  If the test is run manually or via automation.
+Categories        Hierarchical levels of functional groups into which tests can be categorized
+JIRAs             Any JIRAs associated with a given test.
 ================  ============================================================================
 
 Data Collection
@@ -33,33 +34,38 @@ Prescriptive Tagging
 ~~~~~~~~~~~~~~~~~~~~
 The following groups are collected by adding predefined tags to the tests or tests groups. For tables that have a blank for **Tag**, that represents a default value if no tag is present.
 
-===========  ===================  =======================================================================================
-Status
--------------------------------------------------------------------------------------------------------------------------
+===========  ====================  ===============================================================================
+Interface Type
+------------------------------------------------------------------------------------------------------------------
+Tag          Report As             Description
+===========  ====================  ===============================================================================
+api          api                   Test that executes against an API.
+gui          gui                   Test that executes against a GUI.
+..           ``<argument_value>``  The default value is provided as a command-line argument to the coverage tools.
+===========  ====================  ===============================================================================
+
+
+===========  ===================  ====================================================
+Polarity
+--------------------------------------------------------------------------------------
 Tag          Report As            Description
-===========  ===================  =======================================================================================
-nyi          not yet implemented  Test is a skeleton for generating data on scoping.
-not-tested   pending              Test is ready, but the service / subject is not ready.
-needs-work   needs work           Test is offline due to a problem with the test; QE needs to fix.
-quarantined  quarantined          Test is offline due to bug in application / system / etc. Outside of QE's scope to fix.
-..           operational          Test is online and being executed.
-===========  ===================  =======================================================================================
-Note: for any status tag that does not use the default, the tag should be followed by a list of tags that are the JIRA IDs that are causing the tag to be used. Once the status tag is removed, the JIRA ID tag should remain for traceability and allowing a test run to be executed against a specific JIRA.
-Example:
-
-.. code::
-
-    Gherkin
-    -------
-    @quarantined @JIRA-1234
-    @nyi @JIRA-4321
-    @needs-work @JIRA-5678
+===========  ===================  ====================================================
+positive     positive             Test is a positive/happy path/down-the-fairway case.
+negative     negative             Test is a negative/sad path/in-the-weeds case.
+===========  ===================  ====================================================
 
 
-    OpenCAFE
-    --------
-    @tags("quarantined", "JIRA-1234", "nyi", "JIRA-4321", "needs-work", "JIRA-5678")
-
+===========  ===================  ==========================================
+Priority
+----------------------------------------------------------------------------
+Tag          Report As            Description
+===========  ===================  ==========================================
+p0           high                 Most important test(s) to implement first.
+p1           medium               Medium priority.
+p2           low                  Low priority.
+..           medium               Medium priority.
+===========  ===================  ==========================================
+Note: Per agreement with leadership, priority is not required for tests that existed before a team adopts this standard.
 
 
 ===========  ===================  ======================================================================================
@@ -77,27 +83,32 @@ security     security             Test is a security test
 ===========  ===================  ======================================================================================
 
 
-===========  ===================  ==========================================
-Priority
-----------------------------------------------------------------------------
+===========  ===================  =======================================================================================
+Status
+-------------------------------------------------------------------------------------------------------------------------
 Tag          Report As            Description
-===========  ===================  ==========================================
-p0           high                 Most important test(s) to implement first.
-p1           medium               Medium priority.
-p2           low                  Low priority.
-..           medium               Medium priority.
-===========  ===================  ==========================================
+===========  ===================  =======================================================================================
+nyi          not yet implemented  Test is a skeleton for generating data on scoping.
+not-tested   pending              Test is ready, but the service / subject is not ready.
+needs-work   needs work           Test is offline due to a problem with the test; QE needs to fix.
+quarantined  quarantined          Test is offline due to bug in application / system / etc. Outside of QE's scope to fix.
+..           operational          Test is online and being executed.
+===========  ===================  =======================================================================================
+Note: For any non-default status tag, the tag should be followed by a list of JIRA tags (JIRAs_) that are triggering the tag to be used.
+Example:
+
+.. code::
+
+    Gherkin
+    -------
+    @quarantined @JIRA-1234
+    @needs-work @JIRA-5678 @JIRA-4321
 
 
-===========  ===================  ====================================================
-Polarity
---------------------------------------------------------------------------------------
-Tag          Report As            Description
-===========  ===================  ====================================================
-positive     positive             Test is a positive/happy path/down-the-fairway case.
-negative     negative             Test is a negative/sad path/in-the-weeds case.
-===========  ===================  ====================================================
-Note: Per agreement with leadership, priority is not required for tests that existed before a team adopts this standard.
+    OpenCAFE
+    --------
+    @tags("quarantined", "JIRA-1234", "needs-work", "JIRA-5678", "JIRA-4321")
+
 
 ===========  ===================  =====================================================
 Execution Method
@@ -108,17 +119,6 @@ manual       automated            Test is executed manually and recorded for rep
 automated    automated            Test is executed though the testing framework.
 ..           automated            Test is executed though the testing framework.
 ===========  ===================  =====================================================
-
-
-===========  ===================  ================================================================================
-Interface Type
-------------------------------------------------------------------------------------------------------------------
-Tag          Report As             Description
-===========  ====================  ===============================================================================
-api          api                   Test that executes against an API.
-gui          gui                   Test that executes against a GUI.
-..           ``<argument_value>``  The default value is provided as a command-line argument to the coverage tools.
-===========  ====================  ===============================================================================
 
 
 Structured Tags
@@ -134,6 +134,12 @@ The following tags have a structure for identifying the tag as a group, but the 
 :Group: Categories
 :Format: ``category:<category_1>:<category_2>:<category_n>``
 :Description: The categories tag allows for a category hierarchy to be establish independent of directory structure (the default behavior for Gherkin-based tools). The hierarchy can be as deep as needed and represents a nested group of categories for a test.
+
+.. _JIRAs:
+
+:Group: JIRAs
+:Format: ``<JIRA_ID>``
+:Description: When applicable, any JIRA associated with a test should be added as an independent tag. This allows for tests to be run for specific JIRA(s) as well as a historic record of the reason a test was added to the suite.
 
 Additional Groups
 ~~~~~~~~~~~~~~~~~
