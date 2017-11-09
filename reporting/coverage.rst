@@ -209,7 +209,7 @@ Output formatting specifications:
 
 * For JIRAs_, the key is the Status_ *Report As* value associated with the JIRAs_ and the value is the list of JIRAs_ *for that status*. In the case where a JIRA has no associated Status_, the attribute name `JIRAs` is used.
 
-**Note:** it is possible to have multiple JIRAs associated with a test for multiple statuses. An example is that a JIRA tag exists for when the test was created but the test is quarantined due to a later code change and is now quarantined with JIRAs. This is an acceptable behavior and the JIRA should reflect two JIRA lists, one for the pre-existing tags and one for quarantined.
+**Note:** it is possible to have multiple JIRAs associated with a test for multiple statuses. An example is that a JIRA tag exists for when the test was created but the test is quarantined due to a later code change and is now quarantined with JIRAs. This is an acceptable behavior and the json should reflect two JIRA lists, one for the pre-existing tags and one for quarantined.
 
 Example JSON Object
 ~~~~~~~~~~~~~~~~~~~
