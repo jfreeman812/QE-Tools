@@ -141,6 +141,14 @@ def _csv_cols_from(base_csv_col_name, padded_values):
     return [(base_csv_col_name.format(c), v) for c, v in enumerate(padded_values, start=1)]
 
 
+def _empty_str_padded_list(list_or_none, pad_to_length):
+    '''
+    Returns a padded list of a length defined by pad_to_length, the padding will be an empty string.
+    '''
+    list_to_pad = list_or_none or []
+    return padded_list(list_to_pad, pad_to_length, '')
+
+
 def _sum_all_of(objects, attribute):
     return sum(getattr(o, attribute) for o in objects)
 
@@ -153,11 +161,12 @@ class ReportWriter(object):
     base_file_name = ''
     _max_category_len = None
 
-    def __init__(self, test_groupings, product_name, interface_type, project):
+    def __init__(self, test_groupings, product_name, interface_type, project, output_dir):
         self.test_groups = test_groupings
         self.product_name = product_name
         self.interface_type = interface_type
         self.project = project
+        self.output_dir = output_dir
         self.data = self._data()
         self._write_json_report()
         self._write_csv_report()
@@ -169,11 +178,6 @@ class ReportWriter(object):
             self._max_category_len = max(len(g.categories) for g in self.test_groups)
         return self._max_category_len
 
-    def _padded_categories(self, categories):
-        '''Returns a padded list of a length defined by the self._max_categories property'''
-        categories = categories or []
-        return padded_list(categories, self._max_categories, '')
-
     def csv_mappings(self):
         '''
         Returns a common list of tuples mapping json data keys to csv column names in the desired
@@ -183,7 +187,8 @@ class ReportWriter(object):
             ('product', 'Product'),
             ('project', 'Project'),
             ('interface', 'Interface Type'),
-            ('categories', lambda v: _csv_cols_from('Category {}', self._padded_categories(v))),
+            ('categories', lambda v: _csv_cols_from(
+                'Category {}', _empty_str_padded_list(v, self._max_categories))),
         ]
 
     def _data_item(self, categories, **additional_data):
@@ -222,7 +227,7 @@ class ReportWriter(object):
         Returns the full formatted file path, and ensures that the directory exists and there is
         not a file with the current name existing there.
         '''
-        file_path = os.path.join(REPORT_PATH, self._format_file_name(*file_name_args))
+        file_path = os.path.join(self.output_dir, self._format_file_name(*file_name_args))
         if os.path.exists(file_path):
             os.remove(file_path)
         os.makedirs(os.path.dirname(file_path), exist_ok=True)
@@ -311,11 +316,6 @@ class CoverageReport(ReportWriter):
                                       for g in self.test_groups for s in g.all_scenarios)
         return self._max_jiras_len
 
-    def _padded_jiras(self, jiras):
-        '''Returns a padded list of a length defined by the self._max_jiras property'''
-        jiras = jiras or []
-        return padded_list(jiras, self._max_jiras, '')
-
     def csv_mappings(self):
         '''
         Returns a list of tuples mapping json data keys to csv column names in the desired order of
@@ -331,7 +331,8 @@ class CoverageReport(ReportWriter):
             ('suite', 'Suite'),
             ('status', 'Status'),
             ('execution', 'Execution Method'),
-            ('JIRAs', lambda v: _csv_cols_from('JIRA {}', self._padded_jiras(v))),
+            ('JIRAs', lambda v: _csv_cols_from(
+                'JIRA {}', _empty_str_padded_list(v, self._max_jiras))),
         ]
 
     def _scenario_data(self, categories, scenario):
@@ -452,7 +453,9 @@ if __name__ == '__main__':
     parser.add_argument('-p', '--product_dir', nargs='?', default='', help=product_help)
     project_help = 'The name of the project, if one is not supplied n/a will be used.'
     parser.add_argument('-j', '--project', nargs='?', default='n/a', help=project_help)
+    parser.add_argument('-o', '--output-dir', default=REPORT_PATH,
+                        help='Output directory for the generated report files.')
     parser.add_argument('--search_hidden', action='store_true', help='Include ".hidden" folders')
     args = parser.parse_args()
     run_reports(args.repo_base_directory, args.product_dir, args.interface_type, args.project,
-                search_hidden=args.search_hidden)
+                args.output_dir, search_hidden=args.search_hidden)
