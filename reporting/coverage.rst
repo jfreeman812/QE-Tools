@@ -207,9 +207,9 @@ Output formatting specifications:
   * For Project_, the value is the full value after the identifier (``project:``)
   * For Categories_, the value is a list of categories built from splitting on the separator (``:``) after the identifier (``category:``)
 
-* For JIRAs_, the key is the Status_ *Report As* value associated with the JIRAs_ and the value is the list of JIRAs_ *for that status*. In the case where a JIRA has no associated Status_, the default status (operational) is used.
+* For JIRAs_, the key is the Status_ *Report As* value associated with the JIRAs_ and the value is the list of JIRAs_ *for that status*. In the case where a JIRA has no associated Status_, the attribute name `JIRAs` is used.
 
-**Note:** it is possible to have multiple JIRAs associated with a test for multiple statuses. An example is that a operational JIRA tag exists for when the test was created but the test is quarantined due to a later code change and is now quarantined with JIRAs. This is an acceptable behavior and the JIRA should reflect two JIRA lists, one for operational and one for quarantined.
+**Note:** it is possible to have multiple JIRAs associated with a test for multiple statuses. An example is that a JIRA tag exists for when the test was created but the test is quarantined due to a later code change and is now quarantined with JIRAs. This is an acceptable behavior and the JIRA should reflect two JIRA lists, one for the pre-existing tags and one for quarantined.
 
 Example JSON Object
 ~~~~~~~~~~~~~~~~~~~
@@ -232,7 +232,7 @@ Example JSON Object
                 ],
                 "Status": "operational",
                 "Execution Method": "automated",
-                "operational": ["JIRA-3344"]
+                "JIRAs": ["JIRA-3344"]
             },
             {
                 "Product": "Script Management",
