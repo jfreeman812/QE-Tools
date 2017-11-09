@@ -142,7 +142,7 @@ Execution Method
 ===========  ===================  =====================================================
 Tag          Report As            Description
 ===========  ===================  =====================================================
-manual       automated            Test is executed manually and recorded for reporting.
+manual       manual               Test is executed manually and recorded for reporting.
 automated    automated            Test is executed though the testing framework.
 ..           automated            Test is executed though the testing framework.
 ===========  ===================  =====================================================
