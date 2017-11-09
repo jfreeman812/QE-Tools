@@ -40,9 +40,9 @@ This section provides the valid tag values which may be applied to the source fi
 
 * Tag – The tag column defines the exact string which must be used in conjunction with the appropriate tagging mechanism in the source file in order to apply that attribute value to the test.
 
-  * For Gherkin-based tests, the tags are applied via the syntax '@<Tag>' where the <Tag> is the value defined in the Tag column.
+  * For Gherkin-based tests, the tags are applied via the syntax ``@<Tag>`` where the ``<Tag>`` is the value defined in the Tag column. Tags may span across multiple lines and logically-grouped tags should appear together (e.g., adding a Status_ tag and the associated JIRAs_)
 
-  * For CAFE-based tests, the tags are applied via the syntax '@tags("<Tag 1>", "<Tag 2>", ...)', where the quoted tag values are the values defined in the Tag column.
+  * For CAFE-based tests, the tags are applied via the syntax ``@tags("<Tag 1>", "<Tag 2>", ...)``, where the quoted tag values are the values defined in the Tag column. Tags must all be contained in the same decorator.
 
 * Report As – The 'report as' column defines the resulting value which will be written to the coverage metrics when that tag is encountered in a source file.
 
@@ -50,6 +50,7 @@ This section provides the valid tag values which may be applied to the source fi
 
 If a particular definition table has a row with a blank entry in the Tag column, that row represents a default value which will be assumed for that attribute if no tag for that attribute is present in the source file.
 
+NOTE: With the exception of JIRAs_ only one tag within each attribute can be applied at one time. If there is no default value, then a tag for that attribute must be applied. In the case of `Structured Tags`_ only one such should be used though the values are more fluid.
 
 Interface Type
 ^^^^^^^^^^^^^^
@@ -94,8 +95,8 @@ Suite
 ===========  ===================  ======================================================================================
 Tag          Report As            Description
 ===========  ===================  ======================================================================================
-deploy       smoke                Build verification test / quick test to validate successful deployment.
-smoke        unit                 Checks for basic functionality. Smoke tests should take less than 10 minutes in total.
+deploy       deploy               Build verification test / quick test to validate successful deployment.
+smoke        smoke                Checks for basic functionality. Smoke tests should take less than 10 minutes in total.
 load         performance          Test is designed to stress the application.
 solo         solo                 Test that cannot be run in parallel with any other tests.
 integration  integration          Test exercises multiple applications and not just one component
@@ -128,7 +129,8 @@ quarantined  quarantined          Test is offline due to bug in application / sy
 
     OpenCAFE
     --------
-    @tags("quarantined", "JIRA-1234", "needs-work", "JIRA-5678", "JIRA-4321")
+    @tags("quarantined", "JIRA-1234")
+    @tags("needs-work", "JIRA-5678", "JIRA-4321")
 
 The quarantined tag can be particularly useful as it provides a mechanism to exclude known failures from a test run, thereby making it easier to isolate new test failures from recurring, known test failures. Similarly, the needs-work tag can be a convenient method to take a test which needs repair work offline while it waits for the repair.
 
@@ -154,7 +156,7 @@ The following tags, unlike the previous section, do not have a predefined list o
 :Attribute: Project
 :Format: ``project:<project_id>``
 :Description:
-    The project designation allows work to be tracked for a particular project. While these tags can outlast a project, the tags allow for a historical record to the rationale for the test.
+    The project designation allows work to be tracked for a particular project. While these tests can outlast a project, the tags allow for a historical record to the rationale for the test.
 
 .. _Categories:
 
@@ -163,14 +165,16 @@ The following tags, unlike the previous section, do not have a predefined list o
 :Description:
     The categories attribute allows for a hierarchical structure for tests. For example, for testing an automobile, the tests might be organized into ``Engine -> Coolant System -> Radiator``. The categories attribute can be conveyed in two ways. In the first way, the tests can be organized in a directory structure where each directory represents a category and nesting of the directories represents the hierarchy. In the second way, the categories can be applied explicitly to a test via the category tag. This is helpful if a team wants to use their directory structure for some other type of organization other than test category.
 
-    If the category tag is not applied to a test, the coverage tools will extract the categories from the directory structure which holds the test. Regardless of whether the tagging is implicit via the directory structure or explicit via the category tag, the hierarchy can be as deep as needed and represents a nested group of categories for a test.
+    If the category tag is not applied to a test, the coverage tools may extract the categories from the directory structure which holds the test. Regardless of whether the tagging is implicit via the reporting tool or explicit via the category tag, the hierarchy can be as deep as needed and represents a nested group of categories for a test.
 
 .. _JIRAs:
 
 :Attribute: JIRAs
 :Format: ``<JIRA_ID>``
 :Description:
-    When applicable, any JIRA associated with a test should be added as an independent tag. This allows for tests to be run for specific JIRA(s) as well as a historic record of the reason a test was added to the suite.
+    When applicable, any JIRA associated with a test should be added as an independent tag. This allows for tests to be run for specific JIRA(s) as well as a historic record of the reason a test was added to the suite. It is strongly encouraged for traceability that all non-trivial tests have a JIRA tag associated with them.
+
+    **Note:** JIRA tags are required after some other tags (see Status_ above). An independent JIRA tag must occur prior to any such Status tag (if present)
 
 Additional Attributes
 ~~~~~~~~~~~~~~~~~~~~~
@@ -186,12 +190,24 @@ The following attributes are populated outside the above tagging mechanism.
 
 :Attribute: Test Name
 :Description:
-    This is the test name captured from the source files. For Gherkin, this is the scenario title. For OpenCAFE, this is the function name.
+    This is the test name captured from the source files. For Gherkin, this is the scenario title. For OpenCAFE, this is the function name or the first line of the doc string, if present.
 
 Coverage Data Reporting Format
 ------------------------------
 
 The coverage data needs to be reported in a standard format that conforms to the above fields and restrictions. The coverage data must be output in an array of json objects.
+
+Output formatting specifications:
+
+* For the `Prescriptive Tags`_, the key is the attribute name and the value is the value from *Report As*.
+* For the Project_ and Categories_, the key is the attribute name and the value is as follows:
+
+  * For Project_, the value is the full value after the identifier (``project:``)
+  * For Categories_, the value is a list of categories built from splitting on the separator (``:``) after the identifier (``category:``)
+
+* For JIRAs_, the key is the Status_ *Report As* value associated with the JIRAs_ and the value is the list of JIRAs_ *for that status*. In the case where a JIRA has no associated Status_, the default status (operational) is used.
+
+**Note:** it is possible to have multiple JIRAs associated with a test for multiple statuses. An example is that a operational JIRA tag exists for when the test was created but the test is quarantined due to a later code change and is now quarantined with JIRAs. This is an acceptable behavior and the JIRA should reflect two JIRA lists, one for operational and one for quarantined.
 
 Example JSON Object
 ~~~~~~~~~~~~~~~~~~~
@@ -201,35 +217,36 @@ Example JSON Object
     {
         "coverage": [
             {
-                "product": "Script Management",
-                "project": "",
-                "test_name": "Add a Module",
-                "interface": "api",
-                "polarity": "positive",
-                "priority": "p0",
-                "suite": "integration",
-                "categories": [
+                "Product": "Script Management",
+                "Project": "",
+                "Test Name": "Add a Module",
+                "Interface Type": "api",
+                "Polarity": "positive",
+                "Priority": "p0",
+                "Suite": "integration",
+                "Categories": [
                     "modules",
                     "commands"
                 ],
-                "status": "operational",
-                "execution": "automated"
+                "Status": "operational",
+                "Execution Method": "automated",
+                "operational": ["JIRA-3344"]
             },
             {
-                "product": "Script Management",
-                "project": "",
-                "test_name": "Missing Fields",
-                "interface": "api",
-                "polarity": "negative",
-                "priority": "p1",
-                "suite": "integration",
-                "categories": [
+                "Product": "Script Management",
+                "Project": "",
+                "Test Name": "Missing Fields",
+                "Interface Type": "api",
+                "Polarity": "negative",
+                "Priority": "p1",
+                "Suite": "integration",
+                "Categories": [
                     "modules",
                     "commands"
                 ],
-                "status": "operational",
-                "execution": "automated",
-                "JIRAs": ["JIRA-1234", "JIRA-4321"]
+                "Status": "quarantined",
+                "Execution Method": "automated",
+                "quarantined": ["JIRA-1234", "JIRA-4321"]
             }
         ],
         "report_date": "2016-10-11T22:57:43.511Z"
