@@ -9,6 +9,7 @@ import behave.parser
 import datetime
 import json
 
+from collections import defaultdict
 from contextlib import closing
 from test_tags import TestTags
 
@@ -58,30 +59,35 @@ class Tags(object):
 
     def __init__(self, tag_list, scenario_name):
         self.tags = tag_list
-        # is_quarantined will be set when checking the quarantined_jiras
-        self.is_quarantined = False
+        self.is_quarantined = QUARANTINED_INDICATOR in self.tags
         self.scenario_name = scenario_name
-        self.quarantined_jiras = self._quarantined_jiras()
+        self.jiras = self._jiras()
 
-    def _quarantined_jiras(self):
+    def _jiras(self):
         '''
-        Only tags immediately following a quarantined tag, that match the JIRA regex qualify as
-        quarantined jiras.  The first tag not meeting the regex signals the end of quarantined jira
-        tags.
+        Returns a dictionary of {status_key: [associated jira tags]}.  If the jira is not associated
+        with a status, the status key will be 'jiras'.  If a status does not have any jiras
+        associated with it, an error will be logged.
         '''
-        quarantined_jiras = []
+        jira_collection = defaultdict(list)
+        status = None
         for tag in self.tags:
-            if QUARANTINED_INDICATOR == tag:
-                self.is_quarantined = True
+            if tag in tag_definitions.groups['status']:
+                status = tag
+                # A status existing with an empty list indicates that no jiras were associated with
+                # that status.
+                jira_collection[status]
                 continue
-            if self.is_quarantined:
-                if not JIRA_RE.match(tag):
-                    break
-                quarantined_jiras.append(tag)
-        if self.is_quarantined and not quarantined_jiras:
-            reporting_errors('ERROR: JIRA not found for quarantined Scenario: {}, Tags {}',
-                             self.scenario_name, self.tags)
-        return quarantined_jiras
+            if JIRA_RE.match(tag):
+                jira_collection[status or 'JIRAs'].append(tag)
+                continue
+            status = None
+
+        for status, jiras in jira_collection:
+            if not jiras:
+                reporting_errors('ERROR: JIRA not found for Scenario: {}, Status: {}, Tags {}',
+                                 self.scenario_name, status, self.tags)
+        return jira_collection
 
     def property_from_tags(self, property_name):
 
