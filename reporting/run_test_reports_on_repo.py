@@ -17,6 +17,7 @@ from shared.utilities import display_name, padded_list
 
 
 QUARANTINED_INDICATOR = 'quarantined'
+NO_STATUS_JIRA_KEY = 'JIRAs'
 TAG_DEFINITION_FILE = 'tags.md'
 REPORT_PATH = 'reports'
 QUARANTINED_STATISTICS_FILE = '{repo_name}_quarantined_statistics_{time_stamp}.{ext}'
@@ -48,7 +49,8 @@ class ErrorAggregator(object):
 nuisance_category_names = ['features']
 tag_definitions = TestTags('tags.md', strip_at=True)
 reporting_errors = ErrorAggregator()
-
+jira_status_display_names = [NO_STATUS_JIRA_KEY] + [tag_definitions.report_names.get(t)
+                                                    for t in tag_definitions.groups['status']]
 
 ####################################################################################################
 # Object Definitions
@@ -73,17 +75,17 @@ class Tags(object):
         status = None
         for tag in self.tags:
             if tag in tag_definitions.groups['status']:
-                status = tag
+                status = tag_definitions.report_names.get(tag)
                 # A status existing with an empty list indicates that no jiras were associated with
                 # that status.
                 jira_collection[status]
                 continue
             if JIRA_RE.match(tag):
-                jira_collection[status or 'JIRAs'].append(tag)
+                jira_collection[status or NO_STATUS_JIRA_KEY].append(tag)
                 continue
             status = None
 
-        for status, jiras in jira_collection:
+        for status, jiras in jira_collection.items():
             if not jiras:
                 reporting_errors('ERROR: JIRA not found for Scenario: {}, Status: {}, Tags {}',
                                  self.scenario_name, status, self.tags)
@@ -312,15 +314,18 @@ class QuarantinedStatsReport(ReportWriter):
 
 class CoverageReport(ReportWriter):
     base_file_name = COVERAGE_REPORT_FILE
-    _max_jiras_len = None
 
-    @property
-    def _max_jiras(self):
-        '''Returns the length of the largest jira list in the test groups'''
-        if self._max_jiras_len is None:
-            self._max_jiras_len = max(len(s.report_tags.quarantined_jiras)
-                                      for g in self.test_groups for s in g.all_scenarios)
-        return self._max_jiras_len
+    def __init__(self, *args, **kwargs):
+        self._max_jira_status_len = {}
+        super().__init__(*args, **kwargs)
+
+    def _max_len_of(self, jira_status):
+        '''Returns the length of the largest jira list for the jira_status in the test groups'''
+        if not self._max_jira_status_len.get(jira_status):
+            self._max_jira_status_len[jira_status] = max(len(s.report_tags.jiras[jira_status])
+                                                         for g in self.test_groups
+                                                         for s in g.all_scenarios)
+        return self._max_jira_status_len[jira_status]
 
     def csv_mappings(self):
         '''
@@ -337,8 +342,9 @@ class CoverageReport(ReportWriter):
             ('suite', 'Suite'),
             ('status', 'Status'),
             ('execution', 'Execution Method'),
-            ('JIRAs', lambda v: _csv_cols_from(
-                'JIRA {}', _empty_str_padded_list(v, self._max_jiras))),
+            *[(jira_status, lambda v, s=jira_status: _csv_cols_from(
+                '{} {{}}'.format(s), _empty_str_padded_list(v, self._max_len_of(s))))
+              for jira_status in jira_status_display_names],
         ]
 
     def _scenario_data(self, categories, scenario):
@@ -346,9 +352,11 @@ class CoverageReport(ReportWriter):
         scenario_data = {
             'test_name': scenario.name,
             'feature_name': scenario.feature.name,
-            'JIRAs': scenario.report_tags.quarantined_jiras,
             **{name: scenario.report_tags.property_from_tags(name)
-               for name in ['polarity', 'priority', 'suite', 'status', 'execution']}
+               for name in ['polarity', 'priority', 'suite', 'status', 'execution']},
+            **{jira_status: scenario.report_tags.jiras[jira_status]
+               for jira_status in jira_status_display_names
+               if scenario.report_tags.jiras[jira_status]}
         }
         return self._data_item(categories, **scenario_data)
 
