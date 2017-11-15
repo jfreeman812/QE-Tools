@@ -1,5 +1,5 @@
 import os
-from collections import namedtuple
+from collections import namedtuple, OrderedDict
 from itertools import filterfalse
 from operator import attrgetter
 
@@ -118,21 +118,16 @@ class SimpleRSTTable(BaseRSTDataObject):
 
 
 class SimpleRSTReader(BaseRSTDataObject):
-    data_format = dict
+    data_format = OrderedDict
 
     def __init__(self, file_path):
         super().__init__()
         assert os.path.exists(file_path), 'File not found: {}'.format(file_path)
         self._parse(file_path)
 
-    def __getattr__(self, name):
-        # If an attribute called is not available on the Reader,
-        # but the Reader contains only a single Table,
-        # attempt to retrieve the attribute from the table.
-        # NOTE: supports legacy compatibility
-        if self.data and len(self) == 1:
-            return getattr(list(self.data.values())[0], name)
-        raise AttributeError
+    @property
+    def first(self):
+        return list(self.data.values())[0]
 
     def _is_header_underline(self, row):
         return any((set(row) == set(x) for x in self.header_markers))
@@ -186,8 +181,3 @@ class SimpleRSTReader(BaseRSTDataObject):
     @property
     def tables(self):
         return list(self.data.keys())
-
-
-def read_table(path):
-    # NOTE: helper function retained for legacy compatibility
-    return SimpleRSTReader(path)
