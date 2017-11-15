@@ -140,15 +140,6 @@ class TestGrouping(object):
 ####################################################################################################
 
 
-def _csv_cols_from(base_csv_col_name, padded_values):
-    '''
-    Takes the base csv column name and padded values list and returns a list of CSV column names to
-    values: [('Column 1', value1 or ''), ('Column 2', value2 or ''), ..].  The padded values should
-    be supplied as the same length every time.
-    '''
-    return [(base_csv_col_name.format(c), v) for c, v in enumerate(padded_values, start=1)]
-
-
 def _empty_str_padded_list(list_or_none, pad_to_length):
     '''
     Returns a padded list of a length defined by pad_to_length, the padding will be an empty string.
@@ -175,29 +166,39 @@ class ReportWriter(object):
         self.interface_type = interface_type
         self.project = project
         self.output_dir = output_dir
+        self._max_lens = {}
         self.data = self._data()
+        self._json_keys_that_exist = {k for d in self.data for k in d.keys()}
         self._write_json_report()
         self._write_csv_report()
 
-    @property
-    def _max_categories(self):
-        '''Returns the length of the largest category list in the test groups'''
-        if self._max_category_len is None:
-            self._max_category_len = max(len(g.categories) for g in self.test_groups)
-        return self._max_category_len
+    def _max_len(self, key):
+        '''
+        Caches and returns the max length of any value for that key if the value is a list, if the
+        value is not not a list, does not exist, or exists with no length, will return 0
+        '''
+        if key not in self._max_lens:
+            self._max_lens[key] = max(len(d.get(key) if isinstance(d.get(key), list) else [])
+                                      for d in self.data)
+        return self._max_lens[key]
 
-    def csv_mappings(self):
-        '''
-        Returns a common list of tuples mapping json data keys to csv column names in the desired
-        order of the csv columns for the csv reports.
-        '''
+    def _csv_heading_order(self):
+        '''The csv heading order that the data will appear in on the reports'''
         return [
-            ('Product', 'Product'),
-            ('Project', 'Project'),
-            ('Interface Type', 'Interface Type'),
-            ('Categories', lambda v: _csv_cols_from(
-                'Category {}', _empty_str_padded_list(v, self._max_categories))),
+            'Product',
+            'Project',
+            'Interface Type',
+            'Categories',
         ]
+
+    def _csv_cols_from(self, heading, list_or_none):
+        '''
+        Returns a list tuples of CSV column names and values corresponding to the max length of any
+        list value found for the heading provided.  If the heading does not exist, has only empty
+        lists as values,or does not have lists as values will return an empty list
+        '''
+        padded_values = _empty_str_padded_list(list_or_none, self._max_len(heading))
+        return [('{} {}'.format(heading, i), v) for i, v in enumerate(padded_values, start=1)]
 
     def _data_item(self, categories, **additional_data):
         '''
@@ -253,40 +254,43 @@ class ReportWriter(object):
         Writes a .csv file, mapping the contents of self.data to csv columns by calling
         self._csv_data_from_json
         '''
-        column_names = [col_name for col_name, _ in self._csv_data_from_json({})]
+        csv_data = [self._csv_data_from_json(d) for d in self.data]
+        column_names = [] if not csv_data else [x[0] for x in csv_data[0]]
+
         with closing(CSVWriter(self._format_and_return_file_path('csv'), column_names)) as csv_file:
-            csv_file.writerows([dict(self._csv_data_from_json(d)) for d in self.data])
+            csv_file.writerows(map(dict, csv_data))
 
     def _csv_data_from_json(self, json_data):
         '''
-        Returns a list of tuples of (CSV_COL_NAME, VALUE) in the same order as supplied in
-        self.csv_mappings If the 2nd item in the mapping tuple (csv_name), is a function, it will be
-        called passing in the value, and an iterable will be expected as a return.
+        Returns a list of tuples of (csv_heading, value) in the same order as supplied in
+        self._csv_heading_order.  If the value contains any lists, will extend multiple tuples
+        padded to the max length of the list.
+        Ex: if the max length of any Category is 2:
+        {'Categories': ['a', 'b']} -> [('Categories 1', 'a'), ('Categories 2', 'b')] and
+        {'Categories': ['a']} -> [('Categories 1', 'a'), ('Categories 2', '')]
         json_data:  Dictionary of json_names to values.
         '''
         csv_data = []
-        for json_name, csv_name in self.csv_mappings():
-            value = json_data.get(json_name)
-            csv_data.extend(csv_name(value) if callable(csv_name) else [(csv_name, value)])
+        for json_name in self._csv_heading_order():
+            if json_name not in self._json_keys_that_exist:
+                continue
+            value = json_data.get(json_name, [])
+            csv_data.extend(self._csv_cols_from(json_name, value) or [(json_name, value)])
         return csv_data
 
 
 class QuarantinedStatsReport(ReportWriter):
     base_file_name = QUARANTINED_STATISTICS_FILE
 
-    def csv_mappings(self):
-        '''
-        Returns a list of tuples mapping json data keys to csv column names in the desired order of
-        the csv columns for the csv statistics report.  Includes the common csv mappings and those
-        defined here.
-        '''
+    def _csv_heading_order(self):
+        '''The base non extended order of the csv columns for the Quarantined Statistics Report'''
         return [
-            *super().csv_mappings(),
-            ('Total Tests', 'Total Tests'),
-            ('Active Tests', 'Active Tests'),
-            ('Quarantined Tests', 'Quarantined Tests'),
-            ('Quarantined Percentage', 'Quarantined Percentage'),
-            ('Active Percentage', 'Active Percentage'),
+            *super()._csv_heading_order(),
+            'Total Tests',
+            'Active Tests',
+            'Quarantined Tests',
+            'Quarantined Percentage',
+            'Active Percentage',
         ]
 
     def _stats_data(self, categories, total_count, active_count, quarantined_count):
@@ -315,36 +319,18 @@ class QuarantinedStatsReport(ReportWriter):
 class CoverageReport(ReportWriter):
     base_file_name = COVERAGE_REPORT_FILE
 
-    def __init__(self, *args, **kwargs):
-        self._max_jira_status_len = {}
-        super().__init__(*args, **kwargs)
-
-    def _max_len_of(self, jira_status):
-        '''Returns the length of the largest jira list for the jira_status in the test groups'''
-        if not self._max_jira_status_len.get(jira_status):
-            self._max_jira_status_len[jira_status] = max(len(s.report_tags.jiras[jira_status])
-                                                         for g in self.test_groups
-                                                         for s in g.all_scenarios)
-        return self._max_jira_status_len[jira_status]
-
-    def csv_mappings(self):
-        '''
-        Returns a list of tuples mapping json data keys to csv column names in the desired order of
-        the csv columns for the csv coverage report.  Includes the common csv mappings and those
-        defined here.
-        '''
+    def _csv_heading_order(self):
+        '''The base non extended order of the csv columns for the Coverage Report'''
         return [
-            *super().csv_mappings(),
-            ('Feature Name', 'Feature Name'),
-            ('Test Name', 'Test Name'),
-            ('Polarity', 'Polarity'),
-            ('Priority', 'Priority'),
-            ('Suite', 'Suite'),
-            ('Status', 'Status'),
-            ('Execution Method', 'Execution Method'),
-            *[(jira_status, lambda v, s=jira_status: _csv_cols_from(
-                '{} {{}}'.format(s), _empty_str_padded_list(v, self._max_len_of(s))))
-              for jira_status in jira_status_display_names],
+            *super()._csv_heading_order(),
+            'Feature Name',
+            'Test Name',
+            'Polarity',
+            'Priority',
+            'Suite',
+            'Status',
+            'Execution Method',
+            *jira_status_display_names,
         ]
 
     def _scenario_data(self, categories, scenario):
