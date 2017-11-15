@@ -12,33 +12,17 @@ def get_specific_attr_matcher(key, value):
     return lambda x: getattr(x, key).lower() == value.lower()
 
 
-class TableRead(object):
-    column_divider = None
-    header_divider = None
+class BaseRSTDataObject(object):
+    column_divider = '  '
+    header_divider = '='
+    # The full set of potential ReStructuredText section markers is sourced from
+    # http://docutils.sourceforge.net/docs/ref/rst/restructuredtext.html#sections
+    header_markers = set('!"#$%&\'()*+,-./:;<=>?@[\]^_`{|}~')
     comment_char = '#'
-    data_format = list
+    data_format = None
 
-    def __init__(self, file_path):
-        assert os.path.exists(file_path), 'File not found: {}'.format(file_path)
+    def __init__(self):
         self.data = self.data_format()
-        self._parse_file(file_path)
-
-    @classmethod
-    def from_data(cls, data):
-        table = cls.__new__(cls)
-        table.data = list(data)
-        return table
-
-    @classmethod
-    def from_rows(cls, header, rows, **kwargs):
-        table = cls.__new__(cls)
-        table.header = header
-        table.rows = rows
-        table.data = []
-        for k, v in kwargs.items():
-            setattr(table, k, v)
-        table._build_data()
-        return table
 
     def __len__(self):
         return len(self.data)
@@ -49,23 +33,48 @@ class TableRead(object):
     def __getitem__(self, key):
         return self.data[key]
 
-    def stop_checker(self, row):
-        return False
-
-    def _get_header_and_rows(self):
-        raise NotImplementedError
-
     def _clean_split(self, row):
         return [x.strip() for x in row.split(self.column_divider)]
-
-    def _row_splitter(self, row):
-        return self._clean_split(row)
 
     def _is_divider_row(self, row):
         if not row.startswith(self.header_divider):
             return False
         return self.header_divider in row and \
             set(row) <= {self.column_divider, self.header_divider, ' '}
+
+
+class SimpleRSTTable(BaseRSTDataObject):
+    data_format = list
+
+    def __init__(self, header, rows, column_spans):
+        super().__init__()
+        self.header = header
+        self.rows = rows
+        self.column_spans = column_spans
+        self._build_data()
+
+    @classmethod
+    def from_data(cls, data):
+        table = cls.__new__(cls)
+        table.data = list(data)
+        return table
+
+    def stop_checker(self, row):
+        return self._is_divider_row(row)
+
+    def _row_splitter(self, row):
+        assert self.column_spans, 'Column spans not defined!'
+        words = []
+        for count, span in enumerate(self.column_spans, start=1):
+            # Since reStructuredText allows the last column to extend beyond the border, the reader
+            # should set the final word as the last span rather than terminating based on the
+            # length of the border.
+            if count == len(self.column_spans):
+                word = row
+            else:
+                word, row = row[:span], row[span + len(self.column_divider):]
+            words.append(word.strip().replace('..', ''))
+        return words
 
     def _parse_file(self, file_path):
         # readlines() does not strip the '\n' from the end of each line, so we use splitlines
@@ -115,30 +124,23 @@ class TableRead(object):
         return self.__class__.from_data(map(attrgetter(*fields), self.data))
 
 
-class SimpleRSTReader(TableRead):
-    column_divider = '  '
-    header_divider = '='
-    # The full set of potential ReStructuredText section markers is sourced from
-    # http://docutils.sourceforge.net/docs/ref/rst/restructuredtext.html#sections
-    header_markers = set('!"#$%&\'()*+,-./:;<=>?@[\]^_`{|}~')
+class SimpleRSTReader(BaseRSTDataObject):
     data_format = dict
 
-    def stop_checker(self, row):
-        return self._is_divider_row(row)
+    def __init__(self, file_path):
+        super().__init__()
+        assert os.path.exists(file_path), 'File not found: {}'.format(file_path)
+        self._parse(file_path)
 
-    def _row_splitter(self, row):
-        assert self.column_spans, 'Column spans not defined!'
-        words = []
-        for count, span in enumerate(self.column_spans, start=1):
-            # Since reStructuredText allows the last column to extend beyond the border, the reader
-            # should set the final word as the last span rather than terminating based on the
-            # length of the border.
-            if count == len(self.column_spans):
-                word = row
-            else:
-                word, row = row[:span], row[span + len(self.column_divider):]
-            words.append(word.strip().replace('..', ''))
-        return words
+    def __getattr__(self, name):
+        # If an attribute called is not available on the Reader,
+        # but the Reader contains only a single Table,
+        # attempt to retrieve the attribute from the table.
+        # NOTE: supports legacy compatibility
+        if self.data and len(self) == 1:
+            table = self.data[list(self.data.keys())[0]]
+            return getattr(table, name)
+        raise AttributeError
 
     def _is_header_underline(self, row):
         return any((set(row) == set(x) for x in self.header_markers))
@@ -154,7 +156,7 @@ class SimpleRSTReader(TableRead):
                 return name
             name_number += 1
 
-    def _parse_file(self, file_path):
+    def _parse(self, file_path):
         # readlines() does not strip the '\n' from the end of each line, so we use splitlines
         text_lines = open(file_path, 'r').read().splitlines()
         section_header_cursor = None
@@ -168,7 +170,7 @@ class SimpleRSTReader(TableRead):
             if self._is_divider_row(text_lines[i]):
                 header, rows, column_spans = self._get_header_and_rows(text_lines[i:])
                 table_name = self._table_name(section_header_cursor)
-                self.data[table_name] = self.from_rows(header, rows, column_spans=column_spans)
+                self.data[table_name] = SimpleRSTTable(header, rows, column_spans)
                 # The extra 4 rows 'skipped' are for the three divider rows and the header
                 i += len(rows) + 4
             i += 1
@@ -189,29 +191,11 @@ class SimpleRSTReader(TableRead):
                 break
         return header, rows, column_spans
 
-
-class MDReader(TableRead):
-    column_divider = '|'
-    header_divider = '-'
-
-    def _get_header_and_rows(self, text_lines):
-        header, rows = None, None
-        for i in range(len(text_lines)):
-            if text_lines[i].count(self.column_divider):
-                header, rows = text_lines[i], text_lines[i + 1:]
-                if self._is_divider_row(rows[0]):
-                    # ignore/drop the divider row if found
-                    rows = rows[1:]
-                break
-        return header, rows
+    @property
+    def tables(self):
+        return list(self.data.keys())
 
 
-READER_DICT = {
-    'rst': SimpleRSTReader,
-    'md': MDReader,
-}
-
-
-def read_table(path, *args, **kwargs):
-    filetype = os.path.splitext(path)[1].lstrip('.')
-    return READER_DICT[filetype](path, *args, **kwargs)
+def read_table(path):
+    # NOTE: helper function retained for legacy compatibility
+    return SimpleRSTReader(path)
