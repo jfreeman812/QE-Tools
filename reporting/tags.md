@@ -45,9 +45,9 @@ tag              | purpose          | report as   | description
 @positive        | polarity         | positive    | Test is a positive/down-the-fairway case.
 @negative        | polarity         | negative    | Test is a negative/in-the-weeds case.
 -----------      | ---------------- | ----------- | -----------
-@manual          | execution        | manual      | Test description is of a manual test, present for coverage reporting.
-@automated       | execution        | automated   | Test is automated.
-<blank>          | execution        | automated   | *Default when no tag for this purpose is used.*
+@manual          | execution method | manual      | Test description is of a manual test, present for coverage reporting.
+@automated       | execution method | automated   | Test is automated.
+<blank>          | execution method | automated   | *Default when no tag for this purpose is used.*
 -----------      | ---------------- | ----------- | -----------
 @fast            | -speed           | fast        | Test runs "fast" (within a few minutes)
 @slow            | -speed           | slow        | Test runs "slow" (scenario takes > 5 minutes to run).

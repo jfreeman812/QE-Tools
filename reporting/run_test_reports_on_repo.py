@@ -9,6 +9,7 @@ import behave.parser
 import datetime
 import json
 
+from collections import defaultdict
 from contextlib import closing
 from test_tags import TestTags
 
@@ -16,6 +17,7 @@ from shared.utilities import display_name, padded_list
 
 
 QUARANTINED_INDICATOR = 'quarantined'
+NO_STATUS_JIRA_KEY = 'JIRAs'
 TAG_DEFINITION_FILE = 'tags.md'
 REPORT_PATH = 'reports'
 QUARANTINED_STATISTICS_FILE = '{repo_name}_quarantined_statistics_{time_stamp}.{ext}'
@@ -47,7 +49,8 @@ class ErrorAggregator(object):
 nuisance_category_names = ['features']
 tag_definitions = TestTags('tags.md', strip_at=True)
 reporting_errors = ErrorAggregator()
-
+jira_status_display_names = [NO_STATUS_JIRA_KEY] + [tag_definitions.report_names.get(t)
+                                                    for t in tag_definitions.groups['status']]
 
 ####################################################################################################
 # Object Definitions
@@ -58,30 +61,35 @@ class Tags(object):
 
     def __init__(self, tag_list, scenario_name):
         self.tags = tag_list
-        # is_quarantined will be set when checking the quarantined_jiras
-        self.is_quarantined = False
+        self.is_quarantined = QUARANTINED_INDICATOR in self.tags
         self.scenario_name = scenario_name
-        self.quarantined_jiras = self._quarantined_jiras()
+        self.jiras = self._jiras()
 
-    def _quarantined_jiras(self):
+    def _jiras(self):
         '''
-        Only tags immediately following a quarantined tag, that match the JIRA regex qualify as
-        quarantined jiras.  The first tag not meeting the regex signals the end of quarantined jira
-        tags.
+        Returns a dictionary of {status_key: [associated jira tags]}.  If the jira is not associated
+        with a status, the status key will be 'jiras'.  If a status does not have any jiras
+        associated with it, an error will be logged.
         '''
-        quarantined_jiras = []
+        jira_collection = defaultdict(list)
+        status = None
         for tag in self.tags:
-            if QUARANTINED_INDICATOR == tag:
-                self.is_quarantined = True
+            if tag in tag_definitions.groups['status']:
+                status = tag_definitions.report_names.get(tag)
+                # A status existing with an empty list indicates that no jiras were associated with
+                # that status.
+                jira_collection[status]
                 continue
-            if self.is_quarantined:
-                if not JIRA_RE.match(tag):
-                    break
-                quarantined_jiras.append(tag)
-        if self.is_quarantined and not quarantined_jiras:
-            reporting_errors('ERROR: JIRA not found for quarantined Scenario: {}, Tags {}',
-                             self.scenario_name, self.tags)
-        return quarantined_jiras
+            if JIRA_RE.match(tag):
+                jira_collection[status or NO_STATUS_JIRA_KEY].append(tag)
+                continue
+            status = None
+
+        for status, jiras in jira_collection.items():
+            if not jiras:
+                reporting_errors('ERROR: JIRA not found for Scenario: {}, Status: {}, Tags {}',
+                                 self.scenario_name, status, self.tags)
+        return jira_collection
 
     def property_from_tags(self, property_name):
 
@@ -132,15 +140,6 @@ class TestGrouping(object):
 ####################################################################################################
 
 
-def _csv_cols_from(base_csv_col_name, padded_values):
-    '''
-    Takes the base csv column name and padded values list and returns a list of CSV column names to
-    values: [('Column 1', value1 or ''), ('Column 2', value2 or ''), ..].  The padded values should
-    be supplied as the same length every time.
-    '''
-    return [(base_csv_col_name.format(c), v) for c, v in enumerate(padded_values, start=1)]
-
-
 def _empty_str_padded_list(list_or_none, pad_to_length):
     '''
     Returns a padded list of a length defined by pad_to_length, the padding will be an empty string.
@@ -167,29 +166,39 @@ class ReportWriter(object):
         self.interface_type = interface_type
         self.project = project
         self.output_dir = output_dir
+        self._max_lens = {}
         self.data = self._data()
+        self._json_keys_that_exist = {k for d in self.data for k in d.keys()}
         self._write_json_report()
         self._write_csv_report()
 
-    @property
-    def _max_categories(self):
-        '''Returns the length of the largest category list in the test groups'''
-        if self._max_category_len is None:
-            self._max_category_len = max(len(g.categories) for g in self.test_groups)
-        return self._max_category_len
+    def _max_len(self, key):
+        '''
+        Caches and returns the max length of any value for that key if the value is a list, if the
+        value is not not a list, does not exist, or exists with no length, will return 0
+        '''
+        if key not in self._max_lens:
+            self._max_lens[key] = max(len(d.get(key) if isinstance(d.get(key), list) else [])
+                                      for d in self.data)
+        return self._max_lens[key]
 
-    def csv_mappings(self):
-        '''
-        Returns a common list of tuples mapping json data keys to csv column names in the desired
-        order of the csv columns for the csv reports.
-        '''
+    def _csv_heading_order(self):
+        '''The csv heading order that the data will appear in on the reports'''
         return [
-            ('product', 'Product'),
-            ('project', 'Project'),
-            ('interface', 'Interface Type'),
-            ('categories', lambda v: _csv_cols_from(
-                'Category {}', _empty_str_padded_list(v, self._max_categories))),
+            'Product',
+            'Project',
+            'Interface Type',
+            'Categories',
         ]
+
+    def _csv_cols_from(self, heading, list_or_none):
+        '''
+        Returns a list tuples of CSV column names and values corresponding to the max length of any
+        list value found for the heading provided.  If the heading does not exist, has only empty
+        lists as values,or does not have lists as values will return an empty list
+        '''
+        padded_values = _empty_str_padded_list(list_or_none, self._max_len(heading))
+        return [('{} {}'.format(heading, i), v) for i, v in enumerate(padded_values, start=1)]
 
     def _data_item(self, categories, **additional_data):
         '''
@@ -197,10 +206,10 @@ class ReportWriter(object):
         reporting values
         '''
         return {
-            'product': self.product_name,
-            'project': self.project,
-            'interface': self.interface_type,
-            'categories': categories,
+            'Product': self.product_name,
+            'Project': self.project,
+            'Interface Type': self.interface_type,
+            'Categories': categories,
             **additional_data
         }
 
@@ -245,40 +254,43 @@ class ReportWriter(object):
         Writes a .csv file, mapping the contents of self.data to csv columns by calling
         self._csv_data_from_json
         '''
-        column_names = [col_name for col_name, _ in self._csv_data_from_json({})]
+        csv_data = [self._csv_data_from_json(d) for d in self.data]
+        column_names = [] if not csv_data else [x[0] for x in csv_data[0]]
+
         with closing(CSVWriter(self._format_and_return_file_path('csv'), column_names)) as csv_file:
-            csv_file.writerows([dict(self._csv_data_from_json(d)) for d in self.data])
+            csv_file.writerows(map(dict, csv_data))
 
     def _csv_data_from_json(self, json_data):
         '''
-        Returns a list of tuples of (CSV_COL_NAME, VALUE) in the same order as supplied in
-        self.csv_mappings If the 2nd item in the mapping tuple (csv_name), is a function, it will be
-        called passing in the value, and an iterable will be expected as a return.
+        Returns a list of tuples of (csv_heading, value) in the same order as supplied in
+        self._csv_heading_order.  If the value contains any lists, will extend multiple tuples
+        padded to the max length of the list.
+        Ex: if the max length of any Category is 2:
+        {'Categories': ['a', 'b']} -> [('Categories 1', 'a'), ('Categories 2', 'b')] and
+        {'Categories': ['a']} -> [('Categories 1', 'a'), ('Categories 2', '')]
         json_data:  Dictionary of json_names to values.
         '''
         csv_data = []
-        for json_name, csv_name in self.csv_mappings():
-            value = json_data.get(json_name)
-            csv_data.extend(csv_name(value) if callable(csv_name) else [(csv_name, value)])
+        for json_name in self._csv_heading_order():
+            if json_name not in self._json_keys_that_exist:
+                continue
+            value = json_data.get(json_name, [])
+            csv_data.extend(self._csv_cols_from(json_name, value) or [(json_name, value)])
         return csv_data
 
 
 class QuarantinedStatsReport(ReportWriter):
     base_file_name = QUARANTINED_STATISTICS_FILE
 
-    def csv_mappings(self):
-        '''
-        Returns a list of tuples mapping json data keys to csv column names in the desired order of
-        the csv columns for the csv statistics report.  Includes the common csv mappings and those
-        defined here.
-        '''
+    def _csv_heading_order(self):
+        '''The base non extended order of the csv columns for the Quarantined Statistics Report'''
         return [
-            *super().csv_mappings(),
-            ('total_tests', 'Total Tests'),
-            ('active_tests', 'Active Tests'),
-            ('quarantined_tests', 'Quarantined Tests'),
-            ('quarantined_percentage', 'Quarantined Percentage'),
-            ('active_percentage', 'Active Percentage'),
+            *super()._csv_heading_order(),
+            'Total Tests',
+            'Active Tests',
+            'Quarantined Tests',
+            'Quarantined Percentage',
+            'Active Percentage',
         ]
 
     def _stats_data(self, categories, total_count, active_count, quarantined_count):
@@ -286,11 +298,11 @@ class QuarantinedStatsReport(ReportWriter):
         Returns a dictionary of data relevant to one grouping for the quarantined statistics report
         '''
         stats_data = {
-            'total_tests': total_count,
-            'active_tests': active_count,
-            'quarantined_tests': quarantined_count,
-            'quarantined_percentage': _safe_round_percent(quarantined_count, active_count),
-            'active_percentage': _safe_round_percent(active_count, total_count),
+            'Total Tests': total_count,
+            'Active Tests': active_count,
+            'Quarantined Tests': quarantined_count,
+            'Quarantined Percentage': _safe_round_percent(quarantined_count, active_count),
+            'Active Percentage': _safe_round_percent(active_count, total_count),
         }
         return self._data_item(categories, **stats_data)
 
@@ -306,43 +318,31 @@ class QuarantinedStatsReport(ReportWriter):
 
 class CoverageReport(ReportWriter):
     base_file_name = COVERAGE_REPORT_FILE
-    _max_jiras_len = None
 
-    @property
-    def _max_jiras(self):
-        '''Returns the length of the largest jira list in the test groups'''
-        if self._max_jiras_len is None:
-            self._max_jiras_len = max(len(s.report_tags.quarantined_jiras)
-                                      for g in self.test_groups for s in g.all_scenarios)
-        return self._max_jiras_len
-
-    def csv_mappings(self):
-        '''
-        Returns a list of tuples mapping json data keys to csv column names in the desired order of
-        the csv columns for the csv coverage report.  Includes the common csv mappings and those
-        defined here.
-        '''
+    def _csv_heading_order(self):
+        '''The base non extended order of the csv columns for the Coverage Report'''
         return [
-            *super().csv_mappings(),
-            ('feature_name', 'Feature Name'),
-            ('test_name', 'Test Name'),
-            ('polarity', 'Polarity'),
-            ('priority', 'Priority'),
-            ('suite', 'Suite'),
-            ('status', 'Status'),
-            ('execution', 'Execution Method'),
-            ('JIRAs', lambda v: _csv_cols_from(
-                'JIRA {}', _empty_str_padded_list(v, self._max_jiras))),
+            *super()._csv_heading_order(),
+            'Feature Name',
+            'Test Name',
+            'Polarity',
+            'Priority',
+            'Suite',
+            'Status',
+            'Execution Method',
+            *jira_status_display_names,
         ]
 
     def _scenario_data(self, categories, scenario):
         '''Returns a dictionary of data relevant to one scenario for the coverage report'''
         scenario_data = {
-            'test_name': scenario.name,
-            'feature_name': scenario.feature.name,
-            'JIRAs': scenario.report_tags.quarantined_jiras,
-            **{name: scenario.report_tags.property_from_tags(name)
-               for name in ['polarity', 'priority', 'suite', 'status', 'execution']}
+            'Test Name': scenario.name,
+            'Feature Name': scenario.feature.name,
+            **{name: scenario.report_tags.property_from_tags(name.lower())
+               for name in ['Polarity', 'Priority', 'Suite', 'Status', 'Execution Method']},
+            **{jira_status: scenario.report_tags.jiras[jira_status]
+               for jira_status in jira_status_display_names
+               if scenario.report_tags.jiras[jira_status]}
         }
         return self._data_item(categories, **scenario_data)
 
