@@ -131,8 +131,7 @@ class SimpleRSTReader(BaseRSTDataObject):
         # attempt to retrieve the attribute from the table.
         # NOTE: supports legacy compatibility
         if self.data and len(self) == 1:
-            table = self.data[list(self.data.keys())[0]]
-            return getattr(table, name)
+            return getattr(list(self.data.values())[0], name)
         raise AttributeError
 
     def _is_header_underline(self, row):
