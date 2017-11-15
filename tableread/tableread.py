@@ -76,13 +76,6 @@ class SimpleRSTTable(BaseRSTDataObject):
             words.append(word.strip().replace('..', ''))
         return words
 
-    def _parse_file(self, file_path):
-        # readlines() does not strip the '\n' from the end of each line, so we use splitlines
-        text_lines = open(file_path, 'r').read().splitlines()
-        self.header, self.rows = self._get_header_and_rows(text_lines)
-        assert self.header and self.rows, 'No table found!'
-        self._build_data()
-
     def _build_data(self):
         Row = namedtuple('Row', [_safe_name(x) for x in self._row_splitter(self.header)])
         self.fields = Row._fields
