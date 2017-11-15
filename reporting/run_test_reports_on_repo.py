@@ -192,10 +192,10 @@ class ReportWriter(object):
         order of the csv columns for the csv reports.
         '''
         return [
-            ('product', 'Product'),
-            ('project', 'Project'),
-            ('interface', 'Interface Type'),
-            ('categories', lambda v: _csv_cols_from(
+            ('Product', 'Product'),
+            ('Project', 'Project'),
+            ('Interface Type', 'Interface Type'),
+            ('Categories', lambda v: _csv_cols_from(
                 'Category {}', _empty_str_padded_list(v, self._max_categories))),
         ]
 
@@ -205,10 +205,10 @@ class ReportWriter(object):
         reporting values
         '''
         return {
-            'product': self.product_name,
-            'project': self.project,
-            'interface': self.interface_type,
-            'categories': categories,
+            'Product': self.product_name,
+            'Project': self.project,
+            'Interface Type': self.interface_type,
+            'Categories': categories,
             **additional_data
         }
 
@@ -282,11 +282,11 @@ class QuarantinedStatsReport(ReportWriter):
         '''
         return [
             *super().csv_mappings(),
-            ('total_tests', 'Total Tests'),
-            ('active_tests', 'Active Tests'),
-            ('quarantined_tests', 'Quarantined Tests'),
-            ('quarantined_percentage', 'Quarantined Percentage'),
-            ('active_percentage', 'Active Percentage'),
+            ('Total Tests', 'Total Tests'),
+            ('Active Tests', 'Active Tests'),
+            ('Quarantined Tests', 'Quarantined Tests'),
+            ('Quarantined Percentage', 'Quarantined Percentage'),
+            ('Active Percentage', 'Active Percentage'),
         ]
 
     def _stats_data(self, categories, total_count, active_count, quarantined_count):
@@ -294,11 +294,11 @@ class QuarantinedStatsReport(ReportWriter):
         Returns a dictionary of data relevant to one grouping for the quarantined statistics report
         '''
         stats_data = {
-            'total_tests': total_count,
-            'active_tests': active_count,
-            'quarantined_tests': quarantined_count,
-            'quarantined_percentage': _safe_round_percent(quarantined_count, active_count),
-            'active_percentage': _safe_round_percent(active_count, total_count),
+            'Total Tests': total_count,
+            'Active Tests': active_count,
+            'Quarantined Tests': quarantined_count,
+            'Quarantined Percentage': _safe_round_percent(quarantined_count, active_count),
+            'Active Percentage': _safe_round_percent(active_count, total_count),
         }
         return self._data_item(categories, **stats_data)
 
@@ -335,13 +335,13 @@ class CoverageReport(ReportWriter):
         '''
         return [
             *super().csv_mappings(),
-            ('feature_name', 'Feature Name'),
-            ('test_name', 'Test Name'),
-            ('polarity', 'Polarity'),
-            ('priority', 'Priority'),
-            ('suite', 'Suite'),
-            ('status', 'Status'),
-            ('execution', 'Execution Method'),
+            ('Feature Name', 'Feature Name'),
+            ('Test Name', 'Test Name'),
+            ('Polarity', 'Polarity'),
+            ('Priority', 'Priority'),
+            ('Suite', 'Suite'),
+            ('Status', 'Status'),
+            ('Execution Method', 'Execution Method'),
             *[(jira_status, lambda v, s=jira_status: _csv_cols_from(
                 '{} {{}}'.format(s), _empty_str_padded_list(v, self._max_len_of(s))))
               for jira_status in jira_status_display_names],
@@ -350,10 +350,10 @@ class CoverageReport(ReportWriter):
     def _scenario_data(self, categories, scenario):
         '''Returns a dictionary of data relevant to one scenario for the coverage report'''
         scenario_data = {
-            'test_name': scenario.name,
-            'feature_name': scenario.feature.name,
-            **{name: scenario.report_tags.property_from_tags(name)
-               for name in ['polarity', 'priority', 'suite', 'status', 'execution']},
+            'Test Name': scenario.name,
+            'Feature Name': scenario.feature.name,
+            **{name: scenario.report_tags.property_from_tags(name.lower())
+               for name in ['Polarity', 'Priority', 'Suite', 'Status', 'Execution Method']},
             **{jira_status: scenario.report_tags.jiras[jira_status]
                for jira_status in jira_status_display_names
                if scenario.report_tags.jiras[jira_status]}
