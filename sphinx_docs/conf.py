@@ -46,7 +46,7 @@ todo_include_todos = True
 # a list of builtin themes.
 #
 
-html_theme = "sphinx_rtd_theme"
+html_theme = 'sphinx_rtd_theme'
 html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 commit_id = os.environ.get('ghprbPullId') or os.environ.get('GIT_COMMIT_ID')
 base_url = os.environ.get('ghprbPullLink')
