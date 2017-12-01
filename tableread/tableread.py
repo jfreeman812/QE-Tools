@@ -112,7 +112,12 @@ class SimpleRSTTable(BaseRSTDataObject):
         return self._filter_data(self.data, kwargs, filterfalse)
 
     def get_fields(self, *fields):
-        return self.__class__.from_data(map(attrgetter(*fields), self.data))
+        '''
+        Given a set of fields, returns a list of those field values from each entry.
+        A single field will return a list of values,
+        Multiple fields will return a list of tuples of values.
+        '''
+        return list(map(attrgetter(*fields), self.data))
 
 
 class SimpleRSTReader(BaseRSTDataObject):
