@@ -1,0 +1,63 @@
+TableRead
+=========
+
+TableRead is a script designed to read simple reStructredText (reST) tables `(1)`_ from a file and convert them into Python objects.
+
+Usage
+-----
+
+``class tableread.SimpleRSTReader(file_path)``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+    Parse a reStructredText file, ``file_path``, and convert any simple tables into ``SimpleRSTTable`` objects.
+    Individual tables can be accessed using the table name as the key (``SimpleRSTReader['table_name']``)
+
+**data**
+  An OrderedDict of the table(s) found in the reST file. The key is either the
+  section header before the table name from the file, or ``Default`` for tables not under a header.
+  For multiple tables in a section (or multiple ``Default`` tables),
+  subsequent tables will have a incrementing number appended to the key: ``Default``, ``Default_2``, etc.
+  The value is a ``SimpleRSTTable`` object.
+
+**tables**
+  A list of the table names; an alias for ``list(data.keys())``
+
+**first**
+  A helper to get the first table found in the file; an alias for
+  ``list(self.data.values())[0]``
+
+
+``class tableread.SimpleRSTTable(header, rows, column_spans)``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+    A representation of an individual table. In addition to the methods below,
+    you may iterate over the table itself as a shortcut (``for entry in table:``),
+    which will yield from ``table.data``.
+    ``len(table)`` will also return the number of entries in ``table.data``.
+
+**data**
+  A list of namedtuples with ``fields`` as the names.
+
+**fields**
+  A tuple of the table fields, as used in the ``data`` namedtuple.
+  Field names are adapted from table columns by lower-casing,
+  and replacing spaces and periods with underscores.
+
+**from_data(data)**
+  A helper function to create an object with. Expects a prepared list of namedtuples.
+
+**matches_all(**kwargs)**
+  Given a set of key/value filters, returns a new TableRead object with only
+  the filtered data, that can be iterated over.
+  Values may be either a simple value (str, int) or a function that returns a boolean.
+
+**exclude_by(**kwargs)**
+  Given a set of key/value filters, returns a new TableRead object without the
+  matching data, that can be iterated over.
+  Values may be either a simple value (str, int) or a function that returns a boolean.
+
+**get_fields(*fields)**
+  Given a list of fields, return a list of only the values associated with those fields.
+  A single field returns a list of values, multiple fields returns a list of value tuples.
+
+.. _`(1)`: http://docutils.sourceforge.net/docs/ref/rst/restructuredtext.html#simple-tables
