@@ -48,9 +48,9 @@ class SimpleRSTTable(BaseRSTDataObject):
 
     def __init__(self, header, rows, column_spans):
         super().__init__()
-        self.header = header
-        self.rows = rows
-        self.column_spans = column_spans
+        self._header = header
+        self._rows = rows
+        self._column_spans = column_spans
         self._build_data()
 
     @classmethod
@@ -59,17 +59,17 @@ class SimpleRSTTable(BaseRSTDataObject):
         table.data = list(data)
         return table
 
-    def stop_checker(self, row):
+    def _stop_checker(self, row):
         return self._is_divider_row(row)
 
     def _row_splitter(self, row):
-        assert self.column_spans, 'Column spans not defined!'
+        assert self._column_spans, 'Column spans not defined!'
         words = []
-        for count, span in enumerate(self.column_spans, start=1):
+        for count, span in enumerate(self._column_spans, start=1):
             # Since reStructuredText allows the last column to extend beyond the border, the reader
             # should set the final word as the last span rather than terminating based on the
             # length of the border.
-            if count == len(self.column_spans):
+            if count == len(self._column_spans):
                 word = row
             else:
                 word, row = row[:span], row[span + len(self.column_divider):]
@@ -77,10 +77,10 @@ class SimpleRSTTable(BaseRSTDataObject):
         return words
 
     def _build_data(self):
-        Row = namedtuple('Row', [_safe_name(x) for x in self._row_splitter(self.header)])
+        Row = namedtuple('Row', [_safe_name(x) for x in self._row_splitter(self._header)])
         self.fields = Row._fields
-        for row in self.rows:
-            if self.stop_checker(row):
+        for row in self._rows:
+            if self._stop_checker(row):
                 break
             row = row.split(' {} '.format(self.comment_char))[0]
             if row.count(self.column_divider):
@@ -100,7 +100,6 @@ class SimpleRSTTable(BaseRSTDataObject):
         Given a set of key/value filters,
         returns a new TableRead object with the filtered data, that can be iterated over.
         Kwarg values may be a simple value (str, int) or a function that returns a boolean.
-        if fields is not None, return just the fields requested.
         '''
         return self._filter_data(self.data, kwargs, filter)
 
@@ -109,12 +108,16 @@ class SimpleRSTTable(BaseRSTDataObject):
         Given a set of key/value filters,
         returns a new TableRead object without the matching data, that can be iterated over.
         Kwarg values may be a simple value (str, int) or a function that returns a boolean.
-        if fields is not None, return just the fields requested.
         '''
         return self._filter_data(self.data, kwargs, filterfalse)
 
     def get_fields(self, *fields):
-        return self.__class__.from_data(map(attrgetter(*fields), self.data))
+        '''
+        Given a set of fields, returns a list of those field values from each entry.
+        A single field will return a list of values,
+        Multiple fields will return a list of tuples of values.
+        '''
+        return list(map(attrgetter(*fields), self.data))
 
 
 class SimpleRSTReader(BaseRSTDataObject):
