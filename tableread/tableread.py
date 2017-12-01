@@ -100,7 +100,6 @@ class SimpleRSTTable(BaseRSTDataObject):
         Given a set of key/value filters,
         returns a new TableRead object with the filtered data, that can be iterated over.
         Kwarg values may be a simple value (str, int) or a function that returns a boolean.
-        if fields is not None, return just the fields requested.
         '''
         return self._filter_data(self.data, kwargs, filter)
 
@@ -109,7 +108,6 @@ class SimpleRSTTable(BaseRSTDataObject):
         Given a set of key/value filters,
         returns a new TableRead object without the matching data, that can be iterated over.
         Kwarg values may be a simple value (str, int) or a function that returns a boolean.
-        if fields is not None, return just the fields requested.
         '''
         return self._filter_data(self.data, kwargs, filterfalse)
 
