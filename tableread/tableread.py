@@ -59,7 +59,7 @@ class SimpleRSTTable(BaseRSTDataObject):
         table.data = list(data)
         return table
 
-    def stop_checker(self, row):
+    def _stop_checker(self, row):
         return self._is_divider_row(row)
 
     def _row_splitter(self, row):
@@ -80,7 +80,7 @@ class SimpleRSTTable(BaseRSTDataObject):
         Row = namedtuple('Row', [_safe_name(x) for x in self._row_splitter(self._header)])
         self.fields = Row._fields
         for row in self._rows:
-            if self.stop_checker(row):
+            if self._stop_checker(row):
                 break
             row = row.split(' {} '.format(self.comment_char))[0]
             if row.count(self.column_divider):
