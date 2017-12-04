@@ -1,19 +1,19 @@
 #!/usr/bin/env python
 
+import argparse
+from collections import defaultdict
+from contextlib import closing
+import csv
 import os
 import fnmatch
 import re
-import csv
-import argparse
-import behave.parser
 import datetime
 import json
 
-from collections import defaultdict
-from contextlib import closing
-from test_tags import TestTags
+import behave.parser
 
 from shared.utilities import display_name, padded_list
+from test_tags import TestTags
 
 
 QUARANTINED_INDICATOR = 'quarantined'
