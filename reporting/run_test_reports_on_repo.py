@@ -287,7 +287,7 @@ class ReportWriter(object):
             csv_data.extend(self._csv_cols_from(json_name, value) or [(json_name, value)])
         return csv_data
 
-    def _send_to_splunk(self, auth_token):
+    def _send_to_splunk(self):
         common_data = {
             'time': datetime.datetime.now().timestamp(),
             'host': socket.gethostname(),
