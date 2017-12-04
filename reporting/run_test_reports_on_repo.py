@@ -4,11 +4,11 @@ import argparse
 from collections import defaultdict
 from contextlib import closing
 import csv
-import os
-import fnmatch
-import re
 import datetime
+import fnmatch
 import json
+import os
+import re
 
 import behave.parser
 
