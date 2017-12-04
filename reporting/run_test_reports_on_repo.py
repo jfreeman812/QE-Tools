@@ -4,13 +4,15 @@ import argparse
 from collections import defaultdict
 from contextlib import closing
 import csv
-import os
-import fnmatch
-import re
 import datetime
+import fnmatch
 import json
+import os
+import re
+import socket
 
 import behave.parser
+import requests
 
 from shared.utilities import display_name, padded_list
 from test_tags import TestTags
@@ -23,6 +25,9 @@ REPORT_PATH = 'reports'
 QUARANTINED_STATISTICS_FILE = '{repo_name}_quarantined_statistics_{time_stamp}.{ext}'
 COVERAGE_REPORT_FILE = '{repo_name}_coverage_report_{time_stamp}.{ext}'
 JIRA_RE = re.compile('(.*[^A-Z])?([A-Z][A-Z]+-[0-9]+)')
+SPLUNK_COLLECTOR_HOSTNAME = 'httpc.secops.rackspace.com'
+SPLUNK_COLLECTOR_URL = 'https://{}:8088/services/collector'.format(SPLUNK_COLLECTOR_HOSTNAME)
+SPLUNK_REPORT_INDEX = 'rax_temp_60'
 
 ####################################################################################################
 # Globals
@@ -160,17 +165,21 @@ class ReportWriter(object):
     base_file_name = ''
     _max_category_len = None
 
-    def __init__(self, test_groupings, product_name, interface_type, project, output_dir):
+    def __init__(self, test_groupings, product_name, interface_type,
+                 project, output_dir, splunk_token=None):
         self.test_groups = test_groupings
         self.product_name = product_name
         self.interface_type = interface_type
         self.project = project
         self.output_dir = output_dir
+        self._splunk_token = splunk_token
         self._max_lens = {}
         self.data = self._data()
         self._json_keys_that_exist = {k for d in self.data for k in d.keys()}
         self._write_json_report()
         self._write_csv_report()
+        if self._splunk_token:
+            self._send_to_splunk()
 
     def _max_len(self, key):
         '''
@@ -277,6 +286,18 @@ class ReportWriter(object):
             value = json_data.get(json_name, [])
             csv_data.extend(self._csv_cols_from(json_name, value) or [(json_name, value)])
         return csv_data
+
+    def _send_to_splunk(self, auth_token):
+        common_data = {
+            'time': datetime.datetime.now().timestamp(),
+            'host': socket.gethostname(),
+            'index': SPLUNK_REPORT_INDEX,
+            'sourcetype': '_json'}
+        events = [json.dumps({'event': x, **common_data}) for x in self.data]
+        response = requests.post(SPLUNK_COLLECTOR_URL, data=' '.join(events),
+                                 headers={'Authorization': self._splunk_token},
+                                 verify=False)
+        response.raise_for_status()
 
 
 class QuarantinedStatsReport(ReportWriter):
@@ -456,6 +477,8 @@ if __name__ == '__main__':
     parser.add_argument('-o', '--output-dir', default=REPORT_PATH,
                         help='Output directory for the generated report files.')
     parser.add_argument('--search_hidden', action='store_true', help='Include ".hidden" folders')
+    parser.add_argument('--splunk_token', default='',
+                        help='Provide Splunk auth token to send data')
     args = parser.parse_args()
     run_reports(args.repo_base_directory, args.product_dir, args.interface_type, args.project,
-                args.output_dir, search_hidden=args.search_hidden)
+                args.output_dir, args.splunk_token, search_hidden=args.search_hidden)
