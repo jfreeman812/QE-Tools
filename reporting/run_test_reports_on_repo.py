@@ -29,6 +29,8 @@ JIRA_RE = re.compile('(.*[^A-Z])?([A-Z][A-Z]+-[0-9]+)')
 SPLUNK_COLLECTOR_HOSTNAME = 'httpc.secops.rackspace.com'
 SPLUNK_COLLECTOR_URL = 'https://{}:8088/services/collector'.format(SPLUNK_COLLECTOR_HOSTNAME)
 SPLUNK_REPORT_INDEX = 'rax_temp_60'
+SPLUNK_QUARANTINED_INDEX = 'rax_qe_quarantined'
+SPLUNK_COVERAGE_INDEX = 'rax_qe_coverage'
 
 ####################################################################################################
 # Globals
@@ -310,7 +312,7 @@ class ReportWriter(object):
 
 class QuarantinedStatsReport(ReportWriter):
     base_file_name = QUARANTINED_STATISTICS_FILE
-    _source = 'rax_qe_quarantined'
+    _source = SPLUNK_QUARANTINED_INDEX
 
     def _csv_heading_order(self):
         '''The base non extended order of the csv columns for the Quarantined Statistics Report'''
@@ -348,7 +350,7 @@ class QuarantinedStatsReport(ReportWriter):
 
 class CoverageReport(ReportWriter):
     base_file_name = COVERAGE_REPORT_FILE
-    _source = 'rax_qe_coverage'
+    _source = SPLUNK_COVERAGE_INDEX
 
     def _csv_heading_order(self):
         '''The base non extended order of the csv columns for the Coverage Report'''
