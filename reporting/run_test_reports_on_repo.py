@@ -11,9 +11,9 @@ import os
 import re
 
 import behave.parser
+from tableread import SimpleRSTReader
 
 from shared.utilities import display_name, padded_list
-from test_tags import TestTags
 
 
 QUARANTINED_INDICATOR = 'quarantined'
@@ -47,10 +47,10 @@ class ErrorAggregator(object):
 # Any display name in nuisance_category_names will be omitted from the categories.  'features' is
 # ignored as it is a special name required in cucumber and meaningless for reporting.
 nuisance_category_names = ['features']
-tag_definitions = TestTags('tags.md', strip_at=True)
+coverage_tables = SimpleRSTReader('coverage.rst')
+status_table = coverage_tables['Status'].exclude_by(tag='')
 reporting_errors = ErrorAggregator()
-jira_status_display_names = [NO_STATUS_JIRA_KEY] + [tag_definitions.report_names.get(t)
-                                                    for t in tag_definitions.groups['status']]
+jira_status_display_names = [NO_STATUS_JIRA_KEY] + sorted(status_table.get_fields('report_as'))
 
 ####################################################################################################
 # Object Definitions
@@ -68,16 +68,17 @@ class Tags(object):
     def _jiras(self):
         '''
         Returns a dictionary of {status_key: [associated jira tags]}.  If the jira is not associated
-        with a status, the status key will be 'jiras'.  If a status does not have any jiras
+        with a status, the status key will be 'JIRAs'.  If a status does not have any jiras
         associated with it, an error will be logged.
         '''
         jira_collection = defaultdict(list)
         status = None
         for tag in self.tags:
-            if tag in tag_definitions.groups['status']:
-                status = tag_definitions.report_names.get(tag)
-                # A status existing with an empty list indicates that no jiras were associated with
-                # that status.
+            if tag in status_table.get_fields('tag'):
+                status = status_table.matches_all(tag=tag).data[0].report_as
+                # Since a status with an empty list indicates that no JIRAs were associated with
+                # that status, we need to explicity create the status key with the default value
+                # for validation later.
                 jira_collection[status]
                 continue
             if JIRA_RE.match(tag):
@@ -105,14 +106,18 @@ class Tags(object):
                                  base_error_msg, self.tags, expected_tags)
             return intersection.pop() if intersection else default
 
-        valid_property_tags = tag_definitions.groups[property_name]
-        default_tag = tag_definitions.group_default.get(property_name)
-        tag_name = single_matching_tag(valid_property_tags, default=default_tag)
-        return tag_definitions.report_names.get(tag_name, default_tag)
+        property_tables = coverage_tables[property_name]
+        valid_tags = property_tables.exclude_by(tag='').get_fields('tag')
+        default_tag = property_tables.matches_all(tag='').get_fields('report_as')
+        default_tag = default_tag[0] if default_tag else None
+        tag_name = single_matching_tag(valid_tags, default=default_tag)
+        report_as = property_tables.matches_all(tag=tag_name).data
+        return report_as[0].report_as if report_as else default_tag
 
     @property
     def is_active(self):
-        return not set(self.tags) & (tag_definitions.groups['status'] - {QUARANTINED_INDICATOR})
+        inactive_tags = set(status_table.get_fields('tag')) - {QUARANTINED_INDICATOR}
+        return not set(self.tags) & inactive_tags
 
 
 class TestGrouping(object):
@@ -338,7 +343,7 @@ class CoverageReport(ReportWriter):
         scenario_data = {
             'Test Name': scenario.name,
             'Feature Name': scenario.feature.name,
-            **{name: scenario.report_tags.property_from_tags(name.lower())
+            **{name: scenario.report_tags.property_from_tags(name)
                for name in ['Polarity', 'Priority', 'Suite', 'Status', 'Execution Method']},
             **{jira_status: scenario.report_tags.jiras[jira_status]
                for jira_status in jira_status_display_names
