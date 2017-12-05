@@ -10,6 +10,7 @@ import json
 import os
 import re
 import socket
+from urllib import parse
 
 import behave.parser
 import requests
@@ -161,6 +162,11 @@ def _safe_round_percent(sub_section, whole):
     return round((sub_section / whole) * 100, 2) if whole else 0.0
 
 
+def _hostname_from_env():
+    jenkins_url = os.environ.get('JENKINS_URL')
+    return parse.urlparse(jenkins_url).netloc if jenkins_url else None
+
+
 class ReportWriter(object):
     base_file_name = ''
     _max_category_len = None
@@ -291,7 +297,7 @@ class ReportWriter(object):
     def _send_to_splunk(self):
         common_data = {
             'time': datetime.datetime.now().timestamp(),
-            'host': socket.gethostname(),
+            'host': _hostname_from_env() or socket.gethostname(),
             'index': SPLUNK_REPORT_INDEX,
             'source': self._source,
             'sourcetype': '_json'}
