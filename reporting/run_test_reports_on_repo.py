@@ -164,6 +164,7 @@ def _safe_round_percent(sub_section, whole):
 class ReportWriter(object):
     base_file_name = ''
     _max_category_len = None
+    _source = None
 
     def __init__(self, test_groupings, product_name, interface_type,
                  project, output_dir, splunk_token=None):
@@ -292,6 +293,7 @@ class ReportWriter(object):
             'time': datetime.datetime.now().timestamp(),
             'host': socket.gethostname(),
             'index': SPLUNK_REPORT_INDEX,
+            'source': self._source,
             'sourcetype': '_json'}
         events = [json.dumps({'event': x, **common_data}) for x in self.data]
         response = requests.post(SPLUNK_COLLECTOR_URL, data=' '.join(events),
@@ -302,6 +304,7 @@ class ReportWriter(object):
 
 class QuarantinedStatsReport(ReportWriter):
     base_file_name = QUARANTINED_STATISTICS_FILE
+    _source = 'rax_qe_quarantined'
 
     def _csv_heading_order(self):
         '''The base non extended order of the csv columns for the Quarantined Statistics Report'''
@@ -339,6 +342,7 @@ class QuarantinedStatsReport(ReportWriter):
 
 class CoverageReport(ReportWriter):
     base_file_name = COVERAGE_REPORT_FILE
+    _source = 'rax_qe_coverage'
 
     def _csv_heading_order(self):
         '''The base non extended order of the csv columns for the Coverage Report'''
