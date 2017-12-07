@@ -265,21 +265,22 @@ def tags(*tags, **attrs):
         ValueError: If no polarity tag is provided.
     """
     tags = list(tags)
+    tags_set = set(tags)
 
-    if not set(tags).intersection(set(POLARITY_TAG_NAMES)):
+    if not tags_set.intersection(set(POLARITY_TAG_NAMES)):
         raise ValueError("One of the following polarity tags must be provided: {0}"
                          "".format(POLARITY_TAG_NAMES))
 
     # Tag the test with the default execution method if none is provided
-    if not set(tags).intersection(set(EXECUTION_METHOD_TAG_NAMES)):
+    if not tags_set.intersection(set(EXECUTION_METHOD_TAG_NAMES)):
         tags.append("automated")
 
     # Tag the test with the default priority if none is provided
-    if not set(tags).intersection(set(PRIORITY_TAG_NAMES)):
+    if not tags_set.intersection(set(PRIORITY_TAG_NAMES)):
         tags.append("p1")
 
     # Tag the test with the default status if none is provided
-    if not set(tags).intersection(set(STATUS_TAG_NAMES)):
+    if not tags_set.intersection(set(STATUS_TAG_NAMES)):
         tags.append("operational")
 
     # Add "non" tags for all suites that don't apply to the test
