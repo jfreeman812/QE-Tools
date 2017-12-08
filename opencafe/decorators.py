@@ -76,7 +76,8 @@ from cafe.drivers.unittest.decorators import tags as cafe_tags
 # CONSTANTS #
 #############
 
-# All standard tag names come from https://pages.github.rackspace.com/QualityEngineering/QE-Tools/coverage.html
+# All standard tag names come from
+# https://pages.github.rackspace.com/QualityEngineering/QE-Tools/coverage.html
 EXECUTION_METHOD_TAG_NAMES = ["manual", "automated"]
 POLARITY_TAG_NAMES = ["positive", "negative"]
 PRIORITY_TAG_NAMES = ["p0", "p1", "p2"]
@@ -172,9 +173,10 @@ def _environment_matches(test_fixture, environment):
     environment_matching_method = getattr(test_fixture, ENVIRONMENT_MATCHING_METHOD_NAME, None)
 
     if environment_matching_method is None:
-        raise NotImplementedError("In order to utilize the this decorator functionality, you must "
-                                  "implement a '{0}' method that determines whether or not the current "
-                                  "environment matches the environment affected by this decorator."
+        raise NotImplementedError("In order to utilize the this decorator functionality, "
+                                  "you must implement a '{0}' method that determines whether "
+                                  "or not the current environment matches the environment "
+                                  "affected by this decorator."
                                   "".format(ENVIRONMENT_MATCHING_METHOD_NAME))
 
     return environment_matching_method(environment)
@@ -311,8 +313,9 @@ def quarantined(details, environment_affected=None):
         A decorator function into which to pass the test case or test class.
     """
     _confirm_that_string_contains_a_jira_ticket_reference(details)
-    return _get_decorator_for_skipping_test(reason="Quarantined", details=details, tag_name="quarantined",
-                                            environment_affected=environment_affected)
+    return _get_decorator_for_skipping_test(
+        reason="Quarantined", details=details, tag_name="quarantined",
+        environment_affected=environment_affected)
 
 
 def needs_work(details, environment_affected=None):
@@ -335,8 +338,9 @@ def needs_work(details, environment_affected=None):
         A decorator function to pass the test case or test class into.
     """
     _confirm_that_string_contains_a_jira_ticket_reference(details)
-    return _get_decorator_for_skipping_test(reason="Needs Work", details=details, tag_name="needs-work",
-                                            environment_affected=environment_affected)
+    return _get_decorator_for_skipping_test(
+        reason="Needs Work", details=details, tag_name="needs-work",
+        environment_affected=environment_affected)
 
 
 def not_tested(details, environment_affected=None):
@@ -357,8 +361,9 @@ def not_tested(details, environment_affected=None):
         A decorator function to pass the test case or test class into.
     """
     _confirm_that_string_contains_a_jira_ticket_reference(details)
-    return _get_decorator_for_skipping_test(reason="Not Tested - Service Not Ready", details=details,
-                                            tag_name="not-tested", environment_affected=environment_affected)
+    return _get_decorator_for_skipping_test(
+        reason="Not Tested - Service Not Ready", details=details,
+        tag_name="not-tested", environment_affected=environment_affected)
 
 
 def nyi(details):
@@ -369,14 +374,16 @@ def nyi(details):
     designated for implementing this test.
 
     Args:
-        details (str): Information about why the test is not implemented. Typically with ``@nyi``,
-            only the JIRA reference is included, but any other details are welcome.
+        details (str): Information about why the test is not implemented.
+            Typically with ``@nyi``, only the JIRA reference is included,
+            but any other details are welcome.
 
     Returns:
         A decorator function to pass the test case or test class into.
     """
     _confirm_that_string_contains_a_jira_ticket_reference(details)
-    return _get_decorator_for_skipping_test(reason="Not Implemented", details=details, tag_name="nyi",)
+    return _get_decorator_for_skipping_test(reason="Not Implemented", details=details,
+                                            tag_name="nyi",)
 
 
 def only_in(environment, reason=None):
@@ -384,13 +391,16 @@ def only_in(environment, reason=None):
     Skip a test case or class if the given environment matches the current test environment.
 
     Args:
-        environment (str): The environment in which the test case or class is allowed to run.
-        reason (str): The reason why the test case or class must be only run in the given environment.
+        environment (str): The environment in which the test case or class
+            is allowed to run.
+        reason (str): The reason why the test case or class must be only
+            run in the given environment.
 
     Note:
-        In order to use this decorator, an environment matching method **MUST** be implemented
-        on the test fixture. This method should return a boolean value that shows whether or
-        not the current environment matches the requested environment affected.
+        In order to use this decorator, an environment matching method **MUST**
+        be implemented on the test fixture. This method should return a boolean
+        value that shows whether or not the current environment matches the
+        requested environment affected.
 
     Returns:
         A decorator function to pass the test case or test class into.
@@ -407,8 +417,9 @@ def only_in(environment, reason=None):
             test_case_or_class: The original test method or test class being decorated.
 
         Returns:
-            Callable: A replacement class or method that is skipped if the correct environment is not being tested.
-        """
+            Callable: A replacement class or method that is skipped if the correct
+            environment is not being tested.
+        '''
         if isclass(test_case_or_class):
             if _environment_matches(test_fixture=test_case_or_class, environment=environment):
                 return test_case_or_class
@@ -435,13 +446,8 @@ def production_only(reason=None):
     """
     Mark a test case as production only and skip the test if in a staging environment.
 
-    This is the equivalent of writing this at the beginning of a test case::
-
-        if self.client.environment.lower() != "production":
-            self.skipTest(reason)
-
     Args:
-        reason (str): The reason why the test case or class should only be run in staging.
+        reason (str): The reason why the test case or class should only be run in "production".
 
     Returns:
         A decorator function to pass the test case or test class into.
@@ -453,13 +459,8 @@ def staging_only(reason=None):
     """
     Mark a test case as staging only and skip the test if not in a staging environment.
 
-    This is the equivalent of writing this at the beginning of a test case::
-
-        if self.client.environment.lower() != "staging":
-            self.skipTest(reason)
-
     Args:
-        reason (str): The reason why the test case or class should only be run in staging.
+        reason (str): The reason why the test case or class should only be run in "staging".
 
     Returns:
         A decorator function to pass the test case or test class into.
