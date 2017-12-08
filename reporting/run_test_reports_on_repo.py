@@ -117,7 +117,7 @@ class Tags(object):
         property_tables = coverage_tables[property_name]
         valid_tags = property_tables.exclude_by(tag='').get_fields('tag')
         default_tag = property_tables.matches_all(tag='').get_fields('report_as')
-        default_tag = default_tag[0] if default_tag else None
+        default_tag = default_tag[0] if default_tag else ''
         tag_name = single_matching_tag(valid_tags, default=default_tag)
         report_as = property_tables.matches_all(tag=tag_name).data
         return report_as[0].report_as if report_as else default_tag
