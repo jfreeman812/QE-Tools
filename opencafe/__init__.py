@@ -1,1 +1,1 @@
-"""QE Tools for teams using the OpenCafe test framework."""
+'''QE Tools for teams using the OpenCafe test framework.'''
