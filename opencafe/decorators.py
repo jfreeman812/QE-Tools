@@ -76,14 +76,6 @@ from cafe.drivers.unittest.decorators import tags as cafe_tags
 # CONSTANTS #
 #############
 
-# All standard tag names come from
-# https://pages.github.rackspace.com/QualityEngineering/QE-Tools/coverage.html
-EXECUTION_METHOD_TAG_NAMES = ['manual', 'automated']
-POLARITY_TAG_NAMES = ['positive', 'negative']
-PRIORITY_TAG_NAMES = ['p0', 'p1', 'p2']
-STATUS_TAG_NAMES = ['nyi', 'not-tested', 'needs-work', 'quarantined', 'operational']
-SUITE_TAG_NAMES = ['deploy', 'smoke', 'load', 'solo', 'integration', 'security']
-
 ENVIRONMENT_MATCHING_METHOD_NAME = 'current_environment_matches'
 '''The name of the method to implement on the test fixture for environment functionality.
 
@@ -245,54 +237,6 @@ def _get_decorator_for_skipping_test(reason, details, tag_name, environment_affe
 ##############
 # DECORATORS #
 ##############
-
-
-def tags(*tags, **attrs):
-    '''
-    Add tags and attributes that are interpreted by OpenCafe at run time.
-
-    The given tags go through a series of checks. If no polarity tag is
-    provided, then a ``ValueError`` is raised. For each of the other tag
-    categories, if no tag for that category is provided, then the default
-    is assigned. Lastly, 'non-' tags are added for the suites that do not
-    apply to the test method.
-
-    After these checks and additions are complete, the standard OpenCafe
-    ``tags`` decorator is applied.
-
-    Args:
-        *tags: The tags to be included with the test case.
-        **attrs: Attributes to be added to the test case.
-
-    Returns:
-        Callable: The newly decorated test case method.
-
-    Raises:
-        ValueError: If no polarity tag is provided.
-    '''
-    tags = list(tags)
-    tags_set = set(tags)
-
-    if not tags_set.intersection(set(POLARITY_TAG_NAMES)):
-        raise ValueError('One of the following polarity tags must be provided: {0}'
-                         ''.format(POLARITY_TAG_NAMES))
-
-    # Provide default names if a tag from a tag category is not already provided
-    tag_names_defaults_pairs = [
-        (EXECUTION_METHOD_TAG_NAMES, 'automated'),
-        (PRIORITY_TAG_NAMES, 'p1'),
-        (STATUS_TAG_NAMES, 'operational')
-    ]
-    for tag_names, default in tag_names_defaults_pairs:
-        if not tags_set.intersection(set(tag_names)):
-            tags.append(default)
-
-    # Add 'non' tags for all suites that don't apply to the test
-    for tag_name in SUITE_TAG_NAMES:
-        if tag_name not in tags:
-            tags.append('non-{0}'.format(tag_name))
-
-    return cafe_tags(*tags, **attrs)
 
 
 def quarantined(details, environment_affected=None):
