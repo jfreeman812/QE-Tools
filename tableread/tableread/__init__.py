@@ -1,6 +1,9 @@
 import os
 from collections import namedtuple, OrderedDict
-from itertools import filterfalse
+try:
+    from itertools import filterfalse
+except ImportError:
+    from itertools import ifilterfalse as filterfalse
 from operator import attrgetter
 
 
@@ -28,7 +31,8 @@ class BaseRSTDataObject(object):
         return len(self.data)
 
     def __iter__(self):
-        yield from self.data
+        for data in self.data:
+            yield data
 
     def __getitem__(self, key):
         return self.data[key]
