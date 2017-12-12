@@ -21,7 +21,7 @@ from shared.utilities import display_name, padded_list
 
 QUARANTINED_INDICATOR = 'quarantined'
 NO_STATUS_JIRA_KEY = 'JIRAs'
-TAG_DEFINITION_FILE = 'tags.md'
+TAG_DEFINITION_FILE = 'coverage.rst'
 REPORT_PATH = 'reports'
 QUARANTINED_STATISTICS_FILE = '{repo_name}_quarantined_statistics_{time_stamp}.{ext}'
 COVERAGE_REPORT_FILE = '{repo_name}_coverage_report_{time_stamp}.{ext}'
@@ -55,7 +55,7 @@ class ErrorAggregator(object):
 # Any display name in nuisance_category_names will be omitted from the categories.  'features' is
 # ignored as it is a special name required in cucumber and meaningless for reporting.
 nuisance_category_names = ['features']
-coverage_tables = SimpleRSTReader('coverage.rst')
+coverage_tables = SimpleRSTReader(TAG_DEFINITION_FILE)
 status_table = coverage_tables['Status'].exclude_by(tag='')
 reporting_errors = ErrorAggregator()
 jira_status_display_names = [NO_STATUS_JIRA_KEY] + sorted(status_table.get_fields('report_as'))
