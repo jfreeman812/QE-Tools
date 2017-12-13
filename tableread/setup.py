@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(name='tableread',
-      version='1.0',
+      version='1.0.1',
       description='Table reader for simple reStructredText tables',
       url='https://github.rackspace.com/QualityEngineering/QE-Tools',
       author='RBA QE',
