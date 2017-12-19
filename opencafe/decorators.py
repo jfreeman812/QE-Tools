@@ -86,6 +86,8 @@ related decorator functionality.
 JIRA_REGEX = re.compile('^[A-Z]+-[0-9]+$')
 '''A regular expression that matches a valid JIRA ticket reference.'''
 
+COVERAGE_TAGS_DECORATOR_LIST_NAME = '__QE_TAGGING_FOR_COVERAGE__'
+'''Used to keep track of the tags added to a function for coverage reporting.'''
 
 ############
 # SETTINGS #
@@ -130,25 +132,17 @@ def _add_text_to_docstring_summary_line(original_docstring, summary_line_additio
     return '\n'.join(docstring_lines)
 
 
-def _confirm_that_string_contains_a_jira_ticket_reference(s):
+def _all_jira_ids_in(s):
     '''
-    Confirm that somewhere in a string, there is something that resembles a JIRA ticket.
-
-    Basically there needs to be something that starts with some all caps letters
-    followed by a dash followed by a number.
+    Return a list of all the non-overlapping JIRA ID like looking strings contained in s.
 
     Args:
-        s (str): The string that should have a JIRA ticket number in it.
+        s (str): The string to be searched for JIRA IDs
 
-    Raises:
-        ValueError: If the string does not contain something that resembles a JIRA ticket.
+    Returns:
+        A list of all the JIRA ID strings found.
     '''
-    for word in s.split():
-        # The JIRA reference can be surrounded by any of these characters on either side.
-        if JIRA_REGEX.match(word.strip('.,![]{}()')):
-            return
-
-    raise ValueError('"{0}" does not contain a JIRA ticket reference.'.format(s))
+    return JIRA_REGEX.findall(s)
 
 
 def _environment_matches(test_fixture, environment):
@@ -190,6 +184,8 @@ def _get_decorator_for_skipping_test(reason, details, tag_name, environment_affe
     Note:
         If an ``environment_affected`` value is provided to the original decorator,
         then an environment matching method **MUST** be implemented on the test fixture.
+        The details string must contain one or more JIRA-IDs that provide traceability for
+        why this test would be skipped.
 
     Args:
         reason (str): The short reason why the test should be skipped.
@@ -201,6 +197,11 @@ def _get_decorator_for_skipping_test(reason, details, tag_name, environment_affe
     Returns:
         A decorator function into which to pass the test case or test class.
     '''
+
+    jira_ids = _all_jira_ids_in(details)
+    if not jira_ids:
+        raise ValueError('"{0}" does not contain any JIRA ticket references.'.format(details))
+
     if environment_affected:
         message = '{0} (in {1} environment): {2}'.format(reason, environment_affected, details)
     else:
@@ -227,7 +228,7 @@ def _get_decorator_for_skipping_test(reason, details, tag_name, environment_affe
             wrapper.__doc__ = _add_text_to_docstring_summary_line(
                 original_docstring=test_case_or_class.__doc__, summary_line_addition=message)
 
-        wrapper = cafe_tags(tag_name)(wrapper)
+        wrapper = cafe_tags(tag_name, *jira_ids)(wrapper)
 
         return wrapper
 
@@ -258,7 +259,6 @@ def quarantined(details, environment_affected=None):
     Returns:
         A decorator function into which to pass the test case or test class.
     '''
-    _confirm_that_string_contains_a_jira_ticket_reference(details)
     return _get_decorator_for_skipping_test(
         reason='Quarantined', details=details, tag_name='quarantined',
         environment_affected=environment_affected)
@@ -283,7 +283,6 @@ def needs_work(details, environment_affected=None):
     Returns:
         A decorator function to pass the test case or test class into.
     '''
-    _confirm_that_string_contains_a_jira_ticket_reference(details)
     return _get_decorator_for_skipping_test(
         reason='Needs Work', details=details, tag_name='needs-work',
         environment_affected=environment_affected)
@@ -306,7 +305,6 @@ def not_tested(details, environment_affected=None):
     Returns:
         A decorator function to pass the test case or test class into.
     '''
-    _confirm_that_string_contains_a_jira_ticket_reference(details)
     return _get_decorator_for_skipping_test(
         reason='Not Tested - Service Not Ready', details=details,
         tag_name='not-tested', environment_affected=environment_affected)
@@ -327,7 +325,6 @@ def nyi(details):
     Returns:
         A decorator function to pass the test case or test class into.
     '''
-    _confirm_that_string_contains_a_jira_ticket_reference(details)
     return _get_decorator_for_skipping_test(reason='Not Implemented', details=details,
                                             tag_name='nyi',)
 
