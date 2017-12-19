@@ -86,9 +86,6 @@ related decorator functionality.
 JIRA_REGEX = re.compile('^[A-Z]+-[0-9]+$')
 '''A regular expression that matches a valid JIRA ticket reference.'''
 
-COVERAGE_TAGS_DECORATOR_LIST_NAME = '__QE_TAGGING_FOR_COVERAGE__'
-'''Used to keep track of the tags added to a function for coverage reporting.'''
-
 ############
 # SETTINGS #
 ############
@@ -196,6 +193,9 @@ def _get_decorator_for_skipping_test(reason, details, tag_name, environment_affe
 
     Returns:
         A decorator function into which to pass the test case or test class.
+
+    Raises:
+        ValueError: If the details string does not contain something that resembles a JIRA ticket.
     '''
 
     jira_ids = _all_jira_ids_in(details)
