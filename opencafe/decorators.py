@@ -84,7 +84,7 @@ related decorator functionality.
 '''
 
 JIRA_REGEX = re.compile('^[A-Z]+-[0-9]+$')
-'''A regular expression that matches a valid JIRA ticket reference.'''
+'''A regular expression that matches a valid JIRA ID.'''
 
 ############
 # SETTINGS #
@@ -131,7 +131,7 @@ def _add_text_to_docstring_summary_line(original_docstring, summary_line_additio
 
 def _all_jira_ids_in(s):
     '''
-    Return a list of all the non-overlapping JIRA ID like looking strings contained in s.
+    Return a list of all the non-overlapping JIRA IDs contained in s.
 
     Args:
         s (str): The string to be searched for JIRA IDs
@@ -195,12 +195,12 @@ def _get_decorator_for_skipping_test(reason, details, tag_name, environment_affe
         A decorator function into which to pass the test case or test class.
 
     Raises:
-        ValueError: If the details string does not contain something that resembles a JIRA ticket.
+        ValueError: If the details string does not contain something that resembles a JIRA ID.
     '''
 
     jira_ids = _all_jira_ids_in(details)
     if not jira_ids:
-        raise ValueError('"{0}" does not contain any JIRA ticket references.'.format(details))
+        raise ValueError('"{0}" does not contain any JIRA IDs.'.format(details))
 
     if environment_affected:
         message = '{0} (in {1} environment): {2}'.format(reason, environment_affected, details)
@@ -248,8 +248,8 @@ def quarantined(details, environment_affected=None):
     due to an issue with the system being tested that is outside the scope
     of the QE team.
 
-    The ``details`` parameter should include the label for the JIRA story.
-    If no label exists, a JIRA ticket should be created before marking
+    The ``details`` parameter should include the ID for the JIRA story.
+    If no ID exists, a JIRA issue/defect should be created before marking
     the test as quarantined.
 
     Args:
@@ -272,8 +272,8 @@ def needs_work(details, environment_affected=None):
     due to an issue with the test or test framework. This issue should
     be something that will be fixed by the QE team.
 
-    The ``details`` parameter should include the label for the JIRA story.
-    If no label exists, a JIRA ticket should be created before marking
+    The ``details`` parameter should include the ID for the JIRA story.
+    If no ID exists, a JIRA issue/defect should be created before marking
     the test as needs work.
 
     Args:
@@ -295,7 +295,7 @@ def not_tested(details, environment_affected=None):
     This should be used for test cases that are implemented, but the
     service being tested is not ready.
 
-    The ``details`` parameter should include the label for the JIRA story
+    The ``details`` parameter should include the ID for the JIRA story
     designated for making this service ready.
 
     Args:
@@ -314,12 +314,12 @@ def nyi(details):
     '''
     Mark a test case or class as not implemented, and skip the test case.
 
-    The ``details`` parameter should include the label for the JIRA story
+    The ``details`` parameter should include the ID for the JIRA story
     designated for implementing this test.
 
     Args:
         details (str): Information about why the test is not implemented.
-            Typically with ``@nyi``, only the JIRA reference is included,
+            Typically with ``@nyi``, only the JIRA ID is included,
             but any other details are welcome.
 
     Returns:
