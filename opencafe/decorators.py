@@ -89,6 +89,12 @@ so it must be a @staticmethod.
 JIRA_REGEX = re.compile('^[A-Z]+-[0-9]+$')
 '''A regular expression that matches a valid JIRA ID.'''
 
+COVERAGE_TAG_DECORATOR_TAG_LIST_NAME = '__coverage_report_tags__'
+'''Name of the field we add to all tagged tests that tracks tags for coverage reporting.
+See the tags decorator documentation for why we are doing this.
+'''
+
+
 ############
 # SETTINGS #
 ############
@@ -148,6 +154,25 @@ def _all_jira_ids_in(s):
         A list of all the JIRA ID strings found.
     '''
     return JIRA_REGEX.findall(s)
+
+
+def _add_tags(func, cafe_tags, coverage_tags):
+    '''
+    Add the given tags to the given function, both cafe tags and coverage tags.
+
+    Args:
+        func: the function to decorate with tagging information.
+        cafe_tags: iterable of cafe tags to add to func.
+        coverage_tags: iterable of coverage tags to add to func.
+
+    Returns:
+        The decorated function.
+    '''
+    func = cafe_tags(*cafe_tags)(func)
+    if not getattr(func, COVERAGE_TAG_DECORATOR_TAG_LIST_NAME, None):
+        setattr(func, COVERAGE_TAG_DECORATOR_TAG_LIST_NAME, [])
+    getattr(func, COVERAGE_TAG_DECORATOR_TAG_LIST_NAME).extend(coverage_tags)
+    return func
 
 
 def _environment_matches(test_fixture, environment):
@@ -236,7 +261,7 @@ def _get_decorator_for_skipping_test(reason, details, tag_name, environment_affe
             wrapper.__doc__ = _add_text_to_docstring_summary_line(
                 original_docstring=test_case_or_class.__doc__, summary_line_addition=message)
 
-        wrapper = cafe_tags(tag_name, *jira_ids)(wrapper)
+        wrapper = _add_tags(wrapper, tag_name, *jira_ids)
 
         return wrapper
 
@@ -417,3 +442,32 @@ def staging_only(reason=None):
         A decorator function to pass the test case or test class into.
     '''
     return only_in(environment='Staging', reason=reason)
+
+
+def tags(*tag_list):
+    '''
+    Create a decorator that applies the given `tag_list` tags to the decorated function.
+
+    Args:
+        tag_list (tuple): tags to be added.
+
+    Returns:
+        A decorator function that will add the given tags.
+
+    NOTE:
+        This decorator generator must be outermost of all the decorators in this file.
+
+        This decorator generator will also mutate the cafe tags so that anything other
+        than the status tag and a JIRA tag will have a non-operational status tag prepended to it.
+        This is overcome a limitation in the cafe test runner that cannot use tags to exclude tests.
+        So to accomplish this, a test that is tagged with both 'nyi' and 'regression' will have it's
+        cafe tags changed to be 'nyi' and 'nyi-regression' so that any test run as `-t regression`
+        will _not_ be able to select this test. This is handy, esp. in the case of quarantined tags
+        where it might be desireable to run quarantined-smoke tests on a regular basis. It seems
+        unlikely that running nyi-<anything> tests would be useful, but it would be possible.
+    '''
+
+    def tag_decorator(func):
+        return _add_tags(func, tag_list)
+
+    return tag_decorator
