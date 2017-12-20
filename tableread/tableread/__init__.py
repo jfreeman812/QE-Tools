@@ -51,7 +51,7 @@ class SimpleRSTTable(BaseRSTDataObject):
     data_format = list
 
     def __init__(self, header, rows, column_spans):
-        super().__init__()
+        super(SimpleRSTTable, self).__init__()
         self._header = header
         self._rows = rows
         self._column_spans = column_spans
@@ -128,7 +128,7 @@ class SimpleRSTReader(BaseRSTDataObject):
     data_format = OrderedDict
 
     def __init__(self, file_path):
-        super().__init__()
+        super(SimpleRSTReader, self).__init__()
         assert os.path.exists(file_path), 'File not found: {}'.format(file_path)
         self._parse(file_path)
 
