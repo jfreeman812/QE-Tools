@@ -1,5 +1,6 @@
 from cafe.drivers.unittest.fixtures import BaseTestFixture
-from opencafe.decorators import *  # noqa
+from opencafe.decorators import (needs_work, not_tested, nyi, only_in,
+                                 quarantined, production_only, staging_only)
 
 
 class DecoratorsTestsFixture(BaseTestFixture):
