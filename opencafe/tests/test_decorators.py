@@ -29,7 +29,7 @@ class TestCaseDecoratorsThatWork(DecoratorsTestsFixture):
         self.fail('This test should have been skipped!')
 
     @only_in('staging')
-    def test_that_is_decorated_with_only_in_staging_and_should_NOT_be_skipped(self):
+    def test_that_is_decorated_with_only_in_staging_and_should_not_be_skipped(self):
         # TODO - this test will give a false positive if the test is skipped
         pass
 
@@ -38,7 +38,7 @@ class TestCaseDecoratorsThatWork(DecoratorsTestsFixture):
         self.fail('This test should have been skipped!')
 
     @staging_only()
-    def test_that_is_decorated_with_staging_only_and_should_NOT_be_skipped(self):
+    def test_that_is_decorated_with_staging_only_and_should_not_be_skipped(self):
         # TODO - this test will give a false positive if the test is skipped
         pass
 
@@ -78,7 +78,7 @@ class TestClassDecoratedAsNotYetImplemented(DecoratorsTestsFixture):
 @only_in('staging')
 class TestClassDecoratedAsOnlyInStaging(DecoratorsTestsFixture):
 
-    def test_that_should_NOT_be_skipped(self):
+    def test_that_should_not_be_skipped(self):
         # TODO - this test will give a false positive if the test is skipped
         pass
 
@@ -93,7 +93,7 @@ class TestClassDecoratedAsOnlyInProduction(DecoratorsTestsFixture):
 @staging_only
 class TestClassDecoratedAsStagingOnly(DecoratorsTestsFixture):
 
-    def test_that_should_NOT_be_skipped(self):
+    def test_that_should_not_be_skipped(self):
         # TODO - this test will give a false positive if the test is skipped
         pass
 
