@@ -63,3 +63,6 @@ target/
 
 # Quarantined Reports
 reports/
+
+# IDE related files
+.idea/
