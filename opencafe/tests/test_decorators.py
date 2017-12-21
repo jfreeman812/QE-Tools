@@ -5,7 +5,8 @@ from opencafe.decorators import (needs_work, not_tested, nyi, only_in,
 
 class DecoratorsTestsFixture(BaseTestFixture):
 
-    def current_environment_matches(self, environment):
+    @staticmethod
+    def current_environment_matches(environment):
         # For the purposes of these tests, we will say we are in a staging environment
         return environment == 'staging'
 
