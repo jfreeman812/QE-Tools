@@ -1,6 +1,7 @@
 from cafe.drivers.unittest.fixtures import BaseTestFixture
 from opencafe.decorators import (needs_work, not_tested, nyi, only_in,
-                                 quarantined, production_only, staging_only)
+                                 quarantined, production_only, staging_only,
+                                 tags)
 
 
 class DecoratorsTestsFixture(BaseTestFixture):
@@ -13,36 +14,51 @@ class DecoratorsTestsFixture(BaseTestFixture):
 
 class TestCaseDecoratorsThatWork(DecoratorsTestsFixture):
 
+    @tags('smoke', 'positive')
     @quarantined('JIRA-111')
     def test_that_correctly_decorated_with_quarantined(self):
         self.fail('This test should have been skipped!')
 
+    @tags('smoke', 'positive', 'quarantined', 'JIRA-111')
+    def test_quarantined_but_runnable(self):
+        # This test may be run as part of a special quarantined-tests run
+        # to check out if a fix was successful, so it is not a failure
+        # if the test is actually selected to be run.
+        pass
+
+    @tags('regression', 'negative')
     @needs_work('JIRA-222')
     def test_that_correctly_decorated_with_needs_work(self):
         self.fail('This test should have been skipped!')
 
+    @tags('regression', 'positive')
     @not_tested('JIRA-333')
     def test_that_correctly_decorated_with_not_tested(self):
         self.fail('This test should have been skipped!')
 
+    @tags('smoke', 'p0', 'negative')
     @nyi('JIRA-444')
     def test_that_correctly_decorated_with_nyi(self):
         self.fail('This test should have been skipped!')
 
+    @tags('deploy', 'negative')
     @only_in('staging')
     def test_that_is_decorated_with_only_in_staging_and_should_not_be_skipped(self):
         # TODO - this test will give a false positive if the test is skipped
         pass
 
+    @tags('integration', 'positive')
     @only_in('production')
     def test_that_is_decorated_with_only_in_production_and_should_be_skipped(self):
         self.fail('This test should have been skipped!')
 
+    @tags('load', 'positive', 'p0')
     @staging_only()
     def test_that_is_decorated_with_staging_only_and_should_not_be_skipped(self):
         # TODO - this test will give a false positive if the test is skipped
         pass
 
+    @tags('security', 'p0', 'positive')
     @production_only()
     def test_that_is_decorated_with_production_only_and_should_be_skipped(self):
         self.fail('This test should have been skipped!')
