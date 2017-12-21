@@ -129,12 +129,9 @@ def _print_and_raise(exc_type, message):
     so to aid the test writer, print the message and then raise
     the exception.
     '''
-    print
-    print 'ERROR:'
-    print message
-    print
+    print('\nERROR:\n{}\n'.format(message))
     # Skip showing format_stack itself, and this function (neither are helpful).
-    print ''.join(format_stack()[:-2])
+    print(''.join(format_stack()[:-2]))
     raise exc_type(message)
 
 
