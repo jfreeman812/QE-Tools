@@ -132,7 +132,7 @@ def _add_text_to_docstring_summary_line(original_docstring, summary_line_additio
     elif docstring_lines[1]:
         docstring_lines[1] += text_addition
     else:
-        docstring_lines[0] = "<Malformed docstring>" + text_addition
+        docstring_lines[0] = '<Malformed docstring>' + text_addition
 
     return '\n'.join(docstring_lines)
 
