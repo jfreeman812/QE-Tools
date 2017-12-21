@@ -312,7 +312,8 @@ def _get_decorator_for_skipping_test(reason, details, tag_name, environment_affe
             wrapper.__doc__ = _add_text_to_docstring_summary_line(
                 original_docstring=test_case_or_class.__doc__, summary_line_addition=message)
 
-        wrapper = _add_tags(wrapper, tag_name, *jira_ids)
+        tags = [tag_name] + jira_ids
+        wrapper = _add_tags(wrapper, cafe_tags=tags, coverage_tags=tags)
 
         return wrapper
 
