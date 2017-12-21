@@ -67,6 +67,7 @@ constant defined in this module.
 # Standard Library
 from inspect import isclass
 import re
+from traceback import format_stack
 from unittest import skip, SkipTest
 # OpenCafe
 from cafe.drivers.unittest.decorators import tags as _cafe_tags
@@ -119,6 +120,23 @@ def disable_docstring_hacking():
 ###########
 # HELPERS #
 ###########
+
+def _print_and_raise(exc_type, message):
+    '''Print message and raise exception.
+
+    This is needed because an OpenCAFE bug hides exceptions raised
+    during module load (which is when decorators are run),
+    so to aid the test writer, print the message and then raise
+    the exception.
+    '''
+    print
+    print 'ERROR:'
+    print message
+    print
+    # Skip showing format_stack itself, and this function (neither are helpful).
+    print ''.join(format_stack()[:-2])
+    raise exc_type(message)
+
 
 def _add_text_to_docstring_summary_line(original_docstring, summary_line_addition):
     '''
@@ -194,6 +212,22 @@ def _add_tags(func, cafe_tags=tuple(), coverage_tags=tuple()):
     return func
 
 
+def _cafe_tag_prefix(status_tag, target_tag):
+    '''Optionally prefix target_tag with status_tag to work-around OpenCAFE tag filtering.
+
+    Args:
+        status_tag (str): the status tag to be used as a prefix, if needed.
+        target_tag (str): another tag to be potentially mutated.
+
+    Returns:
+        cafe-friendly version of target_tag
+    '''
+
+    if (target_tag == status_tag) or JIRA_REGEX.match(target_tag):
+        return target_tag
+    return '{}-{}'.format(status_tag, target_tag)
+
+
 def _mutate_tags_for_cafe(tags_list):
     '''Implement the tag mutation as described in the `tags` decorator.
 
@@ -209,20 +243,20 @@ def _mutate_tags_for_cafe(tags_list):
 
     actual_status_tags = set(tags_list) & STATUS_TAGS
 
+    # If there are no status tags in use, there is no need to mutate any
+    # of the tags, so we can use them just as they are.
     if not actual_status_tags:
         return tags_list
 
     if len(actual_status_tags) > 1:
         overlapping_tags = sorted(actual_status_tags)
-        raise ValueError('Too many status tags in use: {}'.format(', '.join(overlapping_tags)))
+        msg = 'Conflicting Status tags, only one permitted: {}'.format(', '.join(overlapping_tags))
+        _print_and_raise(ValueError, msg)
 
     status_tag = actual_status_tags.pop()
     new_tags = []
     for a_tag in tags_list:
-        if (a_tag == status_tag) or JIRA_REGEX.match(a_tag):
-            new_tags.append(a_tag)
-            continue
-        new_tags.append('{}-{}'.format(status_tag, a_tag))
+        new_tags.append(_cafe_tag_prefix(status_tag, a_tag))
     return new_tags
 
 
@@ -244,11 +278,12 @@ def _environment_matches(test_fixture, environment):
     environment_matching_method = getattr(test_fixture, ENVIRONMENT_MATCHING_METHOD_NAME, None)
 
     if environment_matching_method is None:
-        raise NotImplementedError('In order to utilize the this decorator functionality, '
-                                  'you must implement a "{0}" method that determines whether '
-                                  'or not the current environment matches the environment '
-                                  'affected by this decorator.'
-                                  ''.format(ENVIRONMENT_MATCHING_METHOD_NAME))
+        _print_and_raise(NotImplementedError,
+                         'In order to utilize the this decorator functionality, '
+                         'you must implement a "{0}" method that determines whether '
+                         'or not the current environment matches the environment '
+                         'affected by this decorator.'
+                         ''.format(ENVIRONMENT_MATCHING_METHOD_NAME))
 
     return environment_matching_method(environment)
 
@@ -284,7 +319,7 @@ def _get_decorator_for_skipping_test(reason, details, tag_name, environment_affe
 
     jira_ids = _all_jira_ids_in(details)
     if not jira_ids:
-        raise ValueError('"{0}" does not contain any JIRA IDs.'.format(details))
+        _print_and_raise(ValueError, '"{0}" does not contain any JIRA IDs.'.format(details))
 
     if environment_affected:
         message = '{0} (in {1} environment): {2}'.format(reason, environment_affected, details)
