@@ -69,7 +69,11 @@ from inspect import isclass
 import re
 from unittest import skip, SkipTest
 # OpenCafe
-from cafe.drivers.unittest.decorators import tags as cafe_tags
+from cafe.drivers.unittest.decorators import tags as _cafe_tags
+# OpenCafe doesn't provide a way to reset tags :-(, so we have to import
+# these attribute names so that we don't have to duplicate them.
+from cafe.drivers.unittest.decorators import (TAGS_DECORATOR_TAG_LIST_NAME,
+                                              PARALLEL_TAGS_LIST_ATTR)
 
 
 #############
@@ -88,6 +92,15 @@ so it must be a @staticmethod.
 
 JIRA_REGEX = re.compile('^[A-Z]+-[0-9]+$')
 '''A regular expression that matches a valid JIRA ID.'''
+
+COVERAGE_TAG_DECORATOR_TAG_LIST_NAME = '__coverage_report_tags__'
+'''Name of the field we add to all tagged tests that tracks tags for coverage reporting.
+See the tags decorator documentation for why we are doing this.
+'''
+
+# INTERIM LIST!
+# This *must* come from coverage.rst and table read as a FF on this code.
+STATUS_TAGS = set('nyi not-tested needs-work quarantined'.split())
 
 ############
 # SETTINGS #
@@ -148,6 +161,69 @@ def _all_jira_ids_in(s):
         A list of all the JIRA ID strings found.
     '''
     return JIRA_REGEX.findall(s)
+
+
+def _clear_cafe_tags_from(func):
+    '''Clear out all the cafe tags on func'''
+    for attr in (TAGS_DECORATOR_TAG_LIST_NAME, PARALLEL_TAGS_LIST_ATTR):
+        if hasattr(func, attr):
+            delattr(func, attr)
+
+
+def _get_coverage_tags_from(func):
+    '''Return the coverage tags from func, setting to empty list if needed.'''
+    if not getattr(func, COVERAGE_TAG_DECORATOR_TAG_LIST_NAME, None):
+        setattr(func, COVERAGE_TAG_DECORATOR_TAG_LIST_NAME, [])
+    return getattr(func, COVERAGE_TAG_DECORATOR_TAG_LIST_NAME)
+
+
+def _add_tags(func, cafe_tags=tuple(), coverage_tags=tuple()):
+    '''
+    Add the given tags to the given function, both cafe tags and coverage tags.
+
+    Args:
+        func: the function to decorate with tagging information.
+        cafe_tags: iterable of cafe tags to add to func.
+        coverage_tags: iterable of coverage tags to add to func.
+
+    Returns:
+        The decorated function.
+    '''
+    func = _cafe_tags(*cafe_tags)(func)
+    _get_coverage_tags_from(func).extend(coverage_tags)
+    return func
+
+
+def _mutate_tags_for_cafe(tags_list):
+    '''Implement the tag mutation as described in the `tags` decorator.
+
+    Args:
+        tags_list (iterable of str): The list of tags to (potentially) mutate.
+
+    Returns:
+        List of (potentially) mutated tags
+
+    Raises:
+        ValueError if more than one Status tag has been used.
+    '''
+
+    actual_status_tags = set(tags_list) & STATUS_TAGS
+
+    if not actual_status_tags:
+        return tags_list
+
+    if len(actual_status_tags) > 1:
+        overlapping_tags = sorted(actual_status_tags)
+        raise ValueError('Too many status tags in use: {}'.format(', '.join(overlapping_tags)))
+
+    status_tag = actual_status_tags.pop()
+    new_tags = []
+    for a_tag in tags_list:
+        if (a_tag == status_tag) or JIRA_REGEX.match(a_tag):
+            new_tags.append(a_tag)
+            continue
+        new_tags.append('{}-{}'.format(status_tag, a_tag))
+    return new_tags
 
 
 def _environment_matches(test_fixture, environment):
@@ -236,7 +312,8 @@ def _get_decorator_for_skipping_test(reason, details, tag_name, environment_affe
             wrapper.__doc__ = _add_text_to_docstring_summary_line(
                 original_docstring=test_case_or_class.__doc__, summary_line_addition=message)
 
-        wrapper = cafe_tags(tag_name, *jira_ids)(wrapper)
+        tags = [tag_name] + jira_ids
+        wrapper = _add_tags(wrapper, cafe_tags=tags, coverage_tags=tags)
 
         return wrapper
 
@@ -417,3 +494,38 @@ def staging_only(reason=None):
         A decorator function to pass the test case or test class into.
     '''
     return only_in(environment='Staging', reason=reason)
+
+
+def tags(*tags_list):
+    '''
+    Create a decorator that applies the given `tags_list` tags to the decorated function.
+
+    Args:
+        tags_list (tuple): tags to be added.
+
+    Returns:
+        A decorator function that will add the given tags.
+
+    NOTE:
+        This decorator generator must be outermost of all the decorators in this file.
+
+        This decorator generator will also mutate the cafe tags so that anything other
+        than the status tag and a JIRA tag will have a non-operational status tag prepended to it.
+        This is overcome a limitation in the cafe test runner that cannot use tags to exclude tests.
+        So to accomplish this, a test that is tagged with both 'nyi' and 'regression' will have it's
+        cafe tags changed to be 'nyi' and 'nyi-regression' so that any test run as `-t regression`
+        will _not_ be able to select this test. This is handy, esp. in the case of quarantined tags
+        where it might be desireable to run quarantined-smoke tests on a regular basis. It seems
+        unlikely that running nyi-<anything> tests would be useful, but it would be possible.
+    '''
+
+    tags_list = list(tags_list)  # make sure it is a re-useable iterable.
+
+    def tag_decorator(func):
+        total_tags = _get_coverage_tags_from(func) + tags_list
+        cafe_tags = _mutate_tags_for_cafe(total_tags)
+        _clear_cafe_tags_from(func)
+
+        return _add_tags(func, cafe_tags=cafe_tags, coverage_tags=tags_list)
+
+    return tag_decorator
