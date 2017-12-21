@@ -81,6 +81,9 @@ ENVIRONMENT_MATCHING_METHOD_NAME = 'current_environment_matches'
 
 This method must be implemented in order to utilize environment
 related decorator functionality.
+
+NOTE: This method is called when the decorators are being run,
+so it must be a @staticmethod.
 '''
 
 JIRA_REGEX = re.compile('^[A-Z]+-[0-9]+$')
@@ -117,14 +120,19 @@ def _add_text_to_docstring_summary_line(original_docstring, summary_line_additio
     '''
     text_addition = ' ({0})'.format(summary_line_addition)
 
-    docstring_lines = original_docstring.split('\n')
+    if original_docstring is None:
+        docstring_lines = ['<No docstring provided>']
+    else:
+        docstring_lines = original_docstring.splitlines()
 
     # The summary line may be on the same line as the starting triple quote,
     # or it may be on the line below. Handle both cases.
     if docstring_lines[0]:
         docstring_lines[0] += text_addition
-    else:
+    elif docstring_lines[1]:
         docstring_lines[1] += text_addition
+    else:
+        docstring_lines[0] = "<Malformed docstring>" + text_addition
 
     return '\n'.join(docstring_lines)
 
