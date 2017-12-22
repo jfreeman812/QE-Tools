@@ -1,1 +1,1 @@
-../reporting/coverage.rst
+../reporting/qe_coverage/coverage.rst
