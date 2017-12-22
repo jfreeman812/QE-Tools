@@ -1,7 +1,6 @@
+from itertools import chain, repeat, islice
 import os
 import string
-
-from itertools import chain, repeat, islice
 
 
 def _name_from_file(root, category):

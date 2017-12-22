@@ -18,7 +18,7 @@ Within the available coverage data, the following attributes have been identifie
 Attribute            Description
 ===================  =================================================================================
 Product_             The name of the product to which a test applies.
-Project_             The name of any project associated with the test that is being created.
+Projects_             The name of any project(s) associated with the test.
 `Test Name`_         A brief, descriptive name for the test.
 `Interface Type`_    Designation for the interface being targeted by the test (e.g., API).
 Polarity_            Designates whether a test targets normal or abnormal behavior (happy vs sad path)
@@ -52,7 +52,7 @@ This section provides the valid tag values which may be applied to the source fi
 
 If a particular definition table has a row with a blank entry in the Tag column, that row represents a default value which will be assumed for that attribute if no tag for that attribute is present in the source file.
 
-NOTE: With the exception of JIRAs_ only one tag within each attribute can be applied at one time. If there is no default value, then a tag for that attribute must be applied. In the case of `Structured Tags`_ only one such should be used though the values are more fluid.
+NOTE: With the exception of JIRAs_ and Projects_ only one tag within each attribute can be applied at one time. If there is no default value, then a tag for that attribute must be applied.
 
 Interface Type
 ^^^^^^^^^^^^^^
@@ -153,12 +153,12 @@ Structured Tags
 
 The following tags, unlike the previous section, do not have a predefined list of acceptable values but instead have a specific structure for identifying the tag as a attribute. The free form information used in the structure provides the meaningful data specific to the test.
 
-.. _Project:
+.. _Projects:
 
-:Attribute: Project
+:Attribute: Projects
 :Format: ``project:<project_id>``
 :Description:
-    The project designation allows work to be tracked for a particular project. While these tests can outlast a project, the tags allow for a historical record to the rationale for the test.
+    The project designation allows work to be tracked for a particular project. While these tests can outlast a project, the tags allow for a historical record to the rationale for the test. Since a test can be relevant for multiple projects, a test may have multiple project tags.
 
 .. _Categories:
 
@@ -202,9 +202,9 @@ The coverage data needs to be reported in a standard format that conforms to the
 Output formatting specifications:
 
 * For the `Prescriptive Tags`_, the key is the attribute name and the value is the value from *Report As*.
-* For the Project_ and Categories_, the key is the attribute name and the value is as follows:
+* For the Projects_ and Categories_, the key is the attribute name and the value is as follows:
 
-  * For Project_, the value is the full value after the identifier (``project:``)
+  * For Projects_, the value is the full value after the identifier (``project:``)
   * For Categories_, the value is a list of categories built from splitting on the separator (``:``) after the identifier (``category:``)
 
 * For JIRAs_, the key is the Status_ *Report As* value associated with the JIRAs_ and the value is the list of JIRAs_ *for that status*. In the case where a JIRA has no associated Status_, the attribute name `JIRAs` is used.
@@ -220,7 +220,7 @@ Example JSON Object
         "coverage": [
             {
                 "Product": "Script Management",
-                "Project": "",
+                "Projects": [],
                 "Test Name": "Add a Module",
                 "Interface Type": "api",
                 "Polarity": "positive",
@@ -236,7 +236,7 @@ Example JSON Object
             },
             {
                 "Product": "Script Management",
-                "Project": "",
+                "Projects": [],
                 "Test Name": "Missing Fields",
                 "Interface Type": "api",
                 "Polarity": "negative",
