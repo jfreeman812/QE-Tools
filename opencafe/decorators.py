@@ -65,7 +65,9 @@ constant defined in this module.
 '''
 
 # Standard Library
+from atexit import register
 from inspect import isclass
+from os import environ
 import re
 from traceback import format_stack
 from unittest import skip, SkipTest
@@ -98,6 +100,49 @@ COVERAGE_TAG_DECORATOR_TAG_LIST_NAME = '__coverage_report_tags__'
 '''Name of the field we add to all tagged tests that tracks tags for coverage reporting.
 See the tags decorator documentation for why we are doing this.
 '''
+
+COVERAGE_REPORT_FILE_NAME = None
+
+_TAGS_INFO_DIR_NAME = environ.get('COLLECT_TAGS_DATA_INTO', None)
+if _TAGS_INFO_DIR_NAME is None:
+    # Tags logging function for when we are _not_ collecting/logging tags info.
+    def _tags_log_info(func):
+        '''No logging decorator, just return the function'''
+        return func
+else:
+    import json
+    from tempfile import NamedTemporaryFile
+
+    _coverage_report_file = NamedTemporaryFile(mode='w', suffix='.json', prefix='coverage-',
+                                               dir=_TAGS_INFO_DIR_NAME, delete=False)
+
+    # Make sure the file is closed on interpreter exit.
+    register(_coverage_report_file.close)
+
+    # We're going to do a cheap-o jsonlines like solution here, each test
+    # will dump out a one-line json object for reporting.
+    def _tags_log_info(func):
+        '''logging decorator that log tags info, but doesn't run func'''
+        # Implementation note:
+        # The insight here is that the decorator is returning a whole different function,
+        # which can extract data from 'func', but which is not obligated to call 'func'.
+        # This makes for a 'safe' full run (no dry-run needed) and greatly simplifies the
+        # code for extracting data.
+        def _logging_only(*args, **kwargs):
+            tags_data = dict()
+            test_obj = args[0]
+            tags_data['test'] = func.__name__
+            tags_data['doc'] = func.__doc__
+            tags_data['provenance'] = (test_obj.__class__.__module__.split('.') +
+                                       [test_obj.__class__.__name__])
+            tags_data['tags'] = _get_coverage_tags_from(func)
+            json.dump(tags_data, _coverage_report_file, sort_keys=True)
+            _coverage_report_file.write('\n')
+            # It's annoying to have to flush all the time, but when I tried putting
+            # flush 'atexit' time, it didn't work. I didn't dig deeply in to why.
+            _coverage_report_file.flush()
+        return _logging_only
+
 
 # INTERIM LIST!
 # This *must* come from coverage.rst and table read as a FF on this code.
@@ -566,6 +611,8 @@ def tags(*tags_list):
         cafe_tags = _mutate_tags_for_cafe(total_tags)
         _clear_cafe_tags_from(func)
 
-        return _add_tags(func, cafe_tags=cafe_tags, coverage_tags=tags_list)
+        func = _add_tags(func, cafe_tags=cafe_tags, coverage_tags=tags_list)
+
+        return _tags_log_info(func)
 
     return tag_decorator
