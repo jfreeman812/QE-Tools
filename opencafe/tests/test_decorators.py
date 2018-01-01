@@ -31,6 +31,14 @@ class TestDataDrivenMethods(BaseTestFixture):
         '''DataDriven test method'''
 
 
+@DataDrivenClass(ItemList(range(3)))
+class TestDataDrivenClass(BaseTestFixture):
+
+    @tags('smoke', 'negative')
+    def test_in_data_driven_class(self):
+        '''Nothing much to see here...'''
+
+
 class TestCaseDecoratorsThatWork(DecoratorsTestsFixture):
 
     @tags('smoke', 'positive')

@@ -7,6 +7,9 @@
 {"doc": "<No docstring provided> (Only test in staging)", "provenance": ["opencafe", "tests", "test_decorators", "TestCaseDecoratorsThatWork"], "tags": ["deploy", "negative"], "test": "test_that_is_decorated_with_only_in_staging_and_should_not_be_skipped"}
 {"doc": "<No docstring provided> (Only test in Production)", "provenance": ["opencafe", "tests", "test_decorators", "TestCaseDecoratorsThatWork"], "tags": ["security", "p0", "positive"], "test": "test_that_is_decorated_with_production_only_and_should_be_skipped"}
 {"doc": "<No docstring provided> (Only test in Staging)", "provenance": ["opencafe", "tests", "test_decorators", "TestCaseDecoratorsThatWork"], "tags": ["load", "positive", "p0"], "test": "test_that_is_decorated_with_staging_only_and_should_not_be_skipped"}
+{"doc": "Nothing much to see here...", "provenance": ["opencafe", "tests", "test_decorators", "TestDataDrivenClass_0"], "tags": ["smoke", "negative"], "test": "test_in_data_driven_class"}
+{"doc": "Nothing much to see here...", "provenance": ["opencafe", "tests", "test_decorators", "TestDataDrivenClass_1"], "tags": ["smoke", "negative"], "test": "test_in_data_driven_class"}
+{"doc": "Nothing much to see here...", "provenance": ["opencafe", "tests", "test_decorators", "TestDataDrivenClass_2"], "tags": ["smoke", "negative"], "test": "test_in_data_driven_class"}
 {"doc": "DataDriven test method", "provenance": ["opencafe", "tests", "test_decorators", "TestDataDrivenMethods"], "tags": ["regression", "positive"], "test": "test_that_is_data_driven_0"}
 {"doc": "DataDriven test method", "provenance": ["opencafe", "tests", "test_decorators", "TestDataDrivenMethods"], "tags": ["regression", "positive"], "test": "test_that_is_data_driven_1"}
 {"doc": "DataDriven test method", "provenance": ["opencafe", "tests", "test_decorators", "TestDataDrivenMethods"], "tags": ["regression", "positive"], "test": "test_that_is_data_driven_2"}
