@@ -131,16 +131,30 @@ else:
         def _logging_only(*args, **kwargs):
             tags_data = dict()
             test_obj = args[0]
-            tags_data['test'] = func.__name__
+
+            # While the test name from func and the test_obj are often the same,
+            # in the case of data driven OpenCAFE tests, the the func name is the same
+            # where as the test_obj name is unique and what we need to report on.
+            tags_data['test'] = test_obj._testMethodName
             tags_data['doc'] = func.__doc__
             tags_data['provenance'] = (test_obj.__class__.__module__.split('.') +
                                        [test_obj.__class__.__name__])
             tags_data['tags'] = _get_coverage_tags_from(func)
+
             json.dump(tags_data, _coverage_report_file, sort_keys=True)
             _coverage_report_file.write('\n')
             # It's annoying to have to flush all the time, but when I tried putting
             # flush 'atexit' time, it didn't work. I didn't dig deeply in to why.
             _coverage_report_file.flush()
+
+        # Copy over everything anyone might have added, tags, OpenCAFE attributes,
+        # just copy it all...
+        for key, value in func.__dict__.items():
+            setattr(_logging_only, key, value)
+
+        # Do this so the OpenCAFE machinery can find this test via name lookup.
+        _logging_only.__name__ = func.__name__
+        _logging_only.__doc__ = func.__doc__
         return _logging_only
 
 
