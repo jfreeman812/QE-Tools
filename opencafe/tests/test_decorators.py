@@ -38,6 +38,11 @@ class TestDataDrivenClass(BaseTestFixture):
     def test_in_data_driven_class(self):
         '''Nothing much to see here...'''
 
+    @tags('smoke', 'positive')
+    @data_driven_test(ItemList(range(3)))
+    def ddtest_data_driven_test_in_data_driven_class(self, item):
+        '''Nothing much to see here either...'''
+
 
 class TestCaseDecoratorsThatWork(DecoratorsTestsFixture):
 
