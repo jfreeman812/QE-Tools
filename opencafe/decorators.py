@@ -122,7 +122,7 @@ else:
     # We're going to do a cheap-o jsonlines like solution here, each test
     # will dump out a one-line json object for reporting.
     def _tags_log_info(func):
-        '''logging decorator that log tags info, but doesn't run func'''
+        '''decorator to log tags info only, doesn't run func'''
         # Implementation note:
         # The insight here is that the decorator is returning a whole different function,
         # which can extract data from 'func', but which is not obligated to call 'func'.
