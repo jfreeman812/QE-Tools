@@ -97,7 +97,7 @@ class TestCoverage(object):
 
     def organize_jiras(self):
         for tag_list in (self.tags, self.parent_tags):
-            self._organize_jiras(self, tag_list)
+            self._organize_jiras(tag_list)
         for status in (x for x in self.jiras if not self.jiras[x]):
             self.errors.append('{}:JIRA not found for status: {}'.format(self.name, status))
 
@@ -137,7 +137,7 @@ class TestGroup(object):
 
     def add(self, name, categories=None, tags=None, parent_name='', parent_tags=None):
         test = TestCoverage(name=name, categories=categories, tags=tags, parent_name=parent_name,
-                            parent_tags=parent_tags)
+                            parent_tags=parent_tags or [])
         test.build()
         self.tests.append(test)
         self.errors.extend(test.errors)
