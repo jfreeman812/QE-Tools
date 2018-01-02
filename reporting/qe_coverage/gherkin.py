@@ -55,7 +55,7 @@ class ParseProject(object):
                 categories = self._build_categories(feature.relative_path)
                 for test in feature.walk_scenarios():
                     tests.add(name=test.name, categories=categories, tags=test.tags,
-                              parent_name=test.feature.name, parent_tags=test.feature.tags)
+                              feature_name=test.feature.name, parent_tags=test.feature.tags)
         return tests
 
     @property
