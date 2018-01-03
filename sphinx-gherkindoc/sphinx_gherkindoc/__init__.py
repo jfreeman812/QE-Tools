@@ -293,7 +293,7 @@ class RecurseTree(object):
     def _parse_category(self, root, project, category):
         category_name = self._build_name(root, project, category)
         category_path = os.path.join(root, category)
-        category_display_name = display_name(root, category, category_name=category_name)
+        category_display_name = display_name(category_path, package_name=category_name)
         # Each parsed category needs a TOC for sphinx so we write it here
         toc_file = ParseTOC(category_name, self.args)
         toc_file.parse_with_docs(category_path, section=category_display_name)
