@@ -9,10 +9,12 @@ temp_dir=$(mktemp -d)
 working_dir=$(pwd)
 cd "$temp_dir"
 
+# Collect the coveage tool needed from the first parameter
+coverage_tool="$1"
+shift
+
 # Clone the repo into a temp directory.
 git clone "git@github.rackspace.com:"/"$1".git --depth 1
-
-# Remove the 1st argument for the repo name, as it is no longer needed.
 shift
 
 cd "$working_dir"
@@ -20,7 +22,7 @@ cd "$working_dir"
 # Process the reports for the repo.
 for repo_dir in "$temp_dir"/*
 do
-    ./run_test_reports_on_repo.py "$repo_dir" "$@"
+    $coverage_tool "$repo_dir" "$@"
 done
 
 # Cleanup the temp directory
