@@ -1,5 +1,7 @@
 #! /bin/bash
 
+# This script assumes you are running it from the directory where it lives.
+
 # Preliminary script to make sure any changes
 # to decorator code doesn't change the generated coverage data.
 
