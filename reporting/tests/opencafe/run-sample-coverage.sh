@@ -9,10 +9,10 @@
 # NOTE as of 2017-12-21:
 #      This script assumes you are running it from the opencafe top level directory.
 
-export PYTHONPATH=..
+export PYTHONPATH=.:../../qe_coverage
 export COLLECT_TAGS_DATA_INTO=.
 
 # Only run on the test_decorators module to avoid hitting the bad_decorators and any
 # other iffy data...
 
-cafe-parallel test opencafe.tests.test_decorators "$@"
+cafe-parallel test test_decorators "$@"

@@ -9,10 +9,10 @@
 # NOTE as of 2017-12-21:
 #      This script assumes you are running it from the opencafe/tests directory.
 
-export PYTHONPATH=../..
+export PYTHONPATH=.:../../qe_coverage
 
 echo "First, a good run:"
-cafe-parallel test opencafe.tests.test_decorators "$@"
+cafe-parallel test test_decorators "$@"
 
 echo "next, a bad run:"
-cafe-parallel test opencafe.tests.bad_decorators "$@"
+cafe-parallel test bad_decorators "$@"
