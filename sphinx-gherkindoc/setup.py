@@ -14,6 +14,7 @@ setuptools.setup(name='sphinx_gherkindoc',
                  packages=setuptools.find_packages(),
                  # Until the behave project accepts our PR or otherwise fixes the bug in
                  # model_core.py, the behave version must be pinned.
-                 install_requires=['Sphinx>=1.3,<1.7', 'behave==1.2.6.dev1'],
+                 install_requires=['Sphinx>=1.3,<1.7', 'behave==1.2.6.dev1',
+                                   'qecommon_tools>=1.0.0'],
                  include_package_data=True,
                  zip_safe=False)
