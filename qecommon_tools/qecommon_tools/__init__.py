@@ -26,8 +26,7 @@ def display_name(path, package_name=''):
 
 
 def padded_list(iterable, size, padding=None):
-    '''Generate a list from the provided `iterable` at a fixed length (size), padding with `padding`
-    if the original iterable is unsufficiently long
+    '''Genereate a fixed-length list from an iterable, padding as needed.
 
     Args:
         iterable (iterable): Any iterable that needs padding
@@ -35,6 +34,6 @@ def padded_list(iterable, size, padding=None):
         padding: Any value that should be used to pad an iterable that is too short
 
     Returns:
-        list: A list that has been padded or truncated as needed
+        list: The iterable parameter converted to a list, up to size, padded as needed.
     '''
     return list(_itertools.islice(_itertools.chain(iterable, _itertools.repeat(padding)), size))
