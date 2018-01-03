@@ -1,0 +1,24 @@
+{"doc": null, "provenance": ["test_decorators", "TestCaseDecoratorsThatWork"], "tags": ["smoke", "positive", "quarantined", "JIRA-111"], "test": "test_quarantined_but_runnable"}
+{"doc": "<No docstring provided> (Needs Work: JIRA-222)", "provenance": ["test_decorators", "TestCaseDecoratorsThatWork"], "tags": ["needs-work", "JIRA-222", "regression", "negative"], "test": "test_that_correctly_decorated_with_needs_work"}
+{"doc": "<No docstring provided> (Not Tested - Service Not Ready: JIRA-333)", "provenance": ["test_decorators", "TestCaseDecoratorsThatWork"], "tags": ["not-tested", "JIRA-333", "regression", "positive"], "test": "test_that_correctly_decorated_with_not_tested"}
+{"doc": "<No docstring provided> (Not Implemented: JIRA-444)", "provenance": ["test_decorators", "TestCaseDecoratorsThatWork"], "tags": ["nyi", "JIRA-444", "smoke", "p0", "negative"], "test": "test_that_correctly_decorated_with_nyi"}
+{"doc": "<No docstring provided> (Quarantined: JIRA-111)", "provenance": ["test_decorators", "TestCaseDecoratorsThatWork"], "tags": ["quarantined", "JIRA-111", "smoke", "positive"], "test": "test_that_correctly_decorated_with_quarantined"}
+{"doc": "<No docstring provided> (Only test in production)", "provenance": ["test_decorators", "TestCaseDecoratorsThatWork"], "tags": ["integration", "positive"], "test": "test_that_is_decorated_with_only_in_production_and_should_be_skipped"}
+{"doc": "<No docstring provided> (Only test in staging)", "provenance": ["test_decorators", "TestCaseDecoratorsThatWork"], "tags": ["deploy", "negative"], "test": "test_that_is_decorated_with_only_in_staging_and_should_not_be_skipped"}
+{"doc": "<No docstring provided> (Only test in Production)", "provenance": ["test_decorators", "TestCaseDecoratorsThatWork"], "tags": ["security", "p0", "positive"], "test": "test_that_is_decorated_with_production_only_and_should_be_skipped"}
+{"doc": "<No docstring provided> (Only test in Staging)", "provenance": ["test_decorators", "TestCaseDecoratorsThatWork"], "tags": ["load", "positive", "p0"], "test": "test_that_is_decorated_with_staging_only_and_should_not_be_skipped"}
+{"doc": "Nothing much to see here either...", "provenance": ["test_decorators", "TestDataDrivenClass_0"], "tags": ["smoke", "positive"], "test": "test_data_driven_test_in_data_driven_class_0"}
+{"doc": "Nothing much to see here either...", "provenance": ["test_decorators", "TestDataDrivenClass_0"], "tags": ["smoke", "positive"], "test": "test_data_driven_test_in_data_driven_class_1"}
+{"doc": "Nothing much to see here either...", "provenance": ["test_decorators", "TestDataDrivenClass_0"], "tags": ["smoke", "positive"], "test": "test_data_driven_test_in_data_driven_class_2"}
+{"doc": "Nothing much to see here...", "provenance": ["test_decorators", "TestDataDrivenClass_0"], "tags": ["smoke", "negative"], "test": "test_in_data_driven_class"}
+{"doc": "Nothing much to see here either...", "provenance": ["test_decorators", "TestDataDrivenClass_1"], "tags": ["smoke", "positive"], "test": "test_data_driven_test_in_data_driven_class_0"}
+{"doc": "Nothing much to see here either...", "provenance": ["test_decorators", "TestDataDrivenClass_1"], "tags": ["smoke", "positive"], "test": "test_data_driven_test_in_data_driven_class_1"}
+{"doc": "Nothing much to see here either...", "provenance": ["test_decorators", "TestDataDrivenClass_1"], "tags": ["smoke", "positive"], "test": "test_data_driven_test_in_data_driven_class_2"}
+{"doc": "Nothing much to see here...", "provenance": ["test_decorators", "TestDataDrivenClass_1"], "tags": ["smoke", "negative"], "test": "test_in_data_driven_class"}
+{"doc": "Nothing much to see here either...", "provenance": ["test_decorators", "TestDataDrivenClass_2"], "tags": ["smoke", "positive"], "test": "test_data_driven_test_in_data_driven_class_0"}
+{"doc": "Nothing much to see here either...", "provenance": ["test_decorators", "TestDataDrivenClass_2"], "tags": ["smoke", "positive"], "test": "test_data_driven_test_in_data_driven_class_1"}
+{"doc": "Nothing much to see here either...", "provenance": ["test_decorators", "TestDataDrivenClass_2"], "tags": ["smoke", "positive"], "test": "test_data_driven_test_in_data_driven_class_2"}
+{"doc": "Nothing much to see here...", "provenance": ["test_decorators", "TestDataDrivenClass_2"], "tags": ["smoke", "negative"], "test": "test_in_data_driven_class"}
+{"doc": "DataDriven test method", "provenance": ["test_decorators", "TestDataDrivenMethods"], "tags": ["regression", "positive"], "test": "test_that_is_data_driven_0"}
+{"doc": "DataDriven test method", "provenance": ["test_decorators", "TestDataDrivenMethods"], "tags": ["regression", "positive"], "test": "test_that_is_data_driven_1"}
+{"doc": "DataDriven test method", "provenance": ["test_decorators", "TestDataDrivenMethods"], "tags": ["regression", "positive"], "test": "test_that_is_data_driven_2"}

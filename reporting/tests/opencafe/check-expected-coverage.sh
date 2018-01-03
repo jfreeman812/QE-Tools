@@ -1,7 +1,9 @@
 #! /bin/bash
 
-# Preliminary self-check-like script to make sure any changes
-# to decorator code doesn't change the coverage data generated.
+# This script assumes you are running it from the directory where it lives.
+
+# Preliminary script to make sure any changes
+# to decorator code doesn't change the generated coverage data.
 
 # Since the name of the coverage file is generated to be unique,
 # make sure we have no coverage files already around.
@@ -11,9 +13,9 @@ if [ -n "$(echo coverage-*.json)" ]; then
     exit 2
 fi
 
-./run-sample-coverage.sh
+./generate-expected-coverage.sh
 
-# Check that the coverage file hasn't changed:
+# Check that the coverage report contents haven't changed:
 if diff expected-coverage-results.json coverage*.json  ; then
     echo
     echo No changes, removing temporary coverage file.
