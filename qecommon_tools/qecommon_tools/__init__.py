@@ -7,7 +7,7 @@ def display_name(path, package_name=''):
     '''Create a human-readable name for a given project.
 
     Determine the display name for a project given a path and (optional) package name. If a
-    display_name.txt file if found, the first line is returned. Oterwise, return a title-cased
+    display_name.txt file is found, the first line is returned. Oterwise, return a title-cased
     string from either the base directory or package_name (if provided)
 
     Args:
