@@ -27,6 +27,9 @@ def display_name(path, package_name=''):
     Args:
         path (str): Path for searching
         package_name (str): Sphinx-style, dot-delimited package name (optional)
+
+    Returns:
+        str: A display name for the provided path
     '''
     name_from_file = _name_from_file(path)
     if name_from_file:
@@ -36,8 +39,15 @@ def display_name(path, package_name=''):
 
 
 def padded_list(iterable, size, padding=None):
-    '''
-    Generate a list from the provided `iterable` at a fixed length (size), padding with `padding`
+    '''Generate a list from the provided `iterable` at a fixed length (size), padding with `padding`
     if the original iterable is unsufficiently long
+
+    Args:
+        iterable (iterable): Any iterable that needs padding
+        size (int): The length for the returned list
+        padding: Any value that should be used to pad an iterable that is too short
+
+    Returns:
+        list: A list that has been padded or truncated as needed
     '''
     return list(_itertools.islice(_itertools.chain(iterable, _itertools.repeat(padding)), size))
