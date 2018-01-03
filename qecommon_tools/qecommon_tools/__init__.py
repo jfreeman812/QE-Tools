@@ -3,26 +3,12 @@ import os as _os
 import string as _string
 
 
-def _name_from_file(path):
-    '''Return the contents of a display_name.txt file if located in the path.
-
-    Args:
-        path (str):  Path for searching
-
-    Returns:
-        str: The contents of display_name.txt if found, otherwise an empty string
-    '''
-    name_path = _os.path.join(path, 'display_name.txt')
-    if _os.path.exists(name_path):
-        with open(name_path, 'r') as name_fo:
-            return name_fo.read().rstrip('\r\n')
-    return ''
-
-
 def display_name(path, package_name=''):
-    '''Determine the display name for a project given the provided information. If a file named
-    display_name.txt is found in the folder, use it's contents for the display name.  Otherwise,
-    return a title-cased string from either the base directory or package_name (if provided)
+    '''Create a human-readable name for a given project.
+
+    Determine the display name for a project given a path and (optional) package name. If a
+    display_name.txt file if found, the first line is returned. Oterwise, return a title-cased
+    string from either the base directory or package_name (if provided)
 
     Args:
         path (str): Path for searching
@@ -31,9 +17,10 @@ def display_name(path, package_name=''):
     Returns:
         str: A display name for the provided path
     '''
-    name_from_file = _name_from_file(path)
-    if name_from_file:
-        return name_from_file
+    name_path = _os.path.join(path, 'display_name.txt')
+    if _os.path.exists(name_path):
+        with open(name_path, 'r') as name_fo:
+            return name_fo.readline().rstrip('\r\n')
     raw_name = package_name.split('.')[-1] if package_name else _os.path.basename(path)
     return _string.capwords(raw_name.replace('_', ' '))
 
