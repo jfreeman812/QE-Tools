@@ -1,7 +1,17 @@
+from cafe.drivers.unittest.datasets import DatasetList
+from cafe.drivers.unittest.decorators import DataDrivenClass, DataDrivenFixture, data_driven_test
 from cafe.drivers.unittest.fixtures import BaseTestFixture
 from opencafe.decorators import (needs_work, not_tested, nyi, only_in,
                                  quarantined, production_only, staging_only,
                                  tags)
+
+
+class ItemList(DatasetList):
+    '''For any datadriven test that needs a list of things/items'''
+    def __init__(self, item_iterator):
+        super(ItemList, self).__init__()
+        for item in item_iterator:
+            self.append_new_dataset(item, {'item': item})
 
 
 class DecoratorsTestsFixture(BaseTestFixture):
@@ -10,6 +20,28 @@ class DecoratorsTestsFixture(BaseTestFixture):
     def current_environment_matches(environment):
         # For the purposes of these tests, we will say we are in a staging environment
         return environment == 'staging'
+
+
+@DataDrivenFixture
+class TestDataDrivenMethods(BaseTestFixture):
+
+    @tags('regression', 'positive')
+    @data_driven_test(ItemList(range(3)))
+    def ddtest_that_is_data_driven(self, item):
+        '''DataDriven test method'''
+
+
+@DataDrivenClass(ItemList(range(3)))
+class TestDataDrivenClass(BaseTestFixture):
+
+    @tags('smoke', 'negative')
+    def test_in_data_driven_class(self):
+        '''Nothing much to see here...'''
+
+    @tags('smoke', 'positive')
+    @data_driven_test(ItemList(range(3)))
+    def ddtest_data_driven_test_in_data_driven_class(self, item):
+        '''Nothing much to see here either...'''
 
 
 class TestCaseDecoratorsThatWork(DecoratorsTestsFixture):

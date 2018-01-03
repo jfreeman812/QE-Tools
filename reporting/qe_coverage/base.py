@@ -43,7 +43,7 @@ class TestCoverage(object):
     name = attr.ib()
     categories = attr.ib(default=attr.Factory(list))
     tags = attr.ib(default=attr.Factory(list))
-    parent_name = attr.ib(default='')
+    feature_name = attr.ib(default='')
     parent_tags = attr.ib(default=attr.Factory(list))
     # Pre-defined Constants
     jiras = attr.ib(default=attr.Factory(lambda: defaultdict(list)), init=False)
@@ -97,7 +97,7 @@ class TestCoverage(object):
 
     def organize_jiras(self):
         for tag_list in (self.tags, self.parent_tags):
-            self._organize_jiras(self, tag_list)
+            self._organize_jiras(tag_list)
         for status in (x for x in self.jiras if not self.jiras[x]):
             self.errors.append('{}:JIRA not found for status: {}'.format(self.name, status))
 
@@ -135,9 +135,9 @@ class TestGroup(object):
     tests = attr.ib(default=attr.Factory(list), init=False)
     errors = attr.ib(default=attr.Factory(list), init=False)
 
-    def add(self, name, categories=None, tags=None, parent_name='', parent_tags=None):
-        test = TestCoverage(name=name, categories=categories, tags=tags, parent_name=parent_name,
-                            parent_tags=parent_tags)
+    def add(self, name, categories=None, tags=None, feature_name='', parent_tags=None):
+        test = TestCoverage(name=name, categories=categories, tags=tags, feature_name=feature_name,
+                            parent_tags=parent_tags or [])
         test.build()
         self.tests.append(test)
         self.errors.extend(test.errors)
@@ -315,7 +315,7 @@ class CoverageReport(ReportWriter):
                 JIRA_STATUS_DISPLAY_NAMES)
 
     def _build_test(self, test):
-        test_data = {'Test Name': test.name, 'Feature Name': test.parent_name}
+        test_data = {'Test Name': test.name, 'Feature Name': test.feature_name}
         test_data.update({x: y for (x, y) in test.attributes.items() if y})
         test_data.update({x: y for (x, y) in test.jiras.items() if y})
         return self._data_item(**test_data)
