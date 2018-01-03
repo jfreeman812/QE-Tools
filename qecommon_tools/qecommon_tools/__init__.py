@@ -4,6 +4,7 @@ import string as _string
 
 
 def _name_from_file(root, category):
+    'Given root and category, return the contents of display_name.txt if it exists'
     name_path = _os.path.join(root, category, 'display_name.txt')
     if _os.path.exists(name_path):
         with open(name_path, 'r') as name_fo:
@@ -11,6 +12,11 @@ def _name_from_file(root, category):
 
 
 def display_name(root, category, category_name=None):
+    '''
+    Determine the display name for a category, given a root path and optional category name. If a
+    file named display_name.txt is found in the root folder, use that for the display name.
+    Otherwise, return a title-cased string from either category or category_name (if provided)
+    '''
     name_from_file = _name_from_file(root, category)
     if name_from_file:
         return name_from_file
@@ -21,4 +27,8 @@ def display_name(root, category, category_name=None):
 
 
 def padded_list(iterable, size, padding=None):
+    '''
+    Generate a list from the provided `iterable` at a fixed length (size), padding with `padding`
+    if the original iterable is unsufficiently long
+    '''
     return list(_itertools.islice(_itertools.chain(iterable, _itertools.repeat(padding)), size))
