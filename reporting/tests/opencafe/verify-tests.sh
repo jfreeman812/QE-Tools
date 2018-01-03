@@ -1,5 +1,8 @@
 #! /bin/bash
 
+# Make sure that the basic machinery is all working,
+# that the modules can be imported, and decorators function as expected.
+
 # SUPER DRAFTY VERSION OF THIS SCRIPT!
 
 # NOTE as of 2017-12-21:
@@ -11,8 +14,8 @@
 
 export PYTHONPATH=.:../../qe_coverage
 
-echo "First, a good run:"
+echo "A good run, no ERRORs or FAILures should happen:"
 cafe-parallel test test_decorators "$@"
 
-echo "next, a bad run:"
+echo "A bad run, errors should correspond to broken tests:"
 cafe-parallel test bad_decorators "$@"
