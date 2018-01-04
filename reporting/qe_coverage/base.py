@@ -8,6 +8,7 @@ import json
 import os
 import re
 import socket
+import time  # Needed because Python 2.7 doesn't support datetime.datetime.now().timestamp()
 try:
     from urllib import parse
 except ImportError:
@@ -288,7 +289,7 @@ class ReportWriter(object):
 
     def _send_to_splunk(self):
         common_data = {
-            'time': datetime.datetime.now().timestamp(),
+            'time': time.time(),
             'host': _hostname_from_env() or socket.gethostname(),
             'index': SPLUNK_REPORT_INDEX,
             'source': self._source,
@@ -297,7 +298,7 @@ class ReportWriter(object):
         events = [{'event': x} for x in self.data]
         for event in events:
             event.update(common_data)
-        response = requests.post(SPLUNK_COLLECTOR_URL, data=' '.join(events),
+        response = requests.post(SPLUNK_COLLECTOR_URL, data=' '.join(map(json.dumps, events)),
                                  headers={'Authorization': self._splunk_token},
                                  verify=False)
         response.raise_for_status()
@@ -341,6 +342,6 @@ class CSVWriter(object):
         self.file.close()
 
 
-def run_reports(test_group, product_name, *report_args, **product_kwargs):
-    CoverageReport(test_group, product_name, *report_args)
+def run_reports(test_group, product_name, *report_args, **report_kwargs):
+    CoverageReport(test_group, product_name, *report_args, **report_kwargs)
     test_group.validate()
