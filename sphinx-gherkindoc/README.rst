@@ -1,5 +1,5 @@
-sphinx-gherkindoc.py
-====================
+sphinx-gherkindoc
+=================
 
 `sphinx-gherkindoc` is a tool designed to take a directory, recursively find all the feature files and markup files, and convert them into files that can then be included in Sphinx-based documentation. This script was inspired by `sphinx-apidoc`.
 
