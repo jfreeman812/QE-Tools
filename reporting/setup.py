@@ -11,6 +11,7 @@ setuptools.setup(name='qe_coverage',
                  entry_points={
                      'console_scripts': ['coverage-gherkin=qe_coverage.gherkin:main [gherkin]'],
                  },
+                 scripts=['coverage-cloned-repo.sh'],
                  packages=setuptools.find_packages(),
                  install_requires=['attrs==17.3.0', 'requests==2.18.4', 'tableread==1.0.2'],
                  extras_require={'gherkin': ['behave==1.2.6.dev1']},
