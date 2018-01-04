@@ -17,7 +17,7 @@ import attr
 import requests
 from tableread import SimpleRSTReader
 
-from qe_coverage.shared.utilities import padded_list
+from qecommon_tools import padded_list
 
 
 NO_STATUS_JIRA_KEY = 'JIRAs'

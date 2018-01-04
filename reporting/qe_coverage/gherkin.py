@@ -6,7 +6,7 @@ import attr
 import behave.parser
 
 from qe_coverage.base import REPORT_PATH, TestGroup, run_reports
-from qe_coverage.shared.utilities import display_name
+from qecommon_tools import display_name
 
 
 # Any display name in nuisance_category_names will be omitted from the categories. 'features' is
@@ -34,10 +34,10 @@ class ParseProject(object):
         full_path = self.project_path
         categories = []
         for category in os.path.normpath(relative_path).split(os.sep):
-            name = display_name(full_path, category)
+            full_path = os.path.join(full_path, category)
+            name = display_name(full_path)
             if name.lower() not in NUISANCE_CATEGORY_NAMES:
                 categories.append(name)
-            full_path = os.path.join(full_path, category)
         return categories
 
     def build_coverage(self, search_hidden=False):
@@ -60,7 +60,7 @@ class ParseProject(object):
 
     @property
     def name(self):
-        return display_name(*os.path.split(os.path.normpath(self.project_path)))
+        return display_name(os.path.normpath(self.project_path))
 
 
 def run_gherkin_reports(repo_base_directory, product_dir, *report_args, **product_kwargs):
