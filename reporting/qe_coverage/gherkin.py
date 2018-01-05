@@ -65,7 +65,7 @@ class ParseProject(object):
 
 def run_gherkin_reports(repo_base_directory, product_dir, *report_args, **product_kwargs):
     project = ParseProject(os.path.join(repo_base_directory, product_dir))
-    test_list = project.build_coverage(**product_kwargs)
+    test_list = project.build_coverage(product_kwargs.pop('search_hidden', False))
     run_reports(test_list, project.name, *report_args, **product_kwargs)
 
 
