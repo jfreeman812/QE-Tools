@@ -17,7 +17,7 @@ Within the available coverage data, the following attributes have been identifie
 ===================  =================================================================================
 Attribute            Description
 ===================  =================================================================================
-Business Unit_       The business unit for the product under test.
+`Business Unit`_     The business unit for the product under test.
 Product_             The name of the product to which a test applies.
 Projects_             The name of any project(s) associated with the test.
 `Test Name`_         A brief, descriptive name for the test.
