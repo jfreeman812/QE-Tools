@@ -17,6 +17,7 @@ Within the available coverage data, the following attributes have been identifie
 ===================  =================================================================================
 Attribute            Description
 ===================  =================================================================================
+Business Unit_       The business unit for the product under test.
 Product_             The name of the product to which a test applies.
 Projects_             The name of any project(s) associated with the test.
 `Test Name`_         A brief, descriptive name for the test.
@@ -181,6 +182,12 @@ The following tags, unlike the previous section, do not have a predefined list o
 Additional Attributes
 ~~~~~~~~~~~~~~~~~~~~~
 The following attributes are populated outside the above tagging mechanism.
+
+.. _`Business Unit`:
+
+:Attribute: Business Unit
+:Description:
+    The business unit name and is provided to the coverage tools.
 
 .. _Product:
 

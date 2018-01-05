@@ -73,6 +73,7 @@ def main():
     parser = argparse.ArgumentParser(description='Test Reports')
     parser.add_argument('repo_base_directory',
                         help='The Absolute directory of the repo to run reports against')
+    parser.add_argument('business_unit', help='Business unit name')
     parser.add_argument('interface_type', choices=['api', 'gui'],
                         help='The interface type of the product')
     product_help = 'The director(ies) to start looking for feature files. Useful when cloning a '\
@@ -84,8 +85,9 @@ def main():
     parser.add_argument('--splunk_token', default='',
                         help='Provide Splunk auth token to send data')
     args = parser.parse_args()
-    run_gherkin_reports(args.repo_base_directory, args.product_dir, args.interface_type,
-                        args.output_dir, args.splunk_token, search_hidden=args.search_hidden)
+    run_gherkin_reports(args.repo_base_directory, args.product_dir, args.business_unit,
+                        args.interface_type, args.output_dir, args.splunk_token,
+                        search_hidden=args.search_hidden)
 
 
 if __name__ == '__main__':

@@ -169,9 +169,10 @@ class ReportWriter(object):
     base_file_name = ''
     _source = None
 
-    def __init__(self, test_group, product_name, interface_type,
-                 output_dir, splunk_token=None):
+    def __init__(self, test_group, business_unit, product_name, interface_type, output_dir,
+                 splunk_token=None):
         self.test_group = test_group
+        self.business_unit = business_unit
         self.product_name = product_name
         self.interface_type = interface_type
         self.output_dir = output_dir
@@ -197,6 +198,7 @@ class ReportWriter(object):
     def _csv_heading_order(self):
         '''The csv heading order that the data will appear in on the reports'''
         return [
+            'Business Unit',
             'Product',
             'Project',
             'Interface Type',
@@ -217,7 +219,8 @@ class ReportWriter(object):
         Takes the categories and any additional data and returns a data dictionary with common
         reporting values
         '''
-        data_item = {'Product': self.product_name, 'Interface Type': self.interface_type}
+        data_item = {'Business Unit': self.business_unit, 'Product': self.product_name,
+                     'Interface Type': self.interface_type}
         data_item.update(additional_data)
         return data_item
 
@@ -342,6 +345,6 @@ class CSVWriter(object):
         self.file.close()
 
 
-def run_reports(test_group, product_name, *report_args, **report_kwargs):
-    CoverageReport(test_group, product_name, *report_args, **report_kwargs)
+def run_reports(test_group, business_unit, product_name, *report_args, **report_kwargs):
+    CoverageReport(test_group, business_unit, product_name, *report_args, **report_kwargs)
     test_group.validate()
