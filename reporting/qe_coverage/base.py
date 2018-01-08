@@ -346,6 +346,6 @@ class CSVWriter(object):
         self.file.close()
 
 
-def run_reports(test_group, business_unit, team, product_name, *report_args, **report_kwargs):
+def run_reports(test_group, product_name, business_unit, team, *report_args, **report_kwargs):
     CoverageReport(test_group, business_unit, team, product_name, *report_args, **report_kwargs)
     test_group.validate()
