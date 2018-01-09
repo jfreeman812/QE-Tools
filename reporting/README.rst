@@ -3,70 +3,106 @@ Introduction
 
 This is a collection of tools for reporting and documenting test coverage for repositories under the control of a Rackspace QE team.
 
-Test coverage reporting is an essential part of QE activities, allowing us to assess the overall state of the testing for the various products we support.
-There are two parts to coverage reporting:
+Test coverage reporting is part of the larger QE organizations `Table Stakes`_.
 
-1. Annotating our tests
-2. Generating and publishing the coverage data.
+For the Rationale on why we want coverage metrics and what they do for us, please see `Coverage Metrics standard`_.
 
-Annotating Our Tests
---------------------
+Currently we support any Gherkin-based tests, and Python OpenCAFE-based tests.
+(Pytest is anticipated, but not yet supported.)
 
-Motivation for, and details of, the kinds of coverage metrics we gather,
-as well as how we annotate our tests to gather it, can be found in the `Coverage Metrics standard`_
+How To
+******
+
+There are two parts to the coverage reporting:
+
+1. Annotating tests.
+2. Generating and publishing coverage data.
+
+General Tooling Notes
+---------------------
+
+The current suite of metrics tools and supporting libraries are written in Python.
+Installing Python and python packages is assumed, details on doing that are out of scope for this document.
+Python 2.7 and Python 3.5+ are the supported versions.
+
+Annotating Tests
+----------------
+
+In order to gather coverage data, we need to annotate our test suites, as per the `Coverage Metrics standard`_
+
+- Gherkin-based testing: the annotations are stand-alone, you need no additional tools.
+- OpenCAFE-based testing: you need to install the ``qe_coverage`` python package.
+  The ``opencafe_decorators`` module in that package provides the decorators needed to annotate tests for coverage metrics gathering,
+  as per the `Coverage Metrics standard`_.
 
 
 Publishing Coverage Data
 ------------------------
 
-As of this writing (2018Q1), we support Gherkin-based and OpenCAFE-based test reporting.
-PyTest is on the radar but not yet assessed or supported.
+Publishing - Common Details
++++++++++++++++++++++++++++
 
-Publishing Coverage Data - Common Details
-+++++++++++++++++++++++++++++++++++++++++
-For all of our coverage tools, there are some common elements:
+Tools needed:
 
-- Reports are published to Splunk.
-    (ed. note: do we want/need Splunk URL here? I hope not, it's already in code...)
-- The results per QE team are recorded under the fully-qualified domain-name of the QE team's Jenkins CI server.
+- Python, as above.
+- ``qe_coverage`` python package - Get this from `Artifactory`_.
+  (For Gherkin-based coverage reporting, an additional option is needed for ``pip install``, see below.)
+
+Reports are published to Splunk:
+
+- The results per QE team are recorded under the fully-qualified domain-name of each QE team's Jenkins CI server, and that value stored as the Splunk ``host`` value/field.
 - This server name is "passed to" the coverage reporting scripts via the JENKINS_URL environment variable.
 
   - This environment variable is defined by Jenkins, so you get it 'for free' when you run the scripts to publish your reports in a Jenkins job.
   - If you need to publish from another source, you need to arrange for this environment variable to be set properly before you run the report.
+  - If this variable is not set, some form of the hostname of the current machine will be used. This may not be what you want/expect.
 
 - The authentication needed to successfully publish to Splunk is a token that is passed via a command-line switch to all the publishing scripts.
 
-  - This token should be configured in your Jenkins server so that the Jenkins job that generates the reports *does not*, and *should not* hard code this value.
+  - When publishing from Jenkins, this token should be configured in your server so that the job using it *does not*, and *should not* hard code this value.
+
+Common Coverage annotations:
 
 - Defaulting ``Interface Type`` - It would be very tedious and repetitive to have to specify the interface type on each test.
 
   - As such, all our tooling provides a way to default that, either by how it analyzes the test directory structure, or via command line switch.
     See the ``--help`` for each tool for details
 
-- Similarly with ``Product`` and ``Project`` Information, to avoid tedious repetion, all the tooling provides ways to default this information.
+- Similarly with ``Product``, ``Project``, ``Business Unit``, and ``Team``  fields: to avoid tedious repetion in the test source annotations, the tooling itself provides defaults.
 
 Publishing Gherkin Coverage Data
 ++++++++++++++++++++++++++++++++
 
-For Gherkin-based tests (whether based on the Python behave test runner or the Ruby cucumber runner),
-the tooling is able to do static analysis on the source files. The tool used for Gherkin reporting
-is ``qe_coverage/gherkin.py`` and details on exactly how to invoke that script can be found using the ``--help`` switch.
+For Gherkin-based tests (whether based on the Python ``behave`` test runner or the Ruby ``cucumber`` runner),
+the tooling is able to do static analysis on the source files.
+The tool used for Gherkin reporting is ``coverage_gherkin`` (implemented by ``qe_coverage/gherkin.py``)
+and details on exactly how to invoke that script can be found using the ``--help`` switch.
+
+  NOTE: While the coverage reports can be generated from any Gherkin sources, this tooling using Python (as above) and ``qe_coverage`` should be installed with the ``gherkin`` option.
+  This will install a special version of ``behave``, used to parse the Gherkin.
+  (It is special because the released version of ``behave``'s parser cannot yet handle the forms used by ``cucumber``.)
+
+  NOTE: The tooling is designed to be installed and used in to a clean Python virtual environment, so these extra packages can be isolated from your normal test environment(s).
 
 
 Publishing OpenCAFE Coverage Data
 +++++++++++++++++++++++++++++++++
-    (ed. note: There is another PR outstanding that adds in the OpenCAFE tools,
-    when that lands, this PR will be updated with the specific details of how to do these steps)
 
-For OpenCAFE-based tests, the process is a little more involved.
+For OpenCAFE-based tests, the publishing process is a little more involved.
 Due to the nature of how data generated testing is done in OpenCAFE,
 static analysis of the sources does not provide the full story of coverage.
-OpenCAFE coverage metrics are gathered in two steps:
+Thus, OpenCAFE coverage metrics are gathered in two steps:
 
 1. A special OpenCAFE test run is made that uses the OpenCAFE-aware decorators to gather the test coverage data.
-     See ``script-name-per-PR-not-yet-merged-per-editorial-note-above``
+     See ``script-name-per-PR-not-yet-merged-per-editorial-note-above``.
+     This causes a full OpenCAFE test run to occur, but in a special mode where tags-decorated tests are not actually run, just the metrics are collected.
 2. The data from the previous run is then processed and published.
-     See ``script-name-per-PR-not-yet-merged-per-editorial-note-above``
+     See ``script-name-to-be-added-here --help`` for details.
+
+Because a full-test run is needed, the metrics gathering and reporting for OpenCAFE needs to be done within a project's existing infrastructure.
+Since the ``qe_coverage`` module is needed for the ``opencafe_decorators`` already, the actual reporting scripts impose no additional requirements or installations.
 
 
 .. _Coverage Metrics standard: qe_coverage/coverage.rst
+.. _Table Stakes: https://one.rackspace.com/pages/viewpage.action?title=Table+Stakes+Definition&spaceKey=cloudqe
+.. _Artifactory: https://artifact.rackspace.net
