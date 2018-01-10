@@ -9,6 +9,9 @@
 # NOTE as of 2017-12-21:
 #      This script assumes you are running it from the directory where it lives.
 
+# Technically, the ../../qe_coverage part is not needed if that package
+# has been installed, but it is here so that this script will run even
+# in a bare virtual env.
 export PYTHONPATH=.:../../qe_coverage
 export COLLECT_TAGS_DATA_INTO=.
 
