@@ -293,7 +293,7 @@ class ReportWriter(object):
 
     def _send_to_splunk(self):
         common_data = {
-            'time': time.time(),
+            'time': round(time.time(), -2),
             'host': _hostname_from_env() or socket.gethostname(),
             'index': SPLUNK_REPORT_INDEX,
             'source': self._source,
