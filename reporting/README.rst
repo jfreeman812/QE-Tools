@@ -1,17 +1,20 @@
+.. sectnum::
+
 Introduction
 ============
 
-This is a collection of tools for reporting and documenting test coverage for repositories under the control of a Rackspace QE team.
+This is a collection of tools for reporting and documenting test coverage for test repositories under the control of a Rackspace QE team.
 
-Test coverage reporting is part of the larger QE organizations `Table Stakes`_.
+Test coverage reporting is part of the commitment of our QE organization to be driven by data.
+Within the TES Technology & Data QE org, we've gone so far as to make it part of our `Table Stakes`_.
 
-For the Rationale on why we want coverage metrics and what they do for us, please see `Coverage Metrics standard`_.
+For the Rationale on why we want coverage metrics and how to apply the coverage markup to tests, please see `Coverage Metrics standard`_.
 
 Currently we support any Gherkin-based tests, and Python OpenCAFE-based tests.
 (Pytest is anticipated, but not yet supported.)
 
 How To
-******
+======
 
 There are two parts to the coverage reporting:
 
@@ -29,6 +32,8 @@ Annotating Tests
 ----------------
 
 In order to gather coverage data, we need to annotate our test suites, as per the `Coverage Metrics standard`_
+How tests are annotated for coverage metrics reporting depends on the automation framework being used.
+This tooling supports the following frameworks:
 
 - Gherkin-based testing: the annotations are stand-alone, you need no additional tools.
 - OpenCAFE-based testing: you need to install the ``qe_coverage`` python package.
@@ -42,6 +47,12 @@ Publishing Coverage Data
 Publishing - Common Details
 +++++++++++++++++++++++++++
 
+The tools in this repository scan directory trees of contain tests which have been annotated as described above.
+The coverage data gathered is aggregated and sent to Splunk to handle visualization, archiving, etc.
+The purpose of these tools is to automate generating and publishing coverage metrics based on the team's tests as the source of truth.
+This section describes how to install and use these tools.
+
+
 Tools needed:
 
 - Python, as above.
@@ -50,8 +61,8 @@ Tools needed:
 
 Reports are published to Splunk:
 
-- The results per QE team are recorded under the fully-qualified domain-name of each QE team's Jenkins CI server, and that value stored as the Splunk ``host`` value/field.
-- This server name is "passed to" the coverage reporting scripts via the JENKINS_URL environment variable.
+- The results published to Splunk include a 'host' field based on the environment variable 'JENKINS_URL'.
+  'JENKINS_URL' was chosen  on the assumption/convenience that the coverage metrics reporting tool will be run on the QE team's CI server.
 
   - This environment variable is defined by Jenkins, so you get it 'for free' when you run the scripts to publish your reports in a Jenkins job.
   - If you need to publish from another source, you need to arrange for this environment variable to be set properly before you run the report.
