@@ -100,10 +100,10 @@ def coverage_json_to_test_group(coverage_file_name, default_interface_type):
     return tests
 
 
-def run_opencafe_reports(coverage_json_file, product_name, default_interface_type, business_unit,
-                         team, output_dir, splunk_token):
+def run_opencafe_reports(coverage_json_file, product_name, default_interface_type,
+                         output_dir, splunk_token):
     test_group = coverage_json_to_test_group(coverage_json_file, default_interface_type)
-    run_reports(test_group, product_name, business_unit, team, default_interface_type, output_dir,
+    run_reports(test_group, product_name, default_interface_type, output_dir,
                 splunk_token=splunk_token)
 
 
@@ -119,17 +119,12 @@ def main():
     parser.add_argument('default_interface_type', choices=sorted(set(INTERFACE_TYPES.values())),
                         help='The interface type of the product '
                              'if it is not otherwise specified or in the category list')
-    parser.add_argument('business_unit',
-                        help='The business unit')
-    parser.add_argument('team',
-                        help='The team (sub-category of a business unit)')
     parser.add_argument('-o', '--output-dir', default=REPORT_PATH,
                         help='Output directory for the generated report files.')
     parser.add_argument('--splunk_token', default='',
                         help='Provide Splunk auth token to send data')
     args = parser.parse_args()
     run_opencafe_reports(args.coverage_json_file, args.product_name, args.default_interface_type,
-                         args.business_unit, args.team,
                          args.output_dir, args.splunk_token)
 
 
