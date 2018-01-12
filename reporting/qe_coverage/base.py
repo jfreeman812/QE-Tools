@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import print_function
 from collections import defaultdict, namedtuple
 from contextlib import closing
 import csv
@@ -46,6 +47,7 @@ class TestCoverage(object):
     tags = attr.ib(default=attr.Factory(list))
     feature_name = attr.ib(default='')
     parent_tags = attr.ib(default=attr.Factory(list))
+    file_path = attr.ib(default='')
     # Pre-defined Constants
     jiras = attr.ib(default=attr.Factory(lambda: defaultdict(list)), init=False)
     attributes = attr.ib(default=attr.Factory(dict), init=False)
@@ -76,11 +78,11 @@ class TestCoverage(object):
         found_tags = set(self.tags + self.parent_tags) & set(valid_tags)
         # Validate the tags
         if len(found_tags) > 1:
-            message = '{}:Multiple tags for prescriptive attribute {}: {}'
-            self.errors.append(message.format(self.name, attribute, found_tags))
+            message = '{}:{}:Multiple tags for prescriptive attribute {} ({})'
+            self.errors.append(message.format(self.file_path, self.name, attribute, found_tags))
         if not found_tags and not default_value:
-            message = '{}:No tag for prescriptive attribute {}. Must be one of {}'
-            self.errors.append(message.format(self.name, attribute, valid_tags))
+            message = '{}:{}:No tag for prescriptive attribute {}. Must be one of {}'
+            self.errors.append(message.format(self.file_path, self.name, attribute, valid_tags))
         if found_tags:
             return attribute_table.matches_all(tag=found_tags.pop()).data[0].report_as
         # To signal a table default should be pulled from the command line interface, the default
@@ -92,7 +94,8 @@ class TestCoverage(object):
         '''Convert structured tags into their appropriate attributes.'''
         tag_categories = self.structured_tag('category', multiple=True)
         if len(tag_categories) > 1:
-            self.errors.append('{}:There can only be one category tag per test'.format(self.name))
+            message = '{}:{}:There can only be one category tag per test'
+            self.errors.append(message.format(self.file_path, self.name))
         self.attributes['Categories'] = tag_categories[0] if tag_categories else self.categories
         self.attributes['Projects'] = self.structured_tag('project')
 
@@ -100,7 +103,8 @@ class TestCoverage(object):
         for tag_list in (self.tags, self.parent_tags):
             self._organize_jiras(tag_list)
         for status in (x for x in self.jiras if not self.jiras[x]):
-            self.errors.append('{}:JIRA not found for status: {}'.format(self.name, status))
+            message = '{}:{}:JIRA not found for status "{}"'
+            self.errors.append(message.format(self.file_path, self.name, status))
 
     def _organize_jiras(self, tag_list):
         '''
@@ -136,15 +140,17 @@ class TestGroup(object):
     tests = attr.ib(default=attr.Factory(list), init=False)
     errors = attr.ib(default=attr.Factory(list), init=False)
 
-    def add(self, name, categories=None, tags=None, feature_name='', parent_tags=None):
+    def add(self, name, categories=None, tags=None, feature_name='', parent_tags=None,
+            file_path=''):
         test = TestCoverage(name=name, categories=categories, tags=tags, feature_name=feature_name,
-                            parent_tags=parent_tags or [])
+                            parent_tags=parent_tags or [], file_path=file_path)
         test.build()
         self.tests.append(test)
         self.errors.extend(test.errors)
 
     def validate(self):
-        assert not self.errors, '\n'.join(self.errors)
+        print('\n'.join(self.errors))
+        return len(self.errors)
 
 
 ####################################################################################################
