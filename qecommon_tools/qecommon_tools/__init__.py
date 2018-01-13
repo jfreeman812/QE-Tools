@@ -69,4 +69,3 @@ def safe_run(commands):
         print('Error trying to run: {}'.format(' '.join(commands)))
         print('')
         _sys.exit(status)
-
