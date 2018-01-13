@@ -1,6 +1,9 @@
 import itertools as _itertools
 import os as _os
+import shutil as _shutil
 import string as _string
+import subprocess as _subprocess
+import sys as _sys
 
 
 def display_name(path, package_name=''):
@@ -37,3 +40,33 @@ def padded_list(iterable, size, padding=None):
         list: The iterable parameter converted to a list, up to size, padded as needed.
     '''
     return list(_itertools.islice(_itertools.chain(iterable, _itertools.repeat(padding)), size))
+
+
+def cleanup_and_exit(dir_name=None):
+    if dir_name:
+        _shutil.rmtree(dir_name)
+    _sys.exit(0)
+
+
+def safe_run(commands):
+    '''run the given list of commands, only return if no error.
+
+    If there is an error in attempting or actually running the commands
+    error messages are printed on stdout and sys.exit will be called.
+    '''
+
+    try:
+        status = _subprocess.call(commands)
+    except OSError as e:
+        print('')
+        print('Error trying to execute: {}'.format(' '.join(commands)))
+        print('')
+        print(e)
+        _sys.exit(-1)
+
+    if status:
+        print('')
+        print('Error trying to run: {}'.format(' '.join(commands)))
+        print('')
+        _sys.exit(status)
+
