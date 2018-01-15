@@ -76,7 +76,9 @@ def run_gherkin_reports(product_dir, *report_args, **product_kwargs):
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Test Reports')
+    parser = argparse.ArgumentParser(description='Test Reports from Gherkin sources',
+                                     epilog='Note: Run this script from the root of the test tree'
+                                            ' being reported on.')
     parser.add_argument('business_unit', help='Business unit name')
     parser.add_argument('team', help='Team name (sub-category of Business Unit)')
     parser.add_argument('interface_type', choices=['api', 'gui'],

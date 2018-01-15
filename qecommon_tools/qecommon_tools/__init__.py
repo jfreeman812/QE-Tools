@@ -59,13 +59,13 @@ def safe_run(commands):
         status = _subprocess.call(commands)
     except OSError as e:
         print('')
-        print('Error trying to execute: {}'.format(' '.join(commands)))
+        print('Error when trying to execute: "{}"'.format(' '.join(commands)))
         print('')
         print(e)
         _sys.exit(-1)
 
     if status:
         print('')
-        print('Error trying to run: {}'.format(' '.join(commands)))
+        print('Error {} from running: "{}"'.format(status, ' '.join(commands)))
         print('')
         _sys.exit(status)
