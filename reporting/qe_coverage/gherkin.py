@@ -1,6 +1,7 @@
 import argparse
 import fnmatch
 import os
+import sys
 
 import attr
 import behave.parser
@@ -51,11 +52,13 @@ class ParseProject(object):
                 # If items are removed from dir_names, os.walk will not search them.
                 dir_names[:] = [x for x in dir_names if not x.startswith('.')]
             for file_name in fnmatch.filter(file_names, '*.feature'):
-                feature = self._feature_for(os.path.join(dir_path, file_name))
+                file_path = os.path.join(dir_path, file_name)
+                feature = self._feature_for(file_path)
                 categories = self._build_categories(feature.relative_path)
                 for test in feature.walk_scenarios():
                     tests.add(name=test.name, categories=categories, tags=test.tags,
-                              feature_name=test.feature.name, parent_tags=test.feature.tags)
+                              feature_name=test.feature.name, parent_tags=test.feature.tags,
+                              file_path=file_path)
         return tests
 
     @property
@@ -66,7 +69,10 @@ class ParseProject(object):
 def run_gherkin_reports(repo_base_directory, product_dir, *report_args, **product_kwargs):
     project = ParseProject(os.path.join(repo_base_directory, product_dir))
     test_list = project.build_coverage(search_hidden=product_kwargs.pop('search_hidden', False))
-    run_reports(test_list, project.name, *report_args, **product_kwargs)
+    if product_kwargs.get('dry_run'):
+        sys.exit(test_list.validate())
+    else:
+        run_reports(test_list, project.name, *report_args, **product_kwargs)
 
 
 def main():
@@ -85,10 +91,12 @@ def main():
     parser.add_argument('--search_hidden', action='store_true', help='Include ".hidden" folders')
     parser.add_argument('--splunk_token', default='',
                         help='Provide Splunk auth token to send data')
+    parser.add_argument('--dry-run', action='store_true',
+                        help='Do not generate reports or upload; only validate the tags.')
     args = parser.parse_args()
     run_gherkin_reports(args.repo_base_directory, args.product_dir, args.business_unit, args.team,
                         args.interface_type, args.output_dir, args.splunk_token,
-                        search_hidden=args.search_hidden)
+                        search_hidden=args.search_hidden, dry_run=args.dry_run)
 
 
 if __name__ == '__main__':
