@@ -22,7 +22,7 @@ splunk_token = os.environ.get(SPLUNK_TOKEN_NAME, None)
 def main():
     parser = argparse.ArgumentParser(description='Collect and Publish OpenCAFE Coverage Report')
     parser.add_argument('--no-clean', default=False, action='store_true',
-                        help='Do clean up the temporary directory so that humans can look at it')
+                        help='Do not remove the temporary directory, so that humans can look at it')
     parser.add_argument('--check-only', default=False, action='store_true',
                         help='Gather metrics, but do not send to splunk,'
                              ' if this flag is not used, the {} environment'
@@ -73,23 +73,24 @@ def main():
 
     json_coverage_file = json_coverage_files[0]
 
-    if args.check_only:
-        if args.no_clean:
-            tmp_dir_name = None
-        cleanup_and_exit(dir_name=tmp_dir_name)
+    if not args.check_only:
+        publish_command = [
+            'coverage-send-opencafe-report',
+            '-o', tmp_dir_name,
+            '--splunk_token', splunk_token,
+            json_coverage_file,
+            args.product_name,
+            args.default_interface_type,
+            args.business_unit,
+            args.team
+        ]
 
-    publish_command = [
-        'coverage-send-opencafe-report',
-        '-o', tmp_dir_name,
-        '--splunk_token', splunk_token,
-        json_coverage_file,
-        args.product_name,
-        args.default_interface_type,
-        args.business_unit,
-        args.team
-    ]
+        safe_run(publish_command)
 
-    safe_run(publish_command)
+    if args.no_clean:
+        print('no cleanup done, temporary files are in: {}'.format(tmp_dir_name))
+        tmp_dir_name = None
+    cleanup_and_exit(dir_name=tmp_dir_name)
 
 
 if __name__ == '__main__':
