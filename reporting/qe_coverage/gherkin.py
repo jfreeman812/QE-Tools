@@ -66,8 +66,8 @@ class ParseProject(object):
         return display_name(os.path.normpath(self.project_path))
 
 
-def run_gherkin_reports(repo_base_directory, product_dir, *report_args, **product_kwargs):
-    project = ParseProject(os.path.join(repo_base_directory, product_dir))
+def run_gherkin_reports(product_dir, *report_args, **product_kwargs):
+    project = ParseProject(os.path.join(os.getcwd(), product_dir))
     test_list = project.build_coverage(search_hidden=product_kwargs.pop('search_hidden', False))
     if product_kwargs.get('dry_run'):
         sys.exit(test_list.validate())
@@ -76,9 +76,9 @@ def run_gherkin_reports(repo_base_directory, product_dir, *report_args, **produc
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Test Reports')
-    parser.add_argument('repo_base_directory',
-                        help='The Absolute directory of the repo to run reports against')
+    parser = argparse.ArgumentParser(description='Test Reports from Gherkin sources',
+                                     epilog='Note: Run this script from the root of the test tree'
+                                            ' being reported on.')
     parser.add_argument('business_unit', help='Business unit name')
     parser.add_argument('team', help='Team name (sub-category of Business Unit)')
     parser.add_argument('interface_type', choices=['api', 'gui'],
@@ -94,7 +94,7 @@ def main():
     parser.add_argument('--dry-run', action='store_true',
                         help='Do not generate reports or upload; only validate the tags.')
     args = parser.parse_args()
-    run_gherkin_reports(args.repo_base_directory, args.product_dir, args.business_unit, args.team,
+    run_gherkin_reports(args.product_dir, args.business_unit, args.team,
                         args.interface_type, args.output_dir, args.splunk_token,
                         search_hidden=args.search_hidden, dry_run=args.dry_run)
 

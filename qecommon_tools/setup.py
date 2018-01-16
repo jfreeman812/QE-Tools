@@ -2,7 +2,7 @@ import setuptools
 
 
 setuptools.setup(name='qecommon_tools',
-                 version='1.0.0',
+                 version='1.0.1',
                  description='Collection of miscellaneous helper methods',
                  url='https://github.rackspace.com/QualityEngineering/QE-Tools',
                  author='RBA QE',
