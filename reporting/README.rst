@@ -79,14 +79,14 @@ Common Coverage annotations:
   - As such, all our tooling provides a way to default that, either by how it analyzes the test directory structure, or via command line switch.
     See the ``--help`` for each tool for details
 
-- Similarly with ``Product``, ``Project``, ``Business Unit``, and ``Team``  fields: to avoid tedious repetion in the test source annotations, the tooling itself provides defaults.
+- Similarly with ``Product``: to avoid tedious repetion in the test source annotations, the tooling itself provides defaults for that as well.
 
 Publishing Gherkin Coverage Data
 ++++++++++++++++++++++++++++++++
 
 For Gherkin-based tests (whether based on the Python ``behave`` test runner or the Ruby ``cucumber`` runner),
 the tooling is able to do static analysis on the source files.
-The tool used for Gherkin reporting is ``coverage_gherkin`` (implemented by ``qe_coverage/gherkin.py``)
+The tool used for Gherkin reporting is ``coverage-gherkin`` (implemented by ``qe_coverage/gherkin.py``)
 and details on exactly how to invoke that script can be found using the ``--help`` switch.
 
   NOTE: While the coverage reports can be generated from any Gherkin sources, this tooling using Python (as above) and ``qe_coverage`` should be installed with the ``gherkin`` option.
@@ -104,14 +104,17 @@ Due to the nature of how data generated testing is done in OpenCAFE,
 static analysis of the sources does not provide the full story of coverage.
 Thus, OpenCAFE coverage metrics are gathered in two steps:
 
-1. A special OpenCAFE test run is made that uses the OpenCAFE-aware decorators to gather the test coverage data.
-     See ``script-name-per-PR-not-yet-merged-per-editorial-note-above``.
-     This causes a full OpenCAFE test run to occur, but in a special mode where tags-decorated tests are not actually run, just the metrics are collected.
+1. A special OpenCAFE test run is made that uses the OpenCAFE-aware decorators (see above) to gather the test coverage data.
 2. The data from the previous run is then processed and published.
-     See ``script-name-to-be-added-here --help`` for details.
+
+Both of those steps are implemented in one script: ``coverage-opencafe`` (implemented by ``qe_coverage/collect_opencafe_coverage.py``).
+and details on exactly how to invoke that script can be found using the ``--help`` switch.
+
+(Note that ``coverage-send-opencafe-report`` is a helper script installed to handle step 2, but is intended for use by ``coverage-opencafe`` only.)
 
 Because a full-test run is needed, the metrics gathering and reporting for OpenCAFE needs to be done within a project's existing infrastructure.
 Since the ``qe_coverage`` module is needed for the ``opencafe_decorators`` already, the actual reporting scripts impose no additional requirements or installations.
+Note: When using the ``coverage-opencafe`` tool do not limit the run with any tags or other controls so that the full coverage will be generated.
 
 
 .. _Coverage Metrics standard: qe_coverage/coverage.rst

@@ -12,7 +12,7 @@ fi
 # Quick and easy, for us, and for Jenkins:
 if [ "$1" = "--setup" ] ; then
     shift
-    if ! ./env-setup.sh ; then
+    if ! pip install -r requirements.txt ; then
         echo environment setup failed, aborting self-checks
         exit 1
     fi
