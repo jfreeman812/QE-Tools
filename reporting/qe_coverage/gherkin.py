@@ -69,7 +69,7 @@ class ParseProject(object):
 def run_gherkin_reports(product_dir, *report_args, **product_kwargs):
     project = ParseProject(os.path.join(os.getcwd(), product_dir))
     test_list = project.build_coverage(search_hidden=product_kwargs.pop('search_hidden', False))
-    if product_kwargs.get('dry_run'):
+    if product_kwargs.pop('dry_run'):
         sys.exit(test_list.validate())
     else:
         run_reports(test_list, project.name, *report_args, **product_kwargs)
@@ -92,8 +92,7 @@ def main():
     parser.add_argument('--dry-run', action='store_true',
                         help='Do not generate reports or upload; only validate the tags.')
     args = parser.parse_args()
-    run_gherkin_reports(args.product_dir, args.business_unit, args.team,
-                        args.interface_type, args.output_dir, args.splunk_token,
+    run_gherkin_reports(args.product_dir, args.interface_type, args.output_dir, args.splunk_token,
                         search_hidden=args.search_hidden, dry_run=args.dry_run)
 
 
