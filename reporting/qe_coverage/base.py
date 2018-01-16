@@ -149,7 +149,8 @@ class TestGroup(object):
         self.errors.extend(test.errors)
 
     def validate(self):
-        print('\n'.join(self.errors))
+        if self.errors:
+            print('\n'.join(self.errors))
         return len(self.errors)
 
 
