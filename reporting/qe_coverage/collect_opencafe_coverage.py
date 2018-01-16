@@ -36,10 +36,6 @@ def main():
     #       to handle that use case. QGTM-671 is tracking this.
     parser.add_argument('product_name',
                         help='The name of the product')
-    parser.add_argument('business_unit',
-                        help='The business unit')
-    parser.add_argument('team',
-                        help='The team (sub-category of a business unit)')
     parser.add_argument('open_cafe_command', nargs='+',
                         help='OpenCAFE command and parameters for running the tests')
     args = parser.parse_args()
@@ -81,8 +77,6 @@ def main():
             json_coverage_file,
             args.product_name,
             args.default_interface_type,
-            args.business_unit,
-            args.team
         ]
 
         safe_run(publish_command)
