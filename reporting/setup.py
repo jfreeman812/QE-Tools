@@ -18,7 +18,7 @@ setuptools.setup(name='qe_coverage',
                  },
                  packages=setuptools.find_packages(),
                  install_requires=['attrs==17.3.0', 'requests>=2.10', 'tableread>=1.0.2',
-                                   'qecommon_tools>=1.0.1'],
+                                   'qecommon_tools>=1.0.1', 'wrapt'],
                  extras_require={'gherkin': ['behave==1.2.6.dev1']},
                  include_package_data=True,
                  zip_safe=False)
