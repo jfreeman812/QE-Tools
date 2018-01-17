@@ -105,10 +105,9 @@ COVERAGE_REPORT_FILE_NAME = None
 _TAGS_INFO_DIR_NAME = environ.get('COLLECT_TAGS_DATA_INTO', None)
 if _TAGS_INFO_DIR_NAME is None:
     # Tags logging function for when we are _not_ collecting/logging tags info.
-    @wrapt.decorator
-    def _tags_log_info(wrapped, instance, args, kwargs):
+    def _tags_log_info(func):
         '''No logging decorator, just return the function'''
-        return wrapped(*args, **kwargs)
+        return func
 else:
     import json
     from tempfile import NamedTemporaryFile
