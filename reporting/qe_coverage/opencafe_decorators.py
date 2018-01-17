@@ -528,7 +528,7 @@ def only_in(environment, reason=None):
     Returns:
         A decorator function to pass the test case or test class into.
     '''
-    message = 'Only test in {0}'.format(environment)
+    message = 'Only tested in {0}'.format(environment)
     if reason:
         message += ': {0}'.format(reason)
 
@@ -614,14 +614,14 @@ def tags(*tags_list):
         So to accomplish this, a test that is tagged with both 'nyi' and 'regression' will have its
         cafe tags changed to be 'nyi' and 'nyi-regression' so that any test run as `-t regression`
         will _not_ be able to select this test. This is handy, esp. in the case of quarantined tags
-        where it might be desireable to run quarantined-smoke tests on a regular basis. It seems
+        where it might be desirable to run quarantined-smoke tests on a regular basis. It seems
         unlikely that running nyi-<anything> tests would be useful, but it would be possible.
 
         Any JIRA tags must start with the full ID, e.g. 'JIRA-123' otherwise the non-operational
         status tag will be prepended to it, as described above.
     '''
 
-    tags_list = list(tags_list)  # make sure it is a re-useable iterable.
+    tags_list = list(tags_list)  # make sure it is a re-usable iterable.
 
     def tag_decorator(func):
         total_tags = _get_coverage_tags_from(func) + tags_list
