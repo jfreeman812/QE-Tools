@@ -71,7 +71,7 @@ from os import environ
 import re
 from traceback import format_stack
 from unittest import skip, SkipTest
-# OpenCafe
+# 3rd Party
 from cafe.drivers.unittest.decorators import tags as _cafe_tags
 # OpenCafe doesn't provide a way to reset tags :-(, so we have to import
 # these attribute names so that we don't have to duplicate them.
