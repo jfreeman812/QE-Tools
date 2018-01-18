@@ -63,20 +63,19 @@ environment in which OpenCafe tests are currently being executed.
 The name of this method must match the ``ENVIRONMENT_MATCHING_METHOD_NAME``
 constant defined in this module.
 '''
-
-# Standard Library
 from atexit import register
 from inspect import isclass
 from os import environ
 import re
 from traceback import format_stack
 from unittest import skip, SkipTest
-# 3rd Party
+
 from cafe.drivers.unittest.decorators import tags as _cafe_tags
 # OpenCafe doesn't provide a way to reset tags :-(, so we have to import
 # these attribute names so that we don't have to duplicate them.
 from cafe.drivers.unittest.decorators import (TAGS_DECORATOR_TAG_LIST_NAME,
                                               PARALLEL_TAGS_LIST_ATTR)
+import wrapt
 
 
 #############
@@ -121,41 +120,30 @@ else:
 
     # We're going to do a cheap-o jsonlines like solution here, each test
     # will dump out a one-line json object for reporting.
-    def _tags_log_info(func):
+    @wrapt.decorator
+    def _tags_log_info(wrapped, instance, args, kwargs):
         '''decorator to log tags info only, doesn't run func'''
         # Implementation note:
         # The insight here is that the decorator is returning a whole different function,
         # which can extract data from 'func', but which is not obligated to call 'func'.
         # This makes for a 'safe' full run (no dry-run needed) and greatly simplifies the
         # code for extracting data.
-        def _logging_only(*args, **kwargs):
-            tags_data = dict()
-            test_obj = args[0]
+        tags_data = dict()
 
-            # While the test name from func and the test_obj are often the same,
-            # in the case of data driven OpenCAFE tests, the the func name is the same
-            # where as the test_obj name is unique and what we need to report on.
-            tags_data['test'] = test_obj._testMethodName
-            tags_data['doc'] = func.__doc__
-            tags_data['provenance'] = (test_obj.__class__.__module__.split('.') +
-                                       [test_obj.__class__.__name__])
-            tags_data['tags'] = _get_coverage_tags_from(func)
+        # While the test name from func and the test_obj are often the same,
+        # in the case of data driven OpenCAFE tests, the the func name is the same
+        # where as the test_obj name is unique and what we need to report on.
+        tags_data['test'] = instance._testMethodName
+        tags_data['doc'] = wrapped.__doc__
+        tags_data['provenance'] = (instance.__class__.__module__.split('.') +
+                                   [instance.__class__.__name__])
+        tags_data['tags'] = _get_coverage_tags_from(wrapped)
 
-            json.dump(tags_data, _coverage_report_file, sort_keys=True)
-            _coverage_report_file.write('\n')
-            # It's annoying to have to flush all the time, but when I tried putting
-            # flush 'atexit' time, it didn't work. I didn't dig deeply in to why.
-            _coverage_report_file.flush()
-
-        # Copy over everything anyone might have added, tags, OpenCAFE attributes,
-        # just copy it all...
-        for key, value in func.__dict__.items():
-            setattr(_logging_only, key, value)
-
-        # Do this so the OpenCAFE machinery can find this test via name lookup.
-        _logging_only.__name__ = func.__name__
-        _logging_only.__doc__ = func.__doc__
-        return _logging_only
+        json.dump(tags_data, _coverage_report_file, sort_keys=True)
+        _coverage_report_file.write('\n')
+        # It's annoying to have to flush all the time, but when I tried putting
+        # flush 'atexit' time, it didn't work. I didn't dig deeply in to why.
+        _coverage_report_file.flush()
 
 
 # INTERIM LIST!
@@ -384,6 +372,9 @@ def _get_decorator_for_skipping_test(reason, details, tag_name, environment_affe
 
     def decorator(test_case_or_class):
         '''The decorator with which to decorate the test case or class.'''
+        tags = [tag_name] + jira_ids
+        test_case_or_class = _add_tags(test_case_or_class, cafe_tags=tags, coverage_tags=tags)
+
         if isclass(test_case_or_class):
             if not environment_affected or _environment_matches(test_fixture=test_case_or_class,
                                                                 environment=environment_affected):
@@ -391,26 +382,21 @@ def _get_decorator_for_skipping_test(reason, details, tag_name, environment_affe
 
             return test_case_or_class
 
-        def wrapper(self, *args, **kwargs):
-            '''The new function with which to replace the original test case.'''
-            if not environment_affected or _environment_matches(test_fixture=self,
-                                                                environment=environment_affected):
-                raise SkipTest(message)
-
-            return test_case_or_class(self, *args, **kwargs)
-
+        # A class method is being decorated
         if _docstring_hacking_enabled:
-            wrapper.__doc__ = _add_text_to_docstring_summary_line(
+            test_case_or_class.__doc__ = _add_text_to_docstring_summary_line(
                 original_docstring=test_case_or_class.__doc__, summary_line_addition=message)
-        else:
-            wrapper.__doc__ = test_case_or_class.__doc__
 
-        wrapper.__name__ = test_case_or_class.__name__
+        @wrapt.decorator
+        def wrapper(wrapped, instance, args, kwargs):
+            '''The replacement logic for the original test case or class.'''
+            if not environment_affected or _environment_matches(test_fixture=instance,
+                                                                environment=environment_affected):
+                return skip(message)(wrapped)(*args, **kwargs)
 
-        tags = [tag_name] + jira_ids
-        wrapper = _add_tags(wrapper, cafe_tags=tags, coverage_tags=tags)
+            return wrapped(*args, **kwargs)
 
-        return wrapper
+        return wrapper(test_case_or_class)
 
     return decorator
 
@@ -528,43 +514,32 @@ def only_in(environment, reason=None):
     Returns:
         A decorator function to pass the test case or test class into.
     '''
-    message = 'Only test in {0}'.format(environment)
+    message = 'Only tested in {0}'.format(environment)
     if reason:
         message += ': {0}'.format(reason)
 
     def decorator(test_case_or_class):
-        '''
-        Replace the given class or method with a function that may skip the original logic.
-
-        Args:
-            test_case_or_class: The original test method or test class being decorated.
-
-        Returns:
-            Callable: A replacement class or method that is skipped if the correct
-            environment is not being tested.
-        '''
+        '''The decorator with which to decorate the test case or class.'''
         if isclass(test_case_or_class):
             if _environment_matches(test_fixture=test_case_or_class, environment=environment):
                 return test_case_or_class
 
             return skip(message)(test_case_or_class)
 
-        def wrapper(self, *args, **kwargs):
-            '''The new function with which to replace the original test case.'''
-            if _environment_matches(test_fixture=self, environment=environment):
-                return test_case_or_class(self, *args, **kwargs)
-
-            raise SkipTest(message)
-
+        # A class method is being decorated
         if _docstring_hacking_enabled:
-            wrapper.__doc__ = _add_text_to_docstring_summary_line(
+            test_case_or_class.__doc__ = _add_text_to_docstring_summary_line(
                 original_docstring=test_case_or_class.__doc__, summary_line_addition=message)
-        else:
-            wrapper.__doc__ = test_case_or_class.__doc__
 
-        wrapper.__name__ = test_case_or_class.__name__
+        @wrapt.decorator
+        def wrapper(wrapped, instance, args, kwargs):
+            '''The replacement logic for the original test case or class.'''
+            if _environment_matches(test_fixture=instance, environment=environment):
+                return wrapped(*args, **kwargs)
 
-        return wrapper
+            return skip(message)(wrapped)(*args, **kwargs)
+
+        return wrapper(test_case_or_class)
 
     return decorator
 
@@ -614,14 +589,14 @@ def tags(*tags_list):
         So to accomplish this, a test that is tagged with both 'nyi' and 'regression' will have its
         cafe tags changed to be 'nyi' and 'nyi-regression' so that any test run as `-t regression`
         will _not_ be able to select this test. This is handy, esp. in the case of quarantined tags
-        where it might be desireable to run quarantined-smoke tests on a regular basis. It seems
+        where it might be desirable to run quarantined-smoke tests on a regular basis. It seems
         unlikely that running nyi-<anything> tests would be useful, but it would be possible.
 
         Any JIRA tags must start with the full ID, e.g. 'JIRA-123' otherwise the non-operational
         status tag will be prepended to it, as described above.
     '''
 
-    tags_list = list(tags_list)  # make sure it is a re-useable iterable.
+    tags_list = list(tags_list)  # make sure it is a re-usable iterable.
 
     def tag_decorator(func):
         total_tags = _get_coverage_tags_from(func) + tags_list
