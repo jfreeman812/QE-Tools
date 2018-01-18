@@ -93,7 +93,7 @@ NOTE: This method is called when the decorators are being run,
 so it must be a @staticmethod.
 '''
 
-JIRA_REGEX = re.compile('^[A-Z]+-[0-9]+$')
+JIRA_REGEX = re.compile('[A-Z]+-[0-9]+')
 '''A regular expression that matches a valid JIRA ID.'''
 
 COVERAGE_TAG_DECORATOR_TAG_LIST_NAME = '__coverage_report_tags__'
@@ -611,11 +611,14 @@ def tags(*tags_list):
         This decorator generator will also mutate the cafe tags so that anything other
         than the status tag and a JIRA tag will have a non-operational status tag prepended to it.
         This is overcome a limitation in the cafe test runner that cannot use tags to exclude tests.
-        So to accomplish this, a test that is tagged with both 'nyi' and 'regression' will have it's
+        So to accomplish this, a test that is tagged with both 'nyi' and 'regression' will have its
         cafe tags changed to be 'nyi' and 'nyi-regression' so that any test run as `-t regression`
         will _not_ be able to select this test. This is handy, esp. in the case of quarantined tags
         where it might be desireable to run quarantined-smoke tests on a regular basis. It seems
         unlikely that running nyi-<anything> tests would be useful, but it would be possible.
+
+        Any JIRA tags must start with the full ID, e.g. 'JIRA-123' otherwise the non-operational
+        status tag will be prepended to it, as described above.
     '''
 
     tags_list = list(tags_list)  # make sure it is a re-useable iterable.

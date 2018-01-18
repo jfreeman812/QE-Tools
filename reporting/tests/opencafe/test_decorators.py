@@ -102,6 +102,11 @@ class TestCaseDecoratorsThatWork(DecoratorsTestsFixture):
     def test_skipped_production_only(self):
         self.fail('This test should have been skipped!')
 
+    @tags('positive')
+    @quarantined('This description contains JIRA-123, but there is a comma next to it.')
+    def test_skipped_quarantined_with_comma_next_to_jira_id(self):
+        self.fail('This test should have been skipped!')
+
 
 @quarantined('JIRA-111')
 class TestClassDecoratedAsQuarantined(DecoratorsTestsFixture):
