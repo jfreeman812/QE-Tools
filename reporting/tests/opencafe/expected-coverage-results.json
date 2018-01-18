@@ -7,6 +7,7 @@
 {"doc": "<No docstring provided> (Only test in production)", "provenance": ["test_decorators", "TestCaseDecoratorsThatWork"], "tags": ["integration", "positive"], "test": "test_skipped_only_in_production"}
 {"doc": "<No docstring provided> (Only test in Production)", "provenance": ["test_decorators", "TestCaseDecoratorsThatWork"], "tags": ["security", "p0", "positive"], "test": "test_skipped_production_only"}
 {"doc": "<No docstring provided> (Quarantined: JIRA-111)", "provenance": ["test_decorators", "TestCaseDecoratorsThatWork"], "tags": ["quarantined", "JIRA-111", "smoke", "positive"], "test": "test_skipped_quarantined"}
+{"doc": "<No docstring provided> (Quarantined: This description contains JIRA-123, but there is a comma next to it.)", "provenance": ["test_decorators", "TestCaseDecoratorsThatWork"], "tags": ["quarantined", "JIRA-123", "positive"], "test": "test_skipped_quarantined_with_comma_next_to_jira_id"}
 {"doc": "Nothing much to see here either...", "provenance": ["test_decorators", "TestDataDrivenClass_0"], "tags": ["smoke", "positive"], "test": "test_ok_data_driven_test_in_data_driven_class_0"}
 {"doc": "Nothing much to see here either...", "provenance": ["test_decorators", "TestDataDrivenClass_0"], "tags": ["smoke", "positive"], "test": "test_ok_data_driven_test_in_data_driven_class_1"}
 {"doc": "Nothing much to see here either...", "provenance": ["test_decorators", "TestDataDrivenClass_0"], "tags": ["smoke", "positive"], "test": "test_ok_data_driven_test_in_data_driven_class_2"}
