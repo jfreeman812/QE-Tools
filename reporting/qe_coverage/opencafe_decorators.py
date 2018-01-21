@@ -108,6 +108,8 @@ if _TAGS_INFO_DIR_NAME is None:
     def _tags_log_info(func):
         '''No logging decorator, just return the function'''
         return func
+
+    unless_coverage = _tags_log_info
 else:
     import json
     from tempfile import NamedTemporaryFile
@@ -117,6 +119,11 @@ else:
 
     # Make sure the file is closed on interpreter exit.
     register(_coverage_report_file.close)
+
+    @wrapt.decorator
+    def unless_coverage(wrapped, instance, args, kwargs):
+        '''Decorate a function (such as setUp) that shouldn't run when doing a coverage only run.'''
+        pass
 
     # We're going to do a cheap-o jsonlines like solution here, each test
     # will dump out a one-line json object for reporting.

@@ -23,3 +23,4 @@
 {"doc": "DataDriven test method", "provenance": ["test_decorators", "TestDataDrivenMethods"], "tags": ["regression", "positive"], "test": "test_ok_data_driven_test_0"}
 {"doc": "DataDriven test method", "provenance": ["test_decorators", "TestDataDrivenMethods"], "tags": ["regression", "positive"], "test": "test_ok_data_driven_test_1"}
 {"doc": "DataDriven test method", "provenance": ["test_decorators", "TestDataDrivenMethods"], "tags": ["regression", "positive"], "test": "test_ok_data_driven_test_2"}
+{"doc": null, "provenance": ["test_decorators", "TestUnlessCoverageDecorator"], "tags": ["p0", "positive"], "test": "test_unless_coverage"}
