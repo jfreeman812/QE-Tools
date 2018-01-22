@@ -119,4 +119,4 @@ Note: When using the ``coverage-opencafe`` tool do not limit the run with any ta
 
 .. _Coverage Metrics standard: qe_coverage/coverage.rst
 .. _Table Stakes: https://one.rackspace.com/pages/viewpage.action?title=Table+Stakes+Definition&spaceKey=cloudqe
-.. _Artifactory: https://artifact.rackspace.net
+.. _Artifactory: https://artifacts.rackspace.net
