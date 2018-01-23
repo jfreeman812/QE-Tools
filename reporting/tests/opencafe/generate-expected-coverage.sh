@@ -18,4 +18,16 @@ export COLLECT_TAGS_DATA_INTO=.
 # Only run on the test_decorators module to avoid hitting the bad_decorators and any
 # other iffy data...
 
-cafe-parallel test test_decorators "$@"
+RESULTS=$(cafe-parallel test test_decorators "$@" 2>&1)
+echo "$RESULTS"
+
+FAILURES=$(echo "$RESULTS" | fgrep "has been called")
+
+if [[ ! -z  $FAILURES ]]; then
+    echo "====================="
+    echo "The following output should not have been seen:"
+    echo "---------------------"
+    echo $FAILURES
+    echo "====================="
+    exit 1
+fi
