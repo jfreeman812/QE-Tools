@@ -3,7 +3,7 @@ Feature: Bad Feature File
     Scenario: Untagged Test
 
         Given an untagged test
-        WHen the coverage tool runs
+        When the coverage tool runs
         Then the tool completes with an error
 
     @p0
