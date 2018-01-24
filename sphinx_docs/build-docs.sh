@@ -3,7 +3,7 @@
 export GIT_COMMIT_ID=$(git rev-parse HEAD)
 export GIT_ORIGIN_URL=$(git config --get remote.origin.url)
 if [ -z "${SPHINX_CONF_PATH}" ]; then
-    SPHINX_CONF_PATH="."
+    SPHINX_CONF_PATH="sphinx_docs"
 fi
 if [ ! -f "${SPHINX_CONF_PATH}/conf.py" ]; then
     echo "cannot locate the Sphinx conf.py file; exiting."; exit 1
@@ -18,5 +18,8 @@ if [ "$1" = "--setup" ] ; then
     fi
 fi
 
-# cp -rf sphinx_docs/ _docs/
+mv sphinx_docs/index.rst .
 sphinx-build -c $SPHINX_CONF_PATH -E . docs/
+# Create legacy coverage link
+cp docs/reporting/qe_coverage/coverage.html docs
+mv index.rst sphinx_docs

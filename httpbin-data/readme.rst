@@ -123,6 +123,7 @@ $ curl http://localhost:5000/counter/test
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ::
+
     {
       "test": 0
     }
@@ -132,6 +133,7 @@ $ curl -X PUT http://localhost:5000/counter/test
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ::
+
     {
       "test": 1
     }
@@ -141,6 +143,7 @@ $ curl -X DELETE http://localhost:5000/counter/test
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ::
+
     {
       "message": "test deleted!"
     }
