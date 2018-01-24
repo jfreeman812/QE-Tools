@@ -25,7 +25,7 @@ def main():
                         help='The command to generate and publish coverage and its parameters.'
                              ' NOTE: coverage_script will be run from the top level directory'
                              ' of the cloned repo.')
-    args = parser.parse_args()
+    args, coverage_kwargs = parser.parse_known_args()
 
     tmp_dir_name = mkdtemp()
 
@@ -42,7 +42,7 @@ def main():
 
     os.chdir(cloned_repo_dir_name)
 
-    safe_run(args.coverage_script)
+    safe_run(args.coverage_script + coverage_kwargs)
 
     os.chdir(starting_directory)
     cleanup_and_exit(dir_name=tmp_dir_name)
