@@ -21,11 +21,11 @@ def main():
                         help='the name of the repo to clone.'
                              ' In the format: <organization>/<repo-name>.'
                              ' Do not include the URL or the trailing ".git"')
-    parser.add_argument('coverage_script', nargs='+',
+    parser.add_argument('coverage_script',
                         help='The command to generate and publish coverage and its parameters.'
                              ' NOTE: coverage_script will be run from the top level directory'
                              ' of the cloned repo.')
-    args = parser.parse_args()
+    args, coverage_args = parser.parse_known_args()
 
     tmp_dir_name = mkdtemp()
 
@@ -42,7 +42,7 @@ def main():
 
     os.chdir(cloned_repo_dir_name)
 
-    safe_run(args.coverage_script)
+    safe_run([args.coverage_script] + coverage_args)
 
     os.chdir(starting_directory)
     cleanup_and_exit(dir_name=tmp_dir_name)
