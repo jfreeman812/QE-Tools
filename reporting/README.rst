@@ -116,6 +116,48 @@ Because a full-test run is needed, the metrics gathering and reporting for OpenC
 Since the ``qe_coverage`` module is needed for the ``opencafe_decorators`` already, the actual reporting scripts impose no additional requirements or installations.
 Note: When using the ``coverage-opencafe`` tool do not limit the run with any tags or other controls so that the full coverage will be generated.
 
+Tips and Need-To-Knows for Decorating OpenCAFE Tests
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+1. Don't decorate test classes.
+
+Classes decorated with ``opencafe_decorators`` will function as expected during a normal test run, but the tests will not be included in coverage reports.
+In order to generate the correct coverage data, you must decorate each tag individually.
+
+2. Use the ``@unless_coverage`` decorator to avoid unnecessary setup and teardown.
+
+``setUp``, ``setUpClass``, ``tearDown``, and ``tearDownClass`` methods will be executed when coverage reports are generated. By decorating these classes with
+``@unless_coverage``, these methods will not be run during a coverage test run.
+
+3. Known Potential Issues
+
+**Issue 1:** You see an error during a coverage test run with ``previousClass._do_class_cleanup_tasks()`` somewhere in the traceback like this::
+
+    ...
+    previousClass._do_class_cleanup_tasks()
+    ...
+    AttributeError: type object 'ExampleTests' has no attribute '_class_cleanup_tasks'
+
+This is because the OpenCAFE test runner is looking for this attribute, which is assigned in the `setUpClass`.
+
+Solution: Assign the ``_class_cleanup_tasks`` attribute directly on your test fixture::
+
+    class ExampleTests(BaseTestFixture):
+
+        _class_cleanup_tasks = []
+
+**Issue 2:** You get a similar error to the one above, but instead for a missing ``_reporting`` attribute or something else.
+
+Solution: This may be because one of the setup/teardown methods was never tagged with ``@unless_coverage``. You may have to implement an empty method
+if one of the OpenCAFE defined setup/teardown methods is being called.::
+
+    @unless_coverage
+    def setUp(self):
+        super(DCXQEBaseTestFixture, self).setUp()
+
+    @unless_coverage
+    def tearDown(self):
+        super(DCXQEBaseTestFixture, self).tearDown()
 
 .. _Coverage Metrics standard: qe_coverage/coverage.rst
 .. _Table Stakes: https://one.rackspace.com/pages/viewpage.action?title=Table+Stakes+Definition&spaceKey=cloudqe
