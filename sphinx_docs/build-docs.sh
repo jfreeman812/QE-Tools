@@ -22,4 +22,5 @@ mv sphinx_docs/index.rst .
 sphinx-build -c $SPHINX_CONF_PATH -E . docs/
 # Create legacy coverage link
 cp docs/reporting/qe_coverage/coverage.html docs
+sed -i '' 's/"\.\.\/..\//"/' docs/coverage.html
 mv index.rst sphinx_docs
