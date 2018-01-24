@@ -1,10 +1,12 @@
+from __future__ import print_function
+
 from cafe.drivers.unittest.datasets import DatasetList
 from cafe.drivers.unittest.decorators import DataDrivenClass, DataDrivenFixture, data_driven_test
 from cafe.drivers.unittest.fixtures import BaseTestFixture
 
 from qe_coverage.opencafe_decorators import (needs_work, not_tested, nyi, only_in,
                                              quarantined, production_only, staging_only,
-                                             tags)
+                                             tags, unless_coverage)
 
 
 class ItemList(DatasetList):
@@ -162,3 +164,20 @@ class TestClassDecoratedAsProductionOnly(DecoratorsTestsFixture):
 
     def test_skipped_class_production_only(self):
         self.fail('This test should have been skipped!')
+
+
+class TestUnlessCoverageDecorator(BaseTestFixture):
+
+    @unless_coverage
+    def setUp(self):
+        super(TestUnlessCoverageDecorator, self).setUp()
+        print('setUp has been called')
+
+    @unless_coverage
+    def tearDown(self):
+        super(TestUnlessCoverageDecorator, self).tearDown()
+        print('tearDown has been called')
+
+    @tags('p0', 'positive')
+    def test_unless_coverage(self):
+        pass

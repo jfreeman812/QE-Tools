@@ -13,7 +13,11 @@ if [ -n "$(echo coverage-*.json)" ]; then
     exit 2
 fi
 
-./generate-expected-coverage.sh
+if ! ./generate-expected-coverage.sh ; then
+    echo
+    echo Error when generating expected coverage, aborting
+    exit 2
+fi
 
 # Check that the coverage report contents haven't changed:
 if diff expected-coverage-results.json coverage*.json  ; then
