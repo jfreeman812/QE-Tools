@@ -1,4 +1,4 @@
 #! /bin/bash
 
-./build-docs.sh $@
+./sphinx_docs/build-docs.sh $@
 ghp-import -p docs/
