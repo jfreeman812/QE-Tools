@@ -1,0 +1,5 @@
+Untagged Test:No tag for prescriptive attribute Polarity. Must be one of ['positive', 'negative']
+Missing Tag:No tag for prescriptive attribute Polarity. Must be one of ['positive', 'negative']
+Missing JIRA Tag:JIRA not found for status "quarantined"
+Multiple Prescriptive Tags:Multiple tags for prescriptive attribute Polarity (set(['positive', 'negative']))
+Multiple Categories:There can only be one category tag per test
