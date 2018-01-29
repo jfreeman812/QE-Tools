@@ -38,7 +38,7 @@ def main():
                         help='The name of the product')
     parser.add_argument('open_cafe_command', nargs='+',
                         help='OpenCAFE command and parameters for running the tests')
-    args = parser.parse_args()
+    args, coverage_kwargs = parser.parse_known_args()
     if not (args.check_only or splunk_token):
         print('')
         print('Error: Need either check only switch or {}'
@@ -51,6 +51,7 @@ def main():
 
     os.environ[TAGS_DIR_ENV_NAME] = tmp_dir_name
 
+    args.open_cafe_command.extend(coverage_kwargs)
     safe_run(args.open_cafe_command)
 
     json_coverage_files = glob.glob('{}/*.json'.format(tmp_dir_name))
