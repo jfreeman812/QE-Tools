@@ -27,7 +27,7 @@ Suite_               Designates the test suite, if any, to which the test belong
 Status_              The operational status of the test.
 `Execution Method`_  If the test is run manually or via automation.
 Categories_          Hierarchical levels of functional groups into which tests can be categorized
-JIRAs_               Any JIRAs associated with a given test.
+Tickets_             Any tickets associated with a given test.
 ===================  =================================================================================
 
 Data Collection
@@ -42,7 +42,7 @@ This section provides the valid tag values which may be applied to the source fi
 
 * Tag – The tag column defines the exact string which must be used in conjunction with the appropriate tagging mechanism in the source file in order to apply that attribute value to the test.
 
-  * For Gherkin-based tests, the tags are applied via the syntax ``@<Tag>`` where the ``<Tag>`` is the value defined in the Tag column. Tags may span across multiple lines and logically-grouped tags should appear together (e.g., adding a Status_ tag and the associated JIRAs_)
+  * For Gherkin-based tests, the tags are applied via the syntax ``@<Tag>`` where the ``<Tag>`` is the value defined in the Tag column. Tags may span across multiple lines and logically-grouped tags should appear together (e.g., adding a Status_ tag and the associated Tickets_)
 
   * For CAFE-based tests, the tags are applied via the syntax ``@tags("<Tag 1>", "<Tag 2>", ...)``, where the quoted tag values are the values defined in the Tag column. Tags must all be contained in the same decorator.
 
@@ -52,7 +52,7 @@ This section provides the valid tag values which may be applied to the source fi
 
 If a particular definition table has a row with a blank entry in the Tag column, that row represents a default value which will be assumed for that attribute if no tag for that attribute is present in the source file.
 
-NOTE: With the exception of JIRAs_ and Projects_ only one tag within each attribute can be applied at one time. If there is no default value, then a tag for that attribute must be applied.
+NOTE: With the exception of Tickets_ and Projects_ only one tag within each attribute can be applied at one time. If there is no default value, then a tag for that attribute must be applied.
 
 Interface Type
 ^^^^^^^^^^^^^^
@@ -119,7 +119,7 @@ quarantined  quarantined          Test is offline due to bug in application / sy
 ..           operational          Test is online and being executed.
 ===========  ===================  =======================================================================================
 
-**Note:** For any non-default status tag, the tag should be followed by one or more JIRA tags (see: JIRAs_) that are tracking the work needed to bring the test into operational state. For example:
+**Note:** For any non-default status tag, the tag should be followed by one or more Ticket tags (see: Tickets_) that are tracking the work needed to bring the test into operational state. For example:
 
 .. code:: Gherkin
 
@@ -169,14 +169,14 @@ The following tags, unlike the previous section, do not have a predefined list o
 
     If the category tag is not applied to a test, the coverage tools may extract the categories from the directory structure which holds the test. Regardless of whether the tagging is implicit via the reporting tool or explicit via the category tag, the hierarchy can be as deep as needed and represents a nested group of categories for a test.
 
-.. _JIRAs:
+.. _Tickets:
 
-:Attribute: JIRAs
-:Format: ``<JIRA_ID>``
+:Attribute: Tickets
+:Format: ``<Ticket_ID>``
 :Description:
-    When applicable, any JIRA associated with a test should be added as an independent tag. This allows for tests to be run for specific JIRA(s) as well as a historic record of the reason a test was added to the suite. It is strongly encouraged for traceability that all non-trivial tests have a JIRA tag associated with them.
+    When applicable, any ticket ID associated with a test should be added as an independent tag. This allows for tests to be run for specific ticket(s) as well as a historic record of the reason a test was added to the suite. It is strongly encouraged for traceability that all non-trivial tests have a ticket tag associated with them.
 
-    **Note:** JIRA tags are required after some other tags (see Status_ above). An independent JIRA tag must occur prior to any such Status tag (if present)
+    **Note:** Ticket tags are required after some other tags (see Status_ above). An independent ticket tag must occur prior to any such Status tag (if present)
 
 Additional Attributes
 ~~~~~~~~~~~~~~~~~~~~~
@@ -207,9 +207,9 @@ Output formatting specifications:
   * For Projects_, the value is the full value after the identifier (``project:``)
   * For Categories_, the value is a list of categories built from splitting on the separator (``:``) after the identifier (``category:``)
 
-* For JIRAs_, the key is the Status_ *Report As* value associated with the JIRAs_ and the value is the list of JIRAs_ *for that status*. In the case where a JIRA has no associated Status_, the attribute name `JIRAs` is used.
+* For Tickets_, the key is the Status_ *Report As* value associated with the Tickets_ and the value is the list of Tickets_ *for that status*. In the case where a Ticket ID has no associated Status_, the attribute name `Tickets` is used.
 
-**Note:** it is possible to have multiple JIRAs associated with a test for multiple statuses. An example is that a JIRA tag exists for when the test was created but the test is quarantined due to a later code change and is now quarantined with JIRAs. This is an acceptable behavior and the json should reflect two JIRA lists, one for the pre-existing tags and one for quarantined.
+**Note:** it is possible to have multiple tickets associated with a test for multiple statuses. An example is that a ticket tag exists for when the test was created but the test is quarantined due to a later code change and is now quarantined with tickets. This is an acceptable behavior and the json should reflect two ticket lists, one for the pre-existing tags and one for quarantined.
 
 Example JSON Object
 ~~~~~~~~~~~~~~~~~~~
@@ -232,7 +232,7 @@ Example JSON Object
                 ],
                 "Status": "operational",
                 "Execution Method": "automated",
-                "JIRAs": ["JIRA-3344"]
+                "Tickets": ["JIRA-3344"]
             },
             {
                 "Product": "Script Management",
