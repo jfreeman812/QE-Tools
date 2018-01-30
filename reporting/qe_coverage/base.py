@@ -22,11 +22,11 @@ from tableread import SimpleRSTReader
 from qecommon_tools import padded_list
 
 
-NO_STATUS_JIRA_KEY = 'JIRAs'
+NO_STATUS_TICKET_KEY = 'Tickets'
 TAG_DEFINITION_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'coverage.rst')
 REPORT_PATH = 'reports'
 COVERAGE_REPORT_FILE = '{repo_name}_coverage_report_{time_stamp}.{ext}'
-JIRA_RE = re.compile('(.*[^A-Z])?([A-Z][A-Z]+-[0-9]+)')
+TICKET_RE = re.compile('([A-Z][A-Z]+-?[0-9]+)')
 SPLUNK_COLLECTOR_HOSTNAME = 'httpc.secops.rackspace.com'
 SPLUNK_COLLECTOR_URL = 'https://{}:8088/services/collector'.format(SPLUNK_COLLECTOR_HOSTNAME)
 SPLUNK_REPORT_INDEX = 'rax_temp_60'
@@ -37,7 +37,7 @@ SPLUNK_COVERAGE_INDEX = 'rax_qe_coverage'
 ####################################################################################################
 coverage_tables = SimpleRSTReader(TAG_DEFINITION_FILE)
 status_table = coverage_tables['Status'].exclude_by(tag='')
-JIRA_STATUS_DISPLAY_NAMES = [NO_STATUS_JIRA_KEY] + sorted(status_table.get_fields('report_as'))
+TICKET_STATUS_DISPLAY_NAMES = [NO_STATUS_TICKET_KEY] + sorted(status_table.get_fields('report_as'))
 
 
 @attr.s
@@ -49,7 +49,7 @@ class TestCoverage(object):
     parent_tags = attr.ib(default=attr.Factory(list))
     file_path = attr.ib(default='')
     # Pre-defined Constants
-    jiras = attr.ib(default=attr.Factory(lambda: defaultdict(list)), init=False)
+    tickets = attr.ib(default=attr.Factory(lambda: defaultdict(list)), init=False)
     attributes = attr.ib(default=attr.Factory(dict), init=False)
     errors = attr.ib(default=attr.Factory(list), init=False)
 
@@ -57,7 +57,7 @@ class TestCoverage(object):
         '''Build the necessary objects from the provided tag list(s).'''
         self.organize_prescriptives()
         self.organize_structureds()
-        self.organize_jiras()
+        self.organize_tickets()
 
     def organize_prescriptives(self):
         '''Convert prescriptive tags into their appropriate attributes.'''
@@ -99,29 +99,30 @@ class TestCoverage(object):
         self.attributes['Categories'] = tag_categories[0] if tag_categories else self.categories
         self.attributes['Projects'] = self.structured_tag('project')
 
-    def organize_jiras(self):
+    def organize_tickets(self):
         for tag_list in (self.tags, self.parent_tags):
-            self._organize_jiras(tag_list)
-        for status in (x for x in self.jiras if not self.jiras[x]):
-            message = '{}:{}:JIRA not found for status "{}"'
+            self._organize_tickets(tag_list)
+        for status in (x for x in self.tickets if not self.tickets[x]):
+            message = '{}:{}:Ticket ID not found for status "{}"'
             self.errors.append(message.format(self.file_path, self.name, status))
 
-    def _organize_jiras(self, tag_list):
+    def _organize_tickets(self, tag_list):
         '''
-        Iterate over all provided tags and update the jiras variables. If the JIRA is associated
-        with a status tag, that status will be the key; otherwise the key will be 'JIRAs'.
+        Iterate over all provided tags and update the tickets variables. If the ticket is
+        associated with a status tag, that status will be the key; otherwise the key will be
+        'Tickets'.
         '''
         status = None
         for tag in tag_list:
             if tag in status_table.get_fields('tag'):
                 status = status_table.matches_all(tag=tag).data[0].report_as
-                # Since a status with an empty list indicates that no JIRAs were associated with
+                # Since a status with an empty list indicates that no tickets were associated with
                 # that status, we need to explicity create the status key with the default value
                 # for validation later.
-                self.jiras[status]
+                self.tickets[status]
                 continue
-            if JIRA_RE.match(tag):
-                self.jiras[status or NO_STATUS_JIRA_KEY].append(tag)
+            if TICKET_RE.match(tag):
+                self.tickets[status or NO_STATUS_TICKET_KEY].append(tag)
                 continue
             status = None
 
@@ -321,12 +322,12 @@ class CoverageReport(ReportWriter):
         coverage_list = ['Feature Name', 'Test Name', 'Polarity', 'Priority', 'Suite', 'Status',
                          'Execution Method']
         return (super(CoverageReport, self)._csv_heading_order() + coverage_list +
-                JIRA_STATUS_DISPLAY_NAMES)
+                TICKET_STATUS_DISPLAY_NAMES)
 
     def _build_test(self, test):
         test_data = {'Test Name': test.name, 'Feature Name': test.feature_name}
         test_data.update({x: y for (x, y) in test.attributes.items() if y})
-        test_data.update({x: y for (x, y) in test.jiras.items() if y})
+        test_data.update({x: y for (x, y) in test.tickets.items() if y})
         return self._data_item(**test_data)
 
     def _data(self):

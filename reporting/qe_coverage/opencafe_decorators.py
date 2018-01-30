@@ -77,6 +77,8 @@ from cafe.drivers.unittest.decorators import (TAGS_DECORATOR_TAG_LIST_NAME,
                                               PARALLEL_TAGS_LIST_ATTR)
 import wrapt
 
+from qe_coverage.base import TICKET_RE
+
 
 #############
 # CONSTANTS #
@@ -91,9 +93,6 @@ related decorator functionality.
 NOTE: This method is called when the decorators are being run,
 so it must be a @staticmethod.
 '''
-
-JIRA_REGEX = re.compile('[A-Z]+-[0-9]+')
-'''A regular expression that matches a valid JIRA ID.'''
 
 COVERAGE_TAG_DECORATOR_TAG_LIST_NAME = '__coverage_report_tags__'
 '''Name of the field we add to all tagged tests that tracks tags for coverage reporting.
@@ -219,17 +218,17 @@ def _add_text_to_docstring_summary_line(original_docstring, summary_line_additio
     return '\n'.join(docstring_lines)
 
 
-def _all_jira_ids_in(s):
+def _all_ticket_ids_in(s):
     '''
-    Return a list of all the non-overlapping JIRA IDs contained in s.
+    Return a list of all the non-overlapping Ticket IDs contained in s.
 
     Args:
-        s (str): The string to be searched for JIRA IDs
+        s (str): The string to be searched for Ticket IDs
 
     Returns:
-        A list of all the JIRA ID strings found.
+        A list of all the Ticket ID strings found.
     '''
-    return JIRA_REGEX.findall(s)
+    return TICKET_RE.findall(s)
 
 
 def _clear_cafe_tags_from(func):
@@ -274,7 +273,7 @@ def _cafe_tag_prefix(status_tag, target_tag):
         cafe-friendly version of target_tag
     '''
 
-    if (target_tag == status_tag) or JIRA_REGEX.match(target_tag):
+    if (target_tag == status_tag) or TICKET_RE.match(target_tag):
         return target_tag
     return '{}-{}'.format(status_tag, target_tag)
 
@@ -351,7 +350,7 @@ def _get_decorator_for_skipping_test(reason, details, tag_name, environment_affe
     Note:
         If an ``environment_affected`` value is provided to the original decorator,
         then an environment matching method **MUST** be implemented on the test fixture.
-        The details string must contain one or more JIRA-IDs that provide traceability for
+        The details string must contain one or more Ticket IDs that provide traceability for
         why this test would be skipped.
 
     Args:
@@ -365,12 +364,12 @@ def _get_decorator_for_skipping_test(reason, details, tag_name, environment_affe
         A decorator function into which to pass the test case or test class.
 
     Raises:
-        ValueError: If the details string does not contain something that resembles a JIRA ID.
+        ValueError: If the details string does not contain something that resembles a Ticket ID.
     '''
 
-    jira_ids = _all_jira_ids_in(details)
-    if not jira_ids:
-        _print_and_raise(ValueError, '"{0}" does not contain any JIRA IDs.'.format(details))
+    ticket_ids = _all_ticket_ids_in(details)
+    if not ticket_ids:
+        _print_and_raise(ValueError, '"{0}" does not contain any Ticket IDs.'.format(details))
 
     if environment_affected:
         message = '{0} (in {1} environment): {2}'.format(reason, environment_affected, details)
@@ -379,7 +378,7 @@ def _get_decorator_for_skipping_test(reason, details, tag_name, environment_affe
 
     def decorator(test_case_or_class):
         '''The decorator with which to decorate the test case or class.'''
-        tags = [tag_name] + jira_ids
+        tags = [tag_name] + ticket_ids
         test_case_or_class = _add_tags(test_case_or_class, cafe_tags=tags, coverage_tags=tags)
 
         if isclass(test_case_or_class):
@@ -421,9 +420,9 @@ def quarantined(details, environment_affected=None):
     due to an issue with the system being tested that is outside the scope
     of the QE team.
 
-    The ``details`` parameter should include the ID for the JIRA story.
-    If no ID exists, a JIRA issue/defect should be created before marking
-    the test as quarantined.
+    The ``details`` parameter should include the ID for the ticket.
+    If no ID exists, a ticket should be created before marking the test as
+    quarantined.
 
     Args:
         details (str): Information about why the test is quarantined.
@@ -445,9 +444,9 @@ def needs_work(details, environment_affected=None):
     due to an issue with the test or test framework. This issue should
     be something that will be fixed by the QE team.
 
-    The ``details`` parameter should include the ID for the JIRA story.
-    If no ID exists, a JIRA issue/defect should be created before marking
-    the test as needs work.
+    The ``details`` parameter should include the ID for the ticket.
+    If no ID exists, a ticket should be created before marking the test as
+    needs work.
 
     Args:
         details (str): Information about why the test needs work.
@@ -468,8 +467,8 @@ def not_tested(details, environment_affected=None):
     This should be used for test cases that are implemented, but the
     service being tested is not ready.
 
-    The ``details`` parameter should include the ID for the JIRA story
-    designated for making this service ready.
+    The ``details`` parameter should include the ID for the ticket designated
+    for making this service ready.
 
     Args:
         details (str): Information about why the test cannot be run yet.
@@ -487,12 +486,12 @@ def nyi(details):
     '''
     Mark a test case or class as not implemented, and skip the test case.
 
-    The ``details`` parameter should include the ID for the JIRA story
-    designated for implementing this test.
+    The ``details`` parameter should include the ID for the ticket designated
+    for implementing this test.
 
     Args:
         details (str): Information about why the test is not implemented.
-            Typically with ``@nyi``, only the JIRA ID is included,
+            Typically with ``@nyi``, only the Ticket ID is included,
             but any other details are welcome.
 
     Returns:
@@ -591,7 +590,7 @@ def tags(*tags_list):
         This decorator generator must be outermost of all the decorators in this file.
 
         This decorator generator will also mutate the cafe tags so that anything other
-        than the status tag and a JIRA tag will have a non-operational status tag prepended to it.
+        than the status tag and a ticket tag will have a non-operational status tag prepended to it.
         This is overcome a limitation in the cafe test runner that cannot use tags to exclude tests.
         So to accomplish this, a test that is tagged with both 'nyi' and 'regression' will have its
         cafe tags changed to be 'nyi' and 'nyi-regression' so that any test run as `-t regression`
@@ -599,7 +598,7 @@ def tags(*tags_list):
         where it might be desirable to run quarantined-smoke tests on a regular basis. It seems
         unlikely that running nyi-<anything> tests would be useful, but it would be possible.
 
-        Any JIRA tags must start with the full ID, e.g. 'JIRA-123' otherwise the non-operational
+        Any ticket tags must start with the full ID, e.g. 'JIRA-123' otherwise the non-operational
         status tag will be prepended to it, as described above.
     '''
 

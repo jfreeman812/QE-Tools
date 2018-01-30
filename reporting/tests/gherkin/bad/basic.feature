@@ -15,9 +15,9 @@ Feature: Bad Feature File
 
     @p0 @negative
     @quarantined
-    Scenario: Missing JIRA Tag
+    Scenario: Missing Ticket Tag
 
-        Given a test with a status and no JIRA tag
+        Given a test with a status and no ticket tag
         When the coverage tool runs
         Then the tool completes with an error
 
