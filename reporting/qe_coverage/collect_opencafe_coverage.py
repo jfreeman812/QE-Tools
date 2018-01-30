@@ -27,6 +27,9 @@ def main():
                         help='Gather metrics, but do not send to splunk,'
                              ' if this flag is not used, the {} environment'
                              ' variable must be set.'.format(SPLUNK_TOKEN_NAME))
+    parser.add_argument('--category-index', type=int, default=0,
+                        help='The index for the level of provenance that should be considered'
+                             'the first category for each test.')
 
     parser.add_argument('default_interface_type', choices='gui api'.split(),
                         help='The interface type of the product '
@@ -75,6 +78,7 @@ def main():
             'coverage-send-opencafe-report',
             '-o', tmp_dir_name,
             '--splunk_token', splunk_token,
+            '--category-index', str(args.category_index),
             json_coverage_file,
             args.product_name,
             args.default_interface_type,

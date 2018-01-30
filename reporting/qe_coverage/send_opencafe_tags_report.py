@@ -57,7 +57,7 @@ def is_nuisance(item):
     return any((pattern.match(item) for pattern in NUISANCE_CATEGORY_PATTERNS))
 
 
-def _parse_provenance(provenance, default_interface_type):
+def _parse_provenance(provenance, default_interface_type, category_index):
     '''
     Returns a (categories_list, interface_type) tuple based on provenance.
 
@@ -66,6 +66,7 @@ def _parse_provenance(provenance, default_interface_type):
     is set at the interface_type. If no interface type is found in provenance,
     then the interface_type returned is the default_interface_type.
     If more than one INTERFACE_TYPES key is found, the last one found is used.
+    The categories are split based on the given category_index.
     '''
     categories = []
     interface = None
@@ -76,11 +77,12 @@ def _parse_provenance(provenance, default_interface_type):
         if is_nuisance(item):
             continue
         categories.append(item)
+    categories = categories[category_index:]
     assert categories, 'No categories found when processing: "{}"'.format(provenance)
     return (categories, interface or default_interface_type)
 
 
-def coverage_json_to_test_group(coverage_file_name, default_interface_type):
+def coverage_json_to_test_group(coverage_file_name, default_interface_type, category_index):
     '''
     Returns a TestGroup containing all the test data from the coverage file.
 
@@ -92,7 +94,8 @@ def coverage_json_to_test_group(coverage_file_name, default_interface_type):
         for line in json_lines.readlines():
             test_data = json.loads(line)
             categories, interface = _parse_provenance(test_data['provenance'],
-                                                      default_interface_type)
+                                                      default_interface_type,
+                                                      category_index)
             feature_name = categories.pop()
             tests.add(name=test_data['test'], categories=categories, tags=test_data['tags'],
                       feature_name=feature_name)
@@ -101,8 +104,9 @@ def coverage_json_to_test_group(coverage_file_name, default_interface_type):
 
 
 def run_opencafe_reports(coverage_json_file, product_name, default_interface_type,
-                         output_dir, splunk_token):
-    test_group = coverage_json_to_test_group(coverage_json_file, default_interface_type)
+                         output_dir, splunk_token, category_index):
+    test_group = coverage_json_to_test_group(coverage_json_file, default_interface_type,
+                                             category_index)
     run_reports(test_group, product_name, default_interface_type, output_dir,
                 splunk_token=splunk_token)
 
@@ -123,9 +127,12 @@ def main():
                         help='Output directory for the generated report files.')
     parser.add_argument('--splunk_token', default='',
                         help='Provide Splunk auth token to send data')
+    parser.add_argument('--category-index', type=int, default=0,
+                        help='The index for the level of provenance that should be considered'
+                             'the first category for each test.')
     args = parser.parse_args()
     run_opencafe_reports(args.coverage_json_file, args.product_name, args.default_interface_type,
-                         args.output_dir, args.splunk_token)
+                         args.output_dir, args.splunk_token, args.category_index)
 
 
 if __name__ == '__main__':
