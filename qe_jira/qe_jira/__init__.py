@@ -54,8 +54,8 @@ def _component_id_from_name(project_components, component_name):
               help='Issue type for QE JIRA -- must be a valid type name on target project')
 @click.option('-w', '--watchers', multiple=True, default=_list_from_config(CONFIG['WATCHERS']),
               help='Watchers to add to QE JIRA')
-def test_jira_from(jira_id, assign, project, user, components, description,
-                   labels, summary, issue_type, watchers):
+def create_qe_jira_from(jira_id, assign, project, user, components,
+                        description, labels, summary, issue_type, watchers):
     client = get_client()
     try:
         dev_jira = client.issue(jira_id)
@@ -85,4 +85,4 @@ def test_jira_from(jira_id, assign, project, user, components, description,
 
 
 if __name__ == '__main__':
-    test_jira_from()
+    create_qe_jira_from()

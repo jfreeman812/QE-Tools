@@ -14,7 +14,7 @@ setuptools.setup(
         'jira'
     ],
     entry_points={
-        'console_scripts': ['qe_jira=qe_jira:test_jira_from']
+        'console_scripts': ['qe_jira=qe_jira:create_qe_jira_from']
     },
     include_package_data=True,
     zip_safe=False
