@@ -21,13 +21,12 @@ URL_REGEX = re.compile(
     r'(?::\d+)?'  # optional port
     r'(?:/?|[/?]\S+)$', re.IGNORECASE)
 
-# Timeout for all URL calls. Amount in seconds
-TIMEOUT = 60 * 3
 SECTION_BREAK = '\n{0}\n'.format('#' * 70)
 
-# Jenkins configs
+# Variables updated from config file
 JENKINS_URL = ''
 JENKINS_TOKEN = ''
+TIMEOUT = 60 * 3  # Timeout for all URL calls. Amount in seconds. Defaults to 180 seconds
 
 
 def make_http_request(http_url, url_endpoint='', request_params=None):
@@ -394,15 +393,17 @@ def eprint(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
 
 
-def read_config_and_set_jenkins_globals(config_file):
+def read_config_and_set_globals(config_file):
     '''Read a config file and set the Jenkins global variables based on the file values.
 
     The config contains the base Jenkins URL, as well as a token that is used to access
     all of the jobs on that Jenkins server.
     '''
-    global JENKINS_URL, JENKINS_TOKEN
+    global JENKINS_URL, JENKINS_TOKEN, TIMEOUT
 
     config = configparser.ConfigParser()
+
+    # Handle required config variables
     try:
         config.read(config_file)
         JENKINS_URL = config['jenkins']['url']
@@ -414,9 +415,19 @@ def read_config_and_set_jenkins_globals(config_file):
         eprint('Section or Key {0} is missing from "{1}" config file. File should have the '
                'following structure:\n{2}'.format(str(e), config_file, ('[jenkins]\n'
                                                                         'url=<jenkins_url>\n'
-                                                                        'token=<token>\n')))
-
+                                                                        'token=<token>\n'
+                                                                        'url_timeout=<timeout>\n')))
         sys.exit(1)
+
+    # Handle optional config variables
+    try:
+        TIMEOUT = int(config['jenkins']['url_timeout'])
+    except KeyError:
+        pass
+    except ValueError as e:
+        eprint('"url_timeout" value must be an int. Received value of {0} instead. '
+               'The tool will continue with the default value of {1} seconds.'
+               ''.format(config['jenkins']['url_timeout']), TIMEOUT)
 
     # In case the '/' was added at the end of the URL, ignore it
     if JENKINS_URL[-1] == '/':
@@ -428,7 +439,7 @@ if __name__ == '__main__':
     parser.add_argument('--config', type=str, default='config.cfg',
                         help='The name of the config file')
     args = parser.parse_known_args()[0]
-    read_config_and_set_jenkins_globals(args.config)
+    read_config_and_set_globals(args.config)
 
     if len(sys.argv) > 2:
         parser.add_argument('--job', required=True, type=str,
