@@ -51,9 +51,8 @@ def make_http_request(http_url, url_endpoint='', request_params=None):
     else:
         http_url = http_url + url_endpoint
 
-    if request_params is None:
-        request_params = {}
-    request_params = bytes(urllib.parse.urlencode(request_params).encode('utf8'))
+    if request_params is not None:
+        request_params = bytes(urllib.parse.urlencode(request_params).encode('utf8'))
 
     try:
         response = urllib.request.urlopen(http_url, request_params, timeout=TIMEOUT)
