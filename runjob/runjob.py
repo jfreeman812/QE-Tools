@@ -26,7 +26,7 @@ SECTION_BREAK = '\n{0}\n'.format('#' * 70)
 # Variables updated from config file
 JENKINS_URL = ''
 JENKINS_TOKEN = ''
-TIMEOUT = 60 * 3  # Timeout for all URL calls. Amount in seconds. Defaults to 180 seconds
+TIMEOUT = None  # in seconds
 
 
 def make_http_request(http_url, url_endpoint='', request_params=None):
@@ -422,7 +422,7 @@ def read_config_and_set_globals(config_file):
     try:
         TIMEOUT = int(config['jenkins']['url_timeout'])
     except KeyError:
-        pass
+        TIMEOUT = 3 * 60
     except ValueError as e:
         eprint('"url_timeout" value must be an int. Received value of {0} instead. '
                'The tool will continue with the default value of {1} seconds.'
