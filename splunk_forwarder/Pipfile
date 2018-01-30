@@ -1,0 +1,16 @@
+[[source]]
+
+url = "https://artifacts.rackspace.net/artifactory/api/pypi/pypi/simple"
+verify_ssl = true
+name = "artifactory"
+
+
+[packages]
+
+requests = "*"
+Flask = "*"
+flask-restplus = "*"
+
+
+[dev-packages]
+
