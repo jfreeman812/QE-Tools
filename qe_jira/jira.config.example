@@ -1,0 +1,6 @@
+[jira]
+JIRA_URL=https://your.jira.server
+USERNAME=YOUR_USERNAME
+PASSWORD=YOUR_PASSWORD
+TEST_PROJECT=YOUR_QE_PROJECT
+WATCHERS=comma,separated,list,of,names

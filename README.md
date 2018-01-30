@@ -9,3 +9,4 @@ A collection of tools designed for use in the larger Rackspace QE Organization.
 | httpbin-data/    | An enhancement to httpbin that provides data-persistent endpoints                  |
 | opencafe/        | A collection of tools for using the OpenCAFE test framework                        |
 | reporting/       | A collection of tools for QE-related reporting                                     |
+| qe_jira/         | Quickly creates a JIRA on a QE board for testing of a JIRA from a dev board        |
