@@ -28,8 +28,7 @@ def main():
                              ' if this flag is not used, the {} environment'
                              ' variable must be set.'.format(SPLUNK_TOKEN_NAME))
     parser.add_argument('--category-index', type=int, default=0,
-                        help='The index for the level of provenance that should be considered'
-                             'the first category for each test.')
+                        help='The index for the relevant category')
 
     parser.add_argument('default_interface_type', choices='gui api'.split(),
                         help='The interface type of the product '

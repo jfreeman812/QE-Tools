@@ -66,7 +66,7 @@ def _parse_provenance(provenance, default_interface_type, category_index):
     is set at the interface_type. If no interface type is found in provenance,
     then the interface_type returned is the default_interface_type.
     If more than one INTERFACE_TYPES key is found, the last one found is used.
-    The categories are split based on the given category_index.
+    Any category with an index lower than the category_index will be removed.
     '''
     categories = []
     interface = None
@@ -128,8 +128,7 @@ def main():
     parser.add_argument('--splunk_token', default='',
                         help='Provide Splunk auth token to send data')
     parser.add_argument('--category-index', type=int, default=0,
-                        help='The index for the level of provenance that should be considered'
-                             'the first category for each test.')
+                        help='The index for the relevant category')
     args = parser.parse_args()
     run_opencafe_reports(args.coverage_json_file, args.product_name, args.default_interface_type,
                          args.output_dir, args.splunk_token, args.category_index)
