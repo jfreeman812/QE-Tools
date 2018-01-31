@@ -97,7 +97,7 @@ def _get_choice_selection(start, end, statement, default=None):
 def interactive_mode():
     '''Run the interactive mode by prompting the user for each input and validating it.'''
     # Initialize variables
-    state = 0
+    state = 'JOB_SELECTION'
     quick_command = [sys.argv[0]]
 
     http_code, http_body = make_http_request('{0}/api/json'.format(JENKINS_URL))
@@ -111,7 +111,7 @@ def interactive_mode():
     # Begin interactive mode
     while True:
         # Ask what Jenkins job to run
-        if state == 0:
+        if state == 'JOB_SELECTION':
             print('\nThe following Jenkins jobs were found:')
             for num, job in enumerate(list_of_jobs, start=1):
                 print('{0}. {1}'.format(num, job['name']))
@@ -122,11 +122,11 @@ def interactive_mode():
 
             selected_job = list_of_jobs[int(selection) - 1]
             quick_command.extend(('--job', selected_job['name']))
-            state = 1
+            state = 'PARAMETER_SELECTION'
             print('')
 
         # Ask for all of the job parameters
-        elif state == 1:
+        elif state == 'PARAMETER_SELECTION':
             selected_job_params = {}
             http_code, http_body = make_http_request(selected_job['url'], 'api/json')
             if http_code != 200:
@@ -136,8 +136,8 @@ def interactive_mode():
             try:
                 job_params = json.loads(http_body)['actions'][0]['parameterDefinitions']
             except KeyError:
-                # Job has no parameters. Go to state 3 and build the job
-                state = 2
+                # Job has no parameters. Go to state 'DISPLAY_RESULTS' and build the job
+                state = 'DISPLAY_RESULTS'
                 continue
             for param in job_params:
                 # Parameters with options
@@ -175,10 +175,10 @@ def interactive_mode():
                     quick_command.extend(('--{0}'.format(param['name']),
                                           value_input or default_value))
                 print('')
-            state = 2
+            state = 'DISPLAY_RESULTS'
 
         # Make the HTTP requests to run the job then display the result when it is finished running
-        elif state == 2:
+        elif state == 'DISPLAY_RESULTS':
             run_job_and_display_result(selected_job, selected_job_params)
 
             print(SECTION_BREAK)
