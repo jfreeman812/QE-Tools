@@ -24,8 +24,8 @@ def link_jiras(client, from_jira, to_jira):
     return client.create_issue_link('relates to', from_jira, to_jira)
 
 
-def _list_from_config(value):
-    return list(filter(None, [x.strip() for x in value.split(',')]))
+def _list_from_config(key_name):
+    return list(filter(None, [x.strip() for x in CONFIG.get(key_name, '').split(',')]))
 
 
 def _component_id_from_name(project_components, component_name):
