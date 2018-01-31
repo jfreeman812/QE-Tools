@@ -403,13 +403,20 @@ def read_config_and_set_globals(config_file):
 
     config = configparser.ConfigParser()
 
-    # Handle required config variables
     try:
         config.read(config_file)
-        JENKINS_URL = config['jenkins']['url']
-        if not URL_REGEX.match(JENKINS_URL):
-            raise ValueError('Jenkins URL from config file is not a valid URL.')
+
         JENKINS_TOKEN = config['jenkins']['token']
+
+        if not URL_REGEX.match(config['jenkins']['url']):
+            raise ValueError('Jenkins URL from config file is not a valid URL.')
+        JENKINS_URL = config['jenkins']['url']
+
+        if not config['jenkins']['url_timeout'].isdigit():
+            raise ValueError('"url_timeout" value must be an int. Received value of {0} instead.'
+                             ''.format(config['jenkins']['url_timeout']))
+        TIMEOUT = config['jenkins']['url_timeout']
+
     except configparser.Error as e:
         eprint('Error while attempting to read config file "{0}": {1}'.format(config_file, str(e)))
         sys.exit(1)
@@ -422,16 +429,7 @@ def read_config_and_set_globals(config_file):
         sys.exit(1)
     except ValueError as e:
         eprint(str(e))
-
-    # Handle optional config variables
-    try:
-        TIMEOUT = int(config['jenkins']['url_timeout'])
-    except KeyError:
-        TIMEOUT = 3 * 60
-    except ValueError as e:
-        eprint('"url_timeout" value must be an int. Received value of {0} instead. '
-               'The tool will continue with the default value of {1} seconds.'
-               ''.format(config['jenkins']['url_timeout']), TIMEOUT)
+        sys.exit(1)
 
     # In case the '/' was added at the end of the URL, ignore it
     JENKINS_URL = JENKINS_URL.rstrip('/')
