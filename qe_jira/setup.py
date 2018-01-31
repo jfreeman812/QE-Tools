@@ -10,7 +10,6 @@ setuptools.setup(
     license='MIT',
     packages=setuptools.find_packages(),
     install_requires=[
-        'Click',
         'jira'
     ],
     entry_points={
