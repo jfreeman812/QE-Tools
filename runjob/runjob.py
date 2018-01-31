@@ -406,6 +406,8 @@ def read_config_and_set_globals(config_file):
     try:
         config.read(config_file)
         JENKINS_URL = config['jenkins']['url']
+        if not URL_REGEX.match(JENKINS_URL):
+            raise ValueError('Jenkins URL from config file is not a valid URL.')
         JENKINS_TOKEN = config['jenkins']['token']
     except configparser.Error as e:
         eprint('Error while attempting to read config file "{0}": {1}'.format(config_file, str(e)))
@@ -417,6 +419,8 @@ def read_config_and_set_globals(config_file):
                                                                         'token=<token>\n'
                                                                         'url_timeout=<timeout>\n')))
         sys.exit(1)
+    except ValueError as e:
+        eprint(str(e))
 
     # Handle optional config variables
     try:
