@@ -120,7 +120,7 @@ def interactive_mode():
                        ''.format(len(list_of_jobs)))
             selection = _get_choice_selection(start=1, end=len(list_of_jobs), statement=message)
 
-            selected_job = list_of_jobs[int(selection) - 1]
+            selected_job = list_of_jobs[selection - 1]
             quick_command.extend(('--job', selected_job['name']))
             state = 'PARAMETER_SELECTION'
             print('')
@@ -157,9 +157,9 @@ def interactive_mode():
                                                       default=default_option_index,
                                                       statement=statement)
 
-                    selected_job_params[param['name']] = options[int(selection) - 1]
+                    selected_job_params[param['name']] = options[selection - 1]
                     quick_command.extend(('--{0}'.format(param['name']),
-                                         options[int(selection) - 1]))
+                                         options[selection - 1]))
 
                 # Parameters with no options
                 else:
