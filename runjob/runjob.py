@@ -429,8 +429,7 @@ def read_config_and_set_globals(config_file):
                ''.format(config['jenkins']['url_timeout']), TIMEOUT)
 
     # In case the '/' was added at the end of the URL, ignore it
-    if JENKINS_URL[-1] == '/':
-        JENKINS_URL = JENKINS_URL[:-1]
+    JENKINS_URL = JENKINS_URL.rstrip('/')
 
 
 if __name__ == '__main__':
