@@ -10,6 +10,7 @@ import urllib.parse
 import urllib.error
 import urllib.request
 import configparser
+from http import HTTPStatus
 
 
 # Verifies that a string is a URL. Taken from the source code of the Python Django framework
@@ -58,7 +59,7 @@ def make_http_request(http_url, url_endpoint='', request_params=None):
         response = urllib.request.urlopen(http_url, request_params, timeout=TIMEOUT)
     except urllib.error.HTTPError as e:
         code = e.code
-        body = e.read()
+        body = e.read().decode('utf8')
     except Exception as e:
         eprint('Failed to make an HTTP connection.')
         eprint(e)
@@ -101,7 +102,7 @@ def interactive_mode():
     quick_command = [sys.argv[0]]
 
     http_code, http_body = make_http_request('{0}/api/json'.format(JENKINS_URL))
-    if http_code != 200:
+    if http_code != HTTPStatus.OK:
         eprint('Cannot get list of jobs from Jenkins: HTTP {0}:\n{1}'.format(http_code, http_body))
         sys.exit(1)
 
@@ -129,7 +130,7 @@ def interactive_mode():
         elif state == 'PARAMETER_SELECTION':
             selected_job_params = {}
             http_code, http_body = make_http_request(selected_job['url'], 'api/json')
-            if http_code != 200:
+            if http_code != HTTPStatus.OK:
                 eprint('Error retrieving a list of parameters for the job: HTTP {0}:\n{1}'
                        ''.format(http_code, http_body))
                 sys.exit(1)
@@ -200,7 +201,7 @@ def run_job_and_display_result(job, job_params):
     # Next we build the job
     url_endpoint = 'buildWithParameters' if job_params else 'build'
     http_code, http_body = make_http_request(job['url'], url_endpoint, job_params)
-    if http_code == 201:
+    if http_code == HTTPStatus.CREATED:
         print('Began executing Jenkins job')
     else:
         eprint('Error building the the Jenkins job: HTTP {0}:\n{1}'.format(http_code, http_body))
@@ -214,7 +215,7 @@ def run_job_and_display_result(job, job_params):
     while True:
         http_code, http_body = make_http_request(job['url'], new_job_build_number)
         # The new job ID has not been assigned yet. Jenkins nodes are most likely all busy
-        if http_code == 404:
+        if http_code == HTTPStatus.NOT_FOUND:
             if job_in_queue:
                 job_in_queue = _job_in_queue(job['name'], job_params, check_delay=1)
                 continue
@@ -260,7 +261,7 @@ def _print_job_output_intermittently(job, job_build_number):
 
         http_code, http_body = make_http_request(job['url'],
                                                  '{0}/consoleText'.format(job_build_number))
-        if http_code != 200:
+        if http_code != HTTPStatus.OK:
             http_fail_count += 1
             time.sleep(5)
             continue
@@ -288,9 +289,9 @@ def _get_last_job_build_number(job_url):
         int: The build number of the last job build
     '''
     http_code, http_body = make_http_request(job_url, 'lastBuild/buildNumber')
-    if http_code == 200:
+    if http_code == HTTPStatus.OK:
         last_job_build_number = int(http_body)
-    elif http_code == 404:
+    elif http_code == HTTPStatus.NOT_FOUND:
         # job was never run before
         last_job_build_number = 0
     else:
@@ -315,7 +316,7 @@ def _job_in_queue(job_name, job_params, check_delay=10):
     time.sleep(check_delay)
     queue_url = '{0}/queue/api/json'.format(JENKINS_URL)
     http_code, http_body = make_http_request(queue_url)
-    if http_code != 200:
+    if http_code != HTTPStatus.OK:
         return False
     http_body = json.loads(http_body)
     for job in http_body['items']:
@@ -453,7 +454,7 @@ if __name__ == '__main__':
             'url': '{0}/job/{1}/'.format(JENKINS_URL, args.job)
         }
         http_code, http_body = make_http_request(job['url'], 'api/json')
-        if http_code != 200:
+        if http_code != HTTPStatus.OK:
             eprint('Error retrieving a list of parameters for the job "{0}"'.format(job['name']))
             sys.exit(1)
 
