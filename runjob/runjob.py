@@ -97,7 +97,6 @@ def _get_choice_selection(start, end, statement, default=None):
 
 def interactive_mode():
     '''Run the interactive mode by prompting the user for each input and validating it.'''
-    # Initialize variables
     state = 'JOB_SELECTION'
     quick_command = [sys.argv[0]]
 
