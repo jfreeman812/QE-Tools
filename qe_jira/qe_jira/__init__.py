@@ -16,10 +16,12 @@ def get_configs():
     message = 'Config file "{}" {{}}'.format(config_path)
     qecommon_tools.error_if(not os.path.exists(config_path), message=message.format('not found'))
     config.read(config_path)
-    qecommon_tools.error_if('jira' not in config, message='missing "jira" section')
+    section_name = 'jira'
+    qecommon_tools.error_if(section_name not in config,
+                            message=message.format('missing "{}" section'.format(section_name)))
     missing_keys = [key for key in REQUIRED_KEYS if key not in config['jira']]
-    qecommon_tools.error_if(missing_keys, status=1,
-                            message=message.format('"jira" section missing keys: {}'))
+    missing_message = message.format('section "{}" missing keys: {{}}'.format(section_name))
+    qecommon_tools.error_if(missing_keys, status=1, message=missing_message)
     return config['jira']
 
 
