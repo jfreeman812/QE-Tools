@@ -1,3 +1,4 @@
+from __future__ import print_function
 import itertools as _itertools
 import os as _os
 import shutil as _shutil
@@ -69,3 +70,9 @@ def safe_run(commands):
         print('Error {} from running: "{}"'.format(status, ' '.join(commands)))
         print('')
         _sys.exit(status)
+
+
+def exit(self, status=0, message=None):
+    if message:
+        print(message, file=_sys.stderr)
+    _sys.exit(status)
