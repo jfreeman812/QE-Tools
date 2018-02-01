@@ -439,7 +439,9 @@ if __name__ == '__main__':
     args = parser.parse_known_args()[0]
     read_config_and_set_globals(args.config)
 
-    if len(sys.argv) > 2:
+    if len(sys.argv) <= 2:
+        interactive_mode()
+    else:
         parser.add_argument('--job', required=True, type=str,
                             help='The name of the Jenkins job to run')
         args = parser.parse_known_args()[0]
@@ -477,6 +479,3 @@ if __name__ == '__main__':
                           if arg not in ('job', 'config')}
         finally:
             run_job_and_display_result(job, job_params)
-
-    else:
-        interactive_mode()
