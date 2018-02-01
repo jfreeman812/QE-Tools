@@ -72,7 +72,7 @@ def safe_run(commands):
         _sys.exit(status)
 
 
-def exit(self, status=0, message=None):
+def exit(status=0, message=None):
     if message:
         print(message, file=_sys.stderr)
     _sys.exit(status)
