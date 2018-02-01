@@ -290,16 +290,14 @@ def _get_last_job_build_number(job_url):
     '''
     http_code, http_body = make_http_request(job_url, 'lastBuild/buildNumber')
     if http_code == HTTPStatus.OK:
-        last_job_build_number = int(http_body)
+        return int(http_body)
     elif http_code == HTTPStatus.NOT_FOUND:
         # job was never run before
-        last_job_build_number = 0
+        return 0
     else:
         eprint('Error retrieving last build ID before running the job: HTTP {0}:\n{1}'
                ''.format(http_code, http_body))
         sys.exit(1)
-
-    return last_job_build_number
 
 
 def _job_in_queue(job_name, job_params, check_delay=10):
