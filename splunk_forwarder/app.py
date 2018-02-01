@@ -13,6 +13,7 @@ import requests
 
 
 app = Flask(__name__)
+app.config.SWAGGER_UI_DOC_EXPANSION = 'full'
 api = Api(app, title='Splunk Data Forwarder', doc='/splunk/doc/')
 
 ns = api.namespace('splunk', description='Splunk Forwarding Endpoint')
@@ -49,7 +50,7 @@ def _token_config():
 TOKENS = _token_config()
 
 
-@ns.route('/splunk', endpoint='splunk')
+@ns.route('/', endpoint='splunk')
 class SplunkAPI(Resource):
     def _get_token(self, index):
         return TOKENS[index]['token']
