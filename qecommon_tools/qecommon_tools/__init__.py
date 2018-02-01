@@ -78,6 +78,6 @@ def exit(status=0, message=None):
     _sys.exit(status)
 
 
-def error_if(check, status=None, message=None):
+def error_if(check, status=None, message=''):
     if check:
-        exit(status=status or check, message=message)
+        exit(status=status or check, message=message.format(check))
