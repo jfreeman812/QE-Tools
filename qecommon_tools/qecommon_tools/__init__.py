@@ -76,3 +76,8 @@ def exit(status=0, message=None):
     if message:
         print(message, file=_sys.stderr)
     _sys.exit(status)
+
+
+def error_if(check, status=1, message=None):
+    if check:
+        exit(status=status, message=message)
