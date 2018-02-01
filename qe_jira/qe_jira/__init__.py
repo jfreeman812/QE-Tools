@@ -22,7 +22,7 @@ def get_configs():
     missing_keys = [key for key in REQUIRED_KEYS if key not in config['jira']]
     missing_message = message.format('section "{}" missing keys: {{}}'.format(section_name))
     qecommon_tools.error_if(missing_keys, status=1, message=missing_message)
-    return config['jira']
+    return config[section_name]
 
 
 CONFIG = get_configs()
