@@ -10,7 +10,7 @@ setuptools.setup(
     license='MIT',
     packages=setuptools.find_packages(),
     install_requires=[
-        'pbr'  # jira library has a bug where it does not install this one library
+        'pbr',  # jira library has a bug where it does not install this one library
         'jira'
     ],
     entry_points={
