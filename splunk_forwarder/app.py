@@ -30,7 +30,7 @@ SPLUNK_UI_SEARCH_PATH = '/en-US/app/search/search'
 parser = api.parser()
 parser.add_argument('host', type=str, required=True,
                     help='A host must be provided', location='json')
-parser.add_argument('events', action='append', required=True,
+parser.add_argument('events', type=list, required=True,
                     help='events to be posted must be provided', location='json')
 parser.add_argument('source', type=str, default=SPLUNK_REPORT_SOURCE,
                     help='the source for the events must be provided', location='json')
