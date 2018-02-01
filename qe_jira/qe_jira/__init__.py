@@ -7,16 +7,19 @@ import qecommon_tools
 import jira
 
 
+REQUIRED_KEYS = ('JIRA_URL', 'USERNAME', 'PASSWORD', 'DEFAULT_ASSIGNEE', 'TEST_PROJECT')
+
+
 def get_configs():
     config = ConfigParser()
     config_path = os.path.join(os.path.expanduser('~'), 'jira.config')
     message = 'Config file "{}" {{}}'.format(config_path)
     qecommon_tools.error_if(not os.path.exists(config_path), message=message.format('not found'))
     config.read(config_path)
-    qecommon_tools.error_if('jira' not in config, message='Missing "jira" section')
-    for key in ('JIRA_URL', 'USERNAME', 'PASSWORD', 'DEFAULT_ASSIGNEE', 'TEST_PROJECT'):
-        qecommon_tools.error_if(key not in config['jira'],
-                                message=message.format('missing key "{}"'.format(key)))
+    qecommon_tools.error_if('jira' not in config, message='missing "jira" section')
+    missing_keys = [key for key in REQUIRED_KEYS if key not in config['jira']]
+    qecommon_tools.error_if(missing_keys, status=1,
+                            message=message.format('"jira" section missing keys: {}'))
     return config['jira']
 
 
