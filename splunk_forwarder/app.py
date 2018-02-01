@@ -13,6 +13,7 @@ import requests
 
 
 app = Flask(__name__)
+app.config.SWAGGER_UI_DOC_EXPANSION = 'full'
 api = Api(app, title='Splunk Data Forwarder', doc='/splunk/doc/')
 
 ns = api.namespace('splunk', description='Splunk Forwarding Endpoint')
@@ -29,7 +30,7 @@ SPLUNK_UI_SEARCH_PATH = '/en-US/app/search/search'
 parser = api.parser()
 parser.add_argument('host', type=str, required=True,
                     help='A host must be provided', location='json')
-parser.add_argument('events', action='append', required=True,
+parser.add_argument('events', type=list, required=True,
                     help='events to be posted must be provided', location='json')
 parser.add_argument('source', type=str, default=SPLUNK_REPORT_SOURCE,
                     help='the source for the events must be provided', location='json')
@@ -49,7 +50,7 @@ def _token_config():
 TOKENS = _token_config()
 
 
-@ns.route('/splunk', endpoint='splunk')
+@ns.route('/', endpoint='splunk')
 class SplunkAPI(Resource):
     def _get_token(self, index):
         return TOKENS[index]['token']
