@@ -1,5 +1,5 @@
 from __future__ import print_function
-from argparse import ArgumentParser
+from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 from configparser import ConfigParser
 import os
 
@@ -36,7 +36,7 @@ def _component_id_from_name(project_components, component_name):
 
 
 def _get_args():
-    parser = ArgumentParser()
+    parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter)
     parser.add_argument('jira_id')
     parser.set_defaults(assign=bool(CONFIG['DEFAULT_ASSIGNEE']))
     assignment = parser.add_mutually_exclusive_group()
@@ -49,11 +49,11 @@ def _get_args():
     parser.add_argument('-u', '--user', default=CONFIG['DEFAULT_ASSIGNEE'],
                         help='the user who will receive the assignment')
     parser.add_argument('-c', '--components',
-                        default=_list_from_config(CONFIG['DEFAULT_COMPONENTS']),
+                        default=_list_from_config('DEFAULT_COMPONENTS'),
                         action='append', help='Component tag to be aplied to the QE Story')
     parser.add_argument('-d', '--description', default=CONFIG['DEFAULT_DESCRIPTION'],
                         help='Description string for QE JIRA.')
-    parser.add_argument('-l', '--labels', default=_list_from_config(CONFIG['DEFAULT_LABELS']),
+    parser.add_argument('-l', '--labels', default=_list_from_config('DEFAULT_LABELS'),
                         action='append',
                         help='Comma-separated list of labels to be applied to the QE story')
     parser.add_argument('-s', '--summary', default=CONFIG['DEFAULT_SUMMARY'],
@@ -63,7 +63,7 @@ def _get_args():
                         help='Issue type for QE JIRA -- '
                              'must be a valid type name on target project')
     parser.add_argument('-w', '--watchers', action='append',
-                        default=_list_from_config(CONFIG['WATCHERS']),
+                        default=_list_from_config('WATCHERS'),
                         help='Watchers to add to QE JIRA')
     args = parser.parse_args()
     return args
