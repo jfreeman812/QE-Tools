@@ -18,7 +18,7 @@ if [ "$1" = "--setup" ] ; then
     fi
 fi
 
-sphinx-build -c $SPHINX_CONF_PATH -E . docs/
+sphinx-build -c $SPHINX_CONF_PATH -aE . docs/
 # Create legacy coverage link
 cp docs/reporting/qe_coverage/coverage.html docs
 sed -i '' 's,"\.\./\.\./,",' docs/coverage.html
