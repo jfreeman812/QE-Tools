@@ -1,20 +1,7 @@
 QE-Tools
-########
+========
 
 A collection of tools designed for use in the larger Rackspace QE Organization.
-
-
-Coverage Metrics
-----------------
-
-The coverage metrics is a tagging standard adopted by a number of QE teams within Rackspace that can then be collected and aggregated for reporting.
-The below document provides the necessary information for following this standard.
-
-.. toctree::
-   :maxdepth: 2
-
-   Coverage Metrics <reporting/qe_coverage/coverage>
-
 
 Libraries
 ---------
@@ -72,6 +59,12 @@ pr-checker.py                                        Checks a GitHub organizatio
 :doc:`httpbin-data/<httpbin-data/README>`            An enhancement to httpbin that provides data-persistent endpoints
 `splunk_forwarder/`_                                   Web app that collects data from `qe_coverage` and forwards it to Splunk
 ===================================================  ==================================================================================
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Metrics Standards
+
+   Coverage Metrics <reporting/qe_coverage/coverage>
 
 .. _Artifactory: https://artifacts.rackspace.net
 .. _`splunk_forwarder/`: https://qetools.rax.io/splunk/doc/
