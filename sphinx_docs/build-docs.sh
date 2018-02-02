@@ -12,6 +12,8 @@ fi
 # Quick and easy, for us, and for Jenkins:
 if [ "$1" = "--setup" ] ; then
     shift
+    # While the requirements file is, by default, the same path as the conf.py file,
+    # it is not guaranteed so needs to be explicitly referenced here
     if ! pip install -r sphinx_docs/requirements.txt ; then
         echo environment setup failed, aborting self-checks
         exit 1
