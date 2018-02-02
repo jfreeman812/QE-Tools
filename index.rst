@@ -32,11 +32,12 @@ Several libraries have been created that can be installed via Artifactory_.
 
 .. toctree::
    :hidden:
+   :caption: Libraries
 
-   qe_jira/README
-   reporting/README
-   sphinx-gherkindoc/README
-   tableread/README
+   qe_jira <qe_jira/README>
+   qe_coverage <reporting/README>
+   sphinx-gherkindoc <sphinx-gherkindoc/README>
+   tableread <tableread/README>
 
 ==================================================  ==============================================================================
 Library Name                                        Description
@@ -55,10 +56,11 @@ In addition to libraries that can be installed via `pip`, this repository provid
 
 .. toctree::
    :hidden:
+   :caption: Local Scripts
 
-   etcd/README
-   git-support/README
-   httpbin-data/README
+   etcd/ <etcd/README>
+   git-support/ <git-support/README>
+   httpbin-data/ <httpbin-data/README>
 
 ===================================================  ==================================================================================
 File Name                                            Description
