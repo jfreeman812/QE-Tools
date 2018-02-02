@@ -3,13 +3,26 @@ from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 from configparser import ConfigParser
 import os
 
+import qecommon_tools
 import jira
+
+
+REQUIRED_KEYS = ('JIRA_URL', 'USERNAME', 'PASSWORD', 'DEFAULT_ASSIGNEE', 'TEST_PROJECT')
 
 
 def get_configs():
     config = ConfigParser()
-    config.read(os.path.join(os.path.expanduser('~'), 'jira.config'))
-    return config['jira']
+    config_path = os.path.join(os.path.expanduser('~'), 'jira.config')
+    message = 'Config file "{}" {{}}'.format(config_path)
+    qecommon_tools.error_if(not os.path.exists(config_path), message=message.format('not found'))
+    config.read(config_path)
+    section_name = 'jira'
+    qecommon_tools.error_if(section_name not in config,
+                            message=message.format('missing "{}" section'.format(section_name)))
+    missing_keys = [key for key in REQUIRED_KEYS if key not in config[section_name]]
+    missing_message = message.format('section "{}" missing keys: {{}}'.format(section_name))
+    qecommon_tools.error_if(missing_keys, status=1, message=missing_message)
+    return config[section_name]
 
 
 CONFIG = get_configs()
@@ -31,7 +44,7 @@ def _list_from_config(key_name):
 def _component_id_from_name(project_components, component_name):
     matches = [x.id for x in project_components if x.name == component_name]
     message = 'More than one component in project with name: {}'
-    assert len(matches) == 1, message.format(component_name)
+    qecommon_tools.error_if(len(matches) != 1, message=message.format(component_name))
     return matches[0]
 
 

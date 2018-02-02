@@ -11,7 +11,8 @@ setuptools.setup(
     packages=setuptools.find_packages(),
     install_requires=[
         'pbr',  # jira library has a bug where it does not install this one library
-        'jira'
+        'jira',
+        'qecommon_tools>=1.0.2'
     ],
     entry_points={
         'console_scripts': ['qe_jira=qe_jira:create_qe_jira_from']
