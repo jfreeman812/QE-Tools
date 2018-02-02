@@ -1,11 +1,17 @@
-# qe_jira
+qe_jira
+=======
+
 A simple helper tool to create a test JIRA from a given dev JIRA
 
-## Setup
+Setup
+-----
+
 * Copy jira.config.example to ~/jira.config
 * Fill out the config values with your appropriate data
 
-## Usage
+Usage Examples
+--------------
+
 * `qe_jira JIRA-1234` -- will create a JIRA in your `TEST_PROJECT` to test
   JIRA-1234, and link the two, assigning it to you and adding any watchers
   specified
@@ -14,4 +20,3 @@ A simple helper tool to create a test JIRA from a given dev JIRA
   assign to `bobm5523`
 * `qe_jira JIRA-1234 -w sall9987 -w benj4444` -- will create the JIRA and assign
   `sall9987` and `benj4444` as watchers instead of your default watcher list
-
