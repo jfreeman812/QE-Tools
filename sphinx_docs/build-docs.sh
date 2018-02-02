@@ -12,7 +12,7 @@ fi
 # Quick and easy, for us, and for Jenkins:
 if [ "$1" = "--setup" ] ; then
     shift
-    if ! pip install -r requirements.txt ; then
+    if ! pip install -r sphinx_docs/requirements.txt ; then
         echo environment setup failed, aborting self-checks
         exit 1
     fi
