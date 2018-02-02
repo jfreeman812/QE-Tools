@@ -72,7 +72,7 @@ def make_http_request(http_url, url_endpoint='', request_params=None):
         return code, body
 
 
-def _get_choice_selection(start, end, statement, default=None):
+def _get_choice_selection(start, end, selection_list, statement, default=None):
     '''Get the choice selection from the user and ensure it is valid.
 
     If the user does not pick a selection, then use the default_value if it is set,
@@ -81,18 +81,20 @@ def _get_choice_selection(start, end, statement, default=None):
     Args:
         start (int): The lowest valid selection from the multiple choices
         end (int): The highest valid selection from the multiple choices
+        selection_list (list): The list containing the valid selections
         statement (str): The text to show the user when asking for an input
         default (int): The default choice (optional)
 
     Returns:
-        int: The user selection if it is valid
+        Any: The user selection if it is valid
     '''
     selection = input('\n{0}'.format(statement))
     while not (selection.isdigit() and start <= int(selection) <= end):
         if selection == '' and default is not None:
             return default
         selection = input('Invalid selection. {0}'.format(statement))
-    return int(selection)
+
+    return selection_list[int(selection) - 1]
 
 
 def interactive_mode():
@@ -118,9 +120,9 @@ def interactive_mode():
 
             message = ('Please select a number for the Jenkins jobs to execute (1-{0}): '
                        ''.format(len(list_of_jobs)))
-            selection = _get_choice_selection(start=1, end=len(list_of_jobs), statement=message)
+            selected_job = _get_choice_selection(start=1, end=len(list_of_jobs),
+                                                 selection_list=list_of_jobs, statement=message)
 
-            selected_job = list_of_jobs[selection - 1]
             quick_command.extend(('--job', selected_job['name']))
             state = 'PARAMETER_SELECTION'
             print('')
@@ -153,13 +155,12 @@ def interactive_mode():
 
                     statement = ('Please select one of the options above [{0}. {1}]: '
                                  ''.format(default_option_index, default_option))
-                    selection = _get_choice_selection(start=1, end=len(options),
-                                                      default=default_option_index,
-                                                      statement=statement)
+                    selected_job_params[param['name']] = \
+                            _get_choice_selection(start=1, end=len(options), selection_list=options,
+                                                  default=default_option_index, statement=statement)
 
-                    selected_job_params[param['name']] = options[selection - 1]
                     quick_command.extend(('--{0}'.format(param['name']),
-                                         options[selection - 1]))
+                                         selected_job_params[param['name']]))
 
                 # Parameters with no options
                 else:
