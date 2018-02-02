@@ -6,26 +6,26 @@ This is an extention of httpbin <http://httpbin.org/> to allow for testing and v
 Additional Endpoints
 --------------------
 
-==================================  ======  ==========================================================================
-Endpoint                            Method  Description
-----------------------------------  ------  --------------------------------------------------------------------------
-`/data-check`                       GET     Return all data check group.
-`/data-check`                       POST    Create data check group; requires the key `group_name`.
-`/data-check/:group_name`           DELETE  Delete a data check group.
-`/data-check/:group_name`           GET     Return all data sent to a data group via POST and PUT.
-`/data-check/:group_name`           POST    Accepts data and returns a data dictionary with the `:data_id` as the key.
-`/data-check/:group_name/:data_id`  GET     Get the data dictionary for the given `data_id`.
-`/data-check/:group_name/:data_id`  PUT     Update the data dictionary for the given `data_id`
-`/data-check/:group_name/:data_id`  DELETE  Delete the data dictionary for the given `data_id`
-`/counter/:counter_name`            GET     Return the hit count for counter name
-`/counter/:counter_name`            PUT     Increment hit count for counter name and return value
-`/counter/:counter_name`            DELETE  Delete the counter (reset to 0)
-==================================  ======  ==========================================================================
+====================================  ======  ==========================================================================
+Endpoint                              Method  Description
+------------------------------------  ------  --------------------------------------------------------------------------
+``/data-check``                       GET     Return all data check group.
+``/data-check``                       POST    Create data check group; requires the key ``group_name``.
+``/data-check/:group_name``           DELETE  Delete a data check group.
+``/data-check/:group_name``           GET     Return all data sent to a data group via POST and PUT.
+``/data-check/:group_name``           POST    Accepts data and returns a data dictionary with the ``:data_id`` as the key.
+``/data-check/:group_name/:data_id``  GET     Get the data dictionary for the given ``data_id``.
+``/data-check/:group_name/:data_id``  PUT     Update the data dictionary for the given ``data_id``
+``/data-check/:group_name/:data_id``  DELETE  Delete the data dictionary for the given ``data_id``
+``/counter/:counter_name``            GET     Return the hit count for counter name
+``/counter/:counter_name``            PUT     Increment hit count for counter name and return value
+``/counter/:counter_name``            DELETE  Delete the counter (reset to 0)
+====================================  ======  ==========================================================================
 
 Description
 -----------
 
-The data dictionary is formatted just like `/post` and `/put` do, except that the data dictionary is nested into another dictionary where the `:data_id` is the key.
+The data dictionary is formatted just like ``/post`` and ``/put`` do, except that the data dictionary is nested into another dictionary where the ``:data_id`` is the key.
 
 Examples
 --------

@@ -15,8 +15,8 @@ source_suffix = ['.rst']
 master_doc = 'index'
 
 # General information about the project.
-project = 'Coverage Documentation'
-copyright = '2017, Rackspace Quality Engineering'  # noqa
+project = 'QE Tools Documentation'
+copyright = '2018, Rackspace Quality Engineering'  # noqa
 author = 'Rackspace Quality Engineering'
 
 # The version info for the project you're documenting, acts as replacement for
@@ -54,13 +54,6 @@ if not base_url:
     owner_name = os.path.splitext(os.environ.get('GIT_ORIGIN_URL').split(':')[1])[0]
     base_url = 'https://github.rackspace.com/{}/tree/{}'.format(owner_name, commit_id)
 html_context = {'build_id': commit_id, 'build_url': base_url}
-
-
-def setup(app):
-    app.add_stylesheet('theme_overrides.css')
-    app.add_stylesheet('jquery.dataTables.min.css')
-    app.add_javascript('jquery.dataTables.min.js')
-    app.add_javascript('dataTables_activate.js')
 
 
 # Example configuration for intersphinx: refer to the Python standard library.

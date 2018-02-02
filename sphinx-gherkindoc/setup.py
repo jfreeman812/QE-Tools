@@ -1,7 +1,7 @@
 import setuptools
 
 
-setuptools.setup(name='sphinx_gherkindoc',
+setuptools.setup(name='sphinx-gherkindoc',
                  version='1.0.0',
                  description='An tool to convert Gherkin files into Sphinx documentation',
                  url='https://github.rackspace.com/QualityEngineering/QE-Tools',
