@@ -39,7 +39,7 @@ qecommon_tools                                      A library for helper functio
 Local Scripts
 -------------
 
-In addition to libraries that can be installed via `pip`, this repository provides several scripts that can be utilized for various needs.
+In addition to libraries that can be installed via ``pip``, this repository provides several scripts that can be utilized for various needs.
 
 .. toctree::
    :hidden:
@@ -57,7 +57,7 @@ pr-checker.py                                        Checks a GitHub organizatio
 :doc:`etcd/<etcd/README>`                            A collection of tools for using etcd
 :doc:`git-support/<git-support/README>`              Helpful git hooks
 :doc:`httpbin-data/<httpbin-data/README>`            An enhancement to httpbin that provides data-persistent endpoints
-`splunk_forwarder/`_                                   Web app that collects data from `qe_coverage` and forwards it to Splunk
+`splunk_forwarder/`_                                   Web app that collects data from ``qe_coverage`` and forwards it to Splunk
 ===================================================  ==================================================================================
 
 .. toctree::
