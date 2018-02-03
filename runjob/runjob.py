@@ -93,7 +93,6 @@ def _get_choice_selection(start, end, selection_list, statement, default=None):
         if selection == '' and default is not None:
             return default
         selection = input('Invalid selection. {0}'.format(statement))
-
     return selection_list[int(selection) - 1]
 
 
@@ -437,10 +436,10 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(prog='runjob')
     parser.add_argument('--config', type=str, default='config.cfg',
                         help='The name of the config file')
-    args = parser.parse_known_args()[0]
+    args, unknown_args = parser.parse_known_args()
     read_config_and_set_globals(args.config)
 
-    if len(sys.argv) <= 2:
+    if not unknown_args:
         interactive_mode()
     else:
         parser.add_argument('--job', required=True, type=str,
