@@ -38,6 +38,7 @@ import fnmatch
 import json
 import os
 import re
+import sys
 
 from qe_coverage.base import REPORT_PATH, TestGroup, run_reports
 from qecommon_tools import display_name
@@ -105,14 +106,6 @@ def coverage_json_to_test_group(coverage_file_name, default_interface_type,
     return tests
 
 
-def run_opencafe_reports(coverage_json_file, product_name, default_interface_type,
-                         output_dir, splunk_token, leading_categories_to_strip):
-    test_group = coverage_json_to_test_group(coverage_json_file, default_interface_type,
-                                             leading_categories_to_strip)
-    run_reports(test_group, product_name, default_interface_type, output_dir,
-                splunk_token=splunk_token)
-
-
 def main():
     parser = argparse.ArgumentParser(description='Test Reports')
     parser.add_argument('coverage_json_file',
@@ -132,9 +125,18 @@ def main():
     parser.add_argument('--leading-categories-to-strip', type=int, default=0,
                         help='The number of leading categories to omit from the coverage data '
                              'sent to Splunk')
+    parser.add_argument('--dry-run', action='store_true',
+                        help='Do not generate reports or upload; only validate the tags.')
     args = parser.parse_args()
-    run_opencafe_reports(args.coverage_json_file, args.product_name, args.default_interface_type,
-                         args.output_dir, args.splunk_token, args.leading_categories_to_strip)
+
+    test_group = coverage_json_to_test_group(args.coverage_json_file,
+                                             args.default_interface_type,
+                                             args.leading_categories_to_strip)
+    if args.dry_run:
+        sys.exit(test_group.validate())
+
+    run_reports(test_group, args.product_name, args.default_interface_type, args.output_dir,
+                splunk_token=args.splunk_token)
 
 
 if __name__ == '__main__':
