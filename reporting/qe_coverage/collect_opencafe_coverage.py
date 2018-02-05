@@ -73,18 +73,19 @@ def main():
 
     json_coverage_file = json_coverage_files[0]
 
-    if not args.check_only:
-        publish_command = [
-            'coverage-send-opencafe-report',
-            '-o', tmp_dir_name,
-            '--splunk_token', splunk_token,
-            '--leading-categories-to-strip', str(args.leading_categories_to_strip),
-            json_coverage_file,
-            args.product_name,
-            args.default_interface_type,
-        ]
+    publish_command = [
+        'coverage-send-opencafe-report',
+        '-o', tmp_dir_name,
+        '--leading-categories-to-strip', str(args.leading_categories_to_strip),
+    ]
+    publish_command += ['--dry-run'] if args.check_only else ['--splunk_token', splunk_token]
+    publish_command += [
+        json_coverage_file,
+        args.product_name,
+        args.default_interface_type,
+    ]
 
-        safe_run(publish_command)
+    safe_run(publish_command)
 
     if args.no_clean:
         print('no cleanup done, temporary files are in: {}'.format(tmp_dir_name))
