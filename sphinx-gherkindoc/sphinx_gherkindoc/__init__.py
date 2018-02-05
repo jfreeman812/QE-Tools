@@ -122,7 +122,7 @@ class ParseSource(SphinxWriter):
         source_name = os.path.basename(source_path)
         source_prefix, self.source_suffix = os.path.splitext(source_name)
         dest_prefix = '.'.join([category, source_prefix])
-        super().__init__(dest_prefix, args)
+        super(ParseSource, self).__init__(dest_prefix, args)
 
     def update_suffix(self):
         self.dest_suffix = self.source_suffix.lstrip(os.extsep)
