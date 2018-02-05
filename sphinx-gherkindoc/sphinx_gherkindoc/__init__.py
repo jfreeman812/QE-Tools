@@ -19,9 +19,9 @@ SKIPPED_SET = set()
 # The csv-table parser for restructuredtext does not allow for escaping so use
 # a unicode character that looks like a quote but will not be in any Gherkin
 QUOTE = '\u201C'
-_escape_mappings = {ord(x): r'\{}'.format(x) for x in ('*', '"', '#', ':', '<', '>')}
+_escape_mappings = {ord(x): u'\\{}'.format(x) for x in ('*', '"', '#', ':', '<', '>')}
 _advanced_escape_mappings = _escape_mappings.copy()
-_advanced_escape_mappings[ord('\\')] = '\\\\\\'
+_advanced_escape_mappings[ord('\\')] = u'\\\\\\'
 INDENT_DEPTH = 4
 
 
@@ -51,10 +51,10 @@ def write_steps_glossary(glossary_name, args):
     if not step_glossary:
         return
     glossary = SphinxWriter(glossary_name, args)
-    glossary.create_section(1, '{} Glossary'.format(args.doc_project))
+    glossary.create_section(1, u'{} Glossary'.format(args.doc_project))
     master_step_names = {name for gloss in step_glossary.values() for name in gloss.step_set}
     for term in sorted(master_step_names):
-        glossary.add_output('- :term:`{}`'.format(rst_escape(term, slash_escape=True)))
+        glossary.add_output(u'- :term:`{}`'.format(rst_escape(term, slash_escape=True)))
     glossary.blank_line()
     glossary.add_output('.. glossary::')
     for entry in sorted(step_glossary.values(), reverse=True):
@@ -63,7 +63,7 @@ def write_steps_glossary(glossary_name, args):
                                 indent_by=INDENT_DEPTH)
         for location, line_numbers in sorted(entry.locations.items()):
             line_numbers = map(str, line_numbers)
-            definition = '| {}: {}'.format(location, ', '.join(line_numbers))
+            definition = u'| {}: {}'.format(location, ', '.join(line_numbers))
             glossary.add_output(definition, indent_by=INDENT_DEPTH * 2)
         glossary.blank_line()
     glossary.write_file()
@@ -89,8 +89,8 @@ class SphinxWriter(object):
         self._output = []
 
     def add_output(self, line, line_breaks=1, indent_by=0):
-        self._output.append('{}{}{}'.format(' ' * indent_by, line,
-                                            '\n' * line_breaks))
+        self._output.append(u'{}{}{}'.format(' ' * indent_by, line,
+                                             '\n' * line_breaks))
 
     def blank_line(self):
         self.add_output('')
@@ -114,7 +114,7 @@ class SphinxWriter(object):
         if not self.args.quiet:
             print('Creating file [{}]'.format(file_path))
         with sphinx.util.osutil.FileAvoidWrite(file_path) as f:
-            f.write(''.join(self._output))
+            f.write(''.join(self._output).encode('utf8'))
 
 
 class ParseSource(SphinxWriter):
@@ -129,7 +129,7 @@ class ParseSource(SphinxWriter):
         self.dest_suffix = self.source_suffix.lstrip(os.extsep)
 
     def section(self, level, obj):
-        section_name = '{}: {}'.format(obj.keyword, rst_escape(obj.name))
+        section_name = u'{}: {}'.format(obj.keyword, rst_escape(obj.name))
         self.create_section(level, section_name.rstrip(': '))
 
     def description(self, description):
@@ -165,16 +165,16 @@ class ParseSource(SphinxWriter):
         self.add_output('.. pull-quote::', line_breaks=2)
         tag_str = ', '.join(tags)
         for obj in parent_with_tags:
-            tag_str += ' (Inherited from {}: {})'.format(obj.keyword,
-                                                         ', '.join(obj.tags))
-        self.add_output('*Tagged: {}*'.format(tag_str.strip()), line_breaks=2,
+            tag_str += u' (Inherited from {}: {})'.format(obj.keyword,
+                                                          ', '.join(obj.tags))
+        self.add_output(u'*Tagged: {}*'.format(tag_str.strip()), line_breaks=2,
                         indent_by=INDENT_DEPTH)
 
     def steps(self, steps):
         for step in steps:
             step_glossary[step.name.lower()].add_reference(step.name, step.filename, step.line)
             bold_step = re.sub(r'(\\\<.*?\>)', r'**\1**', rst_escape(step.name))
-            self.add_output('- {} {}'.format(step.keyword, bold_step))
+            self.add_output(u'- {} {}'.format(step.keyword, bold_step))
             if step.table:
                 self.blank_line()
                 self.table(step.table, inline=True)
@@ -193,14 +193,14 @@ class ParseSource(SphinxWriter):
         indent_by = INDENT_DEPTH if inline else 0
         directive = '.. csv-table::'
         self.add_output(directive, indent_by=indent_by)
-        headers = '", "'.join(table.headings)
+        headers = u'", "'.join(table.headings)
         indent_by += INDENT_DEPTH
-        self.add_output(':header: "{}"'.format(headers), indent_by=indent_by)
-        self.add_output(':quote: {}'.format(QUOTE), line_breaks=2,
+        self.add_output(u':header: "{}"'.format(headers), indent_by=indent_by)
+        self.add_output(u':quote: {}'.format(QUOTE), line_breaks=2,
                         indent_by=indent_by)
         for row in table.rows:
-            row = '{0}, {0}'.format(QUOTE).join(map(rst_escape, row))
-            self.add_output('{0}{1}{0}'.format(QUOTE, row), indent_by=indent_by)
+            row = u'{0}, {0}'.format(QUOTE).join(map(rst_escape, row))
+            self.add_output(u'{0}{1}{0}'.format(QUOTE, row), indent_by=indent_by)
 
     def _set_output(self):
         self.update_suffix()
@@ -255,7 +255,7 @@ class ParseTOC(SphinxWriter):
         prev_feature = ''
         for feature in sorted(feature_set):
             # look if the feature is a sub-category and, if yes, ignore it
-            if feature.startswith('{}.'.format(prev_feature)) and not include_subs:
+            if feature.startswith(u'{}.'.format(prev_feature)) and not include_subs:
                 continue
             prev_feature = feature
             self.add_output(feature, indent_by=INDENT_DEPTH)
