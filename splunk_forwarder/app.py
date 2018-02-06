@@ -36,8 +36,9 @@ parser.add_argument('source', type=str, default=SPLUNK_REPORT_SOURCE,
                     help='the source for the events must be provided', location='json')
 parser.add_argument('index', type=str, default=SPLUNK_REPORT_INDEX,
                     help='The index for the data was missing', location='json')
-parser.add_argument('timestamp', type=str, default=round(time.time(), 2),
-                    help='a unix timestamp for the events', location='json')
+parser.add_argument('timestamp', type=str, default=None,
+                    help='a unix timestamp for the events. Defaults to current time.',
+                    location='json')
 
 
 def _token_config():
@@ -70,7 +71,7 @@ class SplunkAPI(Resource):
     def post(self):
         args = parser.parse_args()
         common_data = {
-            'time': args['timestamp'],
+            'time': args['timestamp'] or round(time.time(), -2),
             'host': args['host'],
             'index': args['index'],
             'source': args['source'],
