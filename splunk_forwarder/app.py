@@ -48,6 +48,15 @@ def _token_config():
     return parser
 
 
+def coverage_current_time():
+    '''
+    Returns a unix timestamp for the current time,
+    rounded to the nearest hundred seconds,
+    to help cluster multiple separate reports sent in sequence with a shared timestamp.
+    '''
+    return round(time.time(), -2)
+
+
 TOKENS = _token_config()
 
 
@@ -71,7 +80,7 @@ class SplunkAPI(Resource):
     def post(self):
         args = parser.parse_args()
         common_data = {
-            'time': args['timestamp'] or round(time.time(), -2),
+            'time': args['timestamp'] or coverage_current_time(),
             'host': args['host'],
             'index': args['index'],
             'source': args['source'],
