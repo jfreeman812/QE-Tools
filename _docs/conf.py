@@ -56,5 +56,19 @@ if not base_url:
 html_context = {'build_id': commit_id, 'build_url': base_url}
 
 
-# Example configuration for intersphinx: refer to the Python standard library.
-intersphinx_mapping = {'python': ('https://docs.python.org/3/', None)}
+def html_page_context_handler(app, pagename, templatename, context, doctree):
+    # The coverage documentation was shared, for an extended period, from the root
+    # path in the documentation. This method tells Sphinx to recreate this file in the
+    # root to preserve those links.
+    if '/coverage' in pagename:
+        new_page = pagename.split('/')[-1]
+        # Tell Sphinx that this new page should have the same TOC as the old
+        app.env.toc_num_entries[new_page] = app.env.toc_num_entries[pagename]
+        ctx = app.builder.get_doc_context(new_page, context['body'], context['metatags'])
+        # Remove the sourcename to prevent a duplicate source file being copied
+        ctx['sourcename'] = None
+        app.builder.handle_page(new_page, ctx, event_arg=doctree)
+
+
+def setup(app):
+    app.connect('html-page-context', html_page_context_handler)
