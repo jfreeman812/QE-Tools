@@ -21,7 +21,19 @@ import github3
 import github3.users
 import requests
 
-NOW = datetime.datetime.now().replace(tzinfo=datetime.timezone.utc)
+
+class UTC(datetime.tzinfo):
+    def utcoffset(self, dt):
+        return datetime.timedelta(0)
+
+    def tzname(self, dt):
+        return 'UTC'
+
+    def dst(self, dt):
+        return datetime.timedelta(0)
+
+
+NOW = datetime.datetime.now(UTC())
 PULL_WAIT = 20 * 60 * 60
 
 
