@@ -49,7 +49,7 @@ def get_reviews(token, organization, pr_age, name_filter=''):
 def send_email(user, review_list):
     msg = email.mime.multipart.MIMEMultipart('alternative')
     msg['Subject'] = 'Pull Requests Needing Attention'
-    msg['From'] = 'pr-checker@rackspace.com'
+    msg['From'] = 'rs-pr-checker@rackspace.com'
     # Get Name and address from Hozer, since it's not in GitHub
     req = requests.get('https://finder.rackspace.net/mini.php?q={}'.format(user))
     for line in req.text.splitlines():
