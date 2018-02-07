@@ -65,3 +65,6 @@ reports/
 
 # IDE related files
 .idea/
+
+# AutoENV File
+.env
