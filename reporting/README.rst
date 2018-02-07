@@ -12,7 +12,7 @@ This is a collection of tools for reporting and documenting test coverage for te
 Test coverage reporting is part of the commitment of our QE organization to be driven by data.
 Within the TES Technology & Data QE org, we've gone so far as to make it part of our `Table Stakes`_.
 
-For the Rationale on why we want coverage metrics and how to apply the coverage markup to tests, please see `Coverage Metrics standard`_.
+For the Rationale on why we want coverage metrics and how to apply the coverage markup to tests, please see :doc:`Coverage Metrics standard<qe_coverage/coverage>`.
 
 Currently we support any Gherkin-based tests, and Python OpenCAFE-based tests.
 (Pytest is anticipated, but not yet supported.)
@@ -35,14 +35,14 @@ Python 2.7 and Python 3.5+ are the supported versions.
 Annotating Tests
 ----------------
 
-In order to gather coverage data, we need to annotate our test suites, as per the `Coverage Metrics standard`_
+In order to gather coverage data, we need to annotate our test suites, as per the :doc:`Coverage Metrics standard<qe_coverage/coverage>`
 How tests are annotated for coverage metrics reporting depends on the automation framework being used.
 This tooling supports the following frameworks:
 
 - Gherkin-based testing: the annotations are stand-alone, you need no additional tools.
 - OpenCAFE-based testing: you need to install the ``qe_coverage`` python package.
   The ``opencafe_decorators`` module in that package provides the decorators needed to annotate tests for coverage metrics gathering,
-  as per the `Coverage Metrics standard`_.
+  as per the :doc:`Coverage Metrics standard<qe_coverage/coverage>`.
 
 
 Publishing Coverage Data
@@ -163,6 +163,5 @@ if one of the OpenCAFE defined setup/teardown methods is being called.::
     def tearDown(self):
         super(DCXQEBaseTestFixture, self).tearDown()
 
-.. _Coverage Metrics standard: qe_coverage/coverage.rst
 .. _Table Stakes: https://one.rackspace.com/pages/viewpage.action?title=Table+Stakes+Definition&spaceKey=cloudqe
 .. _Artifactory: https://artifacts.rackspace.net
