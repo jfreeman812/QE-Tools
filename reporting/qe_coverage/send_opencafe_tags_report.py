@@ -120,8 +120,6 @@ def main():
                              'if it is not otherwise specified or in the category list')
     parser.add_argument('-o', '--output-dir', default=REPORT_PATH,
                         help='Output directory for the generated report files.')
-    parser.add_argument('--splunk_token', default='',
-                        help='Provide Splunk auth token to send data')
     parser.add_argument('--leading-categories-to-strip', type=int, default=0,
                         help='The number of leading categories to omit from the coverage data '
                              'sent to Splunk')
@@ -135,8 +133,7 @@ def main():
     if args.dry_run:
         sys.exit(test_group.validate())
 
-    run_reports(test_group, args.product_name, args.default_interface_type, args.output_dir,
-                splunk_token=args.splunk_token)
+    run_reports(test_group, args.product_name, args.default_interface_type, args.output_dir)
 
 
 if __name__ == '__main__':

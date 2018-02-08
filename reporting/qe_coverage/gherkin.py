@@ -87,12 +87,10 @@ def main():
     parser.add_argument('-o', '--output-dir', default=REPORT_PATH,
                         help='Output directory for the generated report files.')
     parser.add_argument('--search_hidden', action='store_true', help='Include ".hidden" folders')
-    parser.add_argument('--splunk_token', default='',
-                        help='Provide Splunk auth token to send data')
     parser.add_argument('--dry-run', action='store_true',
                         help='Do not generate reports or upload; only validate the tags.')
     args = parser.parse_args()
-    run_gherkin_reports(args.product_dir, args.interface_type, args.output_dir, args.splunk_token,
+    run_gherkin_reports(args.product_dir, args.interface_type, args.output_dir,
                         search_hidden=args.search_hidden, dry_run=args.dry_run)
 
 

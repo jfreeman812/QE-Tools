@@ -15,18 +15,13 @@ from qecommon_tools import cleanup_and_exit, safe_run
 
 TAGS_DIR_ENV_NAME = 'COLLECT_TAGS_DATA_INTO'
 
-SPLUNK_TOKEN_NAME = 'SPLUNK_TOKEN'
-splunk_token = os.environ.get(SPLUNK_TOKEN_NAME, None)
-
 
 def main():
     parser = argparse.ArgumentParser(description='Collect and Publish OpenCAFE Coverage Report')
     parser.add_argument('--no-clean', default=False, action='store_true',
                         help='Do not remove the temporary directory, so that humans can look at it')
     parser.add_argument('--check-only', default=False, action='store_true',
-                        help='Gather metrics, but do not send to splunk,'
-                             ' if this flag is not used, the {} environment'
-                             ' variable must be set.'.format(SPLUNK_TOKEN_NAME))
+                        help='Gather metrics, but do not send to splunk.')
     parser.add_argument('--leading-categories-to-strip', type=int, default=0,
                         help='The number of leading categories to omit from the coverage data '
                              'sent to Splunk')
@@ -42,13 +37,6 @@ def main():
     parser.add_argument('open_cafe_command', nargs='+',
                         help='OpenCAFE command and parameters for running the tests')
     args, coverage_kwargs = parser.parse_known_args()
-    if not (args.check_only or splunk_token):
-        print('')
-        print('Error: Need either check only switch or {}'
-              ' environment variable'.format(SPLUNK_TOKEN_NAME))
-        print('')
-        parser.print_help()
-        sys.exit(-1)
 
     tmp_dir_name = mkdtemp()
 
@@ -78,7 +66,8 @@ def main():
         '-o', tmp_dir_name,
         '--leading-categories-to-strip', str(args.leading_categories_to_strip),
     ]
-    publish_command += ['--dry-run'] if args.check_only else ['--splunk_token', splunk_token]
+    if args.check_only:
+        publish_command += ['--dry-run']
     publish_command += [
         json_coverage_file,
         args.product_name,

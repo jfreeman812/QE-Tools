@@ -72,10 +72,6 @@ Reports are published to Splunk:
   - If you need to publish from another source, you need to arrange for this environment variable to be set properly before you run the report.
   - If this variable is not set, some form of the hostname of the current machine will be used. This may not be what you want/expect.
 
-- The authentication needed to successfully publish to Splunk is a token that is passed via a command-line switch to all the publishing scripts.
-
-  - When publishing from Jenkins, this token should be configured in your server so that the job using it *does not*, and *should not* hard code this value.
-
 Common Coverage annotations:
 
 - Defaulting ``Interface Type`` - It would be very tedious and repetitive to have to specify the interface type on each test.

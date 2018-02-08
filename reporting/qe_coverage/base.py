@@ -27,10 +27,8 @@ TAG_DEFINITION_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), '
 REPORT_PATH = 'reports'
 COVERAGE_REPORT_FILE = '{repo_name}_coverage_report_{time_stamp}.{ext}'
 TICKET_RE = re.compile('([A-Z][A-Z]+-?[0-9]+)')
-SPLUNK_COLLECTOR_HOSTNAME = 'httpc.secops.rackspace.com'
-SPLUNK_COLLECTOR_URL = 'https://{}:8088/services/collector'.format(SPLUNK_COLLECTOR_HOSTNAME)
-SPLUNK_REPORT_INDEX = 'rax_temp_60'
-SPLUNK_COVERAGE_INDEX = 'rax_qe_coverage'
+SPLUNK_FORWARDER_URL = 'https://qetools.rax.io/splunk/'
+SPLUNK_COVERAGE_SOURCE = 'rax_qe_coverage'
 
 ####################################################################################################
 # Globals
@@ -177,20 +175,17 @@ class ReportWriter(object):
     base_file_name = ''
     _source = None
 
-    def __init__(self, test_group, product_name, interface_type, output_dir,
-                 splunk_token=None):
+    def __init__(self, test_group, product_name, interface_type, output_dir):
         self.test_group = test_group
         self.product_name = product_name
         self.interface_type = interface_type
         self.output_dir = output_dir
-        self._splunk_token = splunk_token
         self._max_lens = {}
         self.data = self._data()
         self._json_keys_that_exist = {k for d in self.data for k in d.keys()}
         self._write_json_report()
         self._write_csv_report()
-        if self._splunk_token:
-            self._send_to_splunk()
+        self._send_to_splunk()
 
     def _max_len(self, key):
         '''
@@ -297,25 +292,18 @@ class ReportWriter(object):
         return csv_data
 
     def _send_to_splunk(self):
-        common_data = {
-            'time': round(time.time(), -2),
+        data = {
             'host': _hostname_from_env() or socket.gethostname(),
-            'index': SPLUNK_REPORT_INDEX,
             'source': self._source,
-            'sourcetype': '_json'
+            'events': self.data
         }
-        events = [{'event': x} for x in self.data]
-        for event in events:
-            event.update(common_data)
-        response = requests.post(SPLUNK_COLLECTOR_URL, data=' '.join(map(json.dumps, events)),
-                                 headers={'Authorization': self._splunk_token},
-                                 verify=False)
+        response = requests.post(SPLUNK_FORWARDER_URL, json=data, verify=False)
         response.raise_for_status()
 
 
 class CoverageReport(ReportWriter):
     base_file_name = COVERAGE_REPORT_FILE
-    _source = SPLUNK_COVERAGE_INDEX
+    _source = SPLUNK_COVERAGE_SOURCE
 
     def _csv_heading_order(self):
         '''The base non extended order of the csv columns for the Coverage Report'''
