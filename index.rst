@@ -57,7 +57,7 @@ pr-checker.py                                        Checks a GitHub organizatio
 :doc:`etcd/<etcd/README>`                            A collection of tools for using etcd
 :doc:`git-support/<git-support/README>`              Helpful git hooks
 :doc:`httpbin-data/<httpbin-data/README>`            An enhancement to httpbin that provides data-persistent endpoints
-`data_broker/`_                                      Web app to collect data from ``qe_coverage`` and forwards it to the data warehouse
+`data_broker/`_                                      Web app to collect data from ``qe_coverage`` and forwards it to the reporting tool
 ===================================================  ==================================================================================
 
 .. toctree::
