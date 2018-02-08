@@ -1,7 +1,7 @@
 GitHub Tools
 ============
 
-A collection of tools around Git and GitHub to make developer's lives easier.
+A collection of tools around Git and GitHub to make developers' lives easier.
 
 gt-pr-checker
 -------------
@@ -9,8 +9,8 @@ gt-pr-checker
 This PR checker is designed to signal a reviewer if a PR has not been reviewed within a given time
 period. This checker works by getting the repositories associated with a provided organization and
 (optionally) filtering by team name. This is done instead of providing a list of repositories to
-the script because when repository is created and associated with a team, no changes would need to
-be made to the arguments provided to this script.
+the script because when a repository is created and associated with a team, no changes would need
+to be made to the arguments provided to this script.
 
 Usage
 ~~~~~
