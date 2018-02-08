@@ -87,8 +87,8 @@ class SimpleRSTTable(BaseRSTDataObject):
         return words
 
     def _build_data(self):
-        Row = make_row(self._row_splitter(self._header))
-        self.fields = [x.name for x in attr.fields(Row)]
+        row_class = make_row(self._row_splitter(self._header))
+        self.fields = [x.name for x in attr.fields(row_class)]
         for row in self._rows:
             if self._stop_checker(row):
                 break
@@ -97,7 +97,7 @@ class SimpleRSTTable(BaseRSTDataObject):
                 row = self._row_splitter(row)
                 message = "Row '{}' does not match field list '{}' length."
                 assert len(row) == len(self.fields), message.format(row, self.fields)
-                self.data.append(Row(*row))
+                self.data.append(row_class(*row))
 
     def _filter_data(self, data, filter_kwargs, filter_func):
         filters = [v if callable(v) else get_specific_attr_matcher(k, v)
