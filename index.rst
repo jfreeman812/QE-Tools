@@ -23,7 +23,7 @@ Several libraries have been created that can be installed via Artifactory_.
 
    qe_jira <qe_jira/README>
    qe_coverage <reporting/README>
-   rs_pr_checker <rs_pr_checker/README>
+   github_tools <github_tools/README>
    sphinx-gherkindoc <sphinx-gherkindoc/README>
    tableread <tableread/README>
 
@@ -33,7 +33,7 @@ Library Name                                        Description
 :doc:`qe_jira<qe_jira/README>`                      Quickly creates a JIRA on a QE board for testing of a JIRA from a dev board
 qecommon_tools                                      A library for helper functions across QE-Tools designed for larger consumption
 :doc:`qe_coverage<reporting/README>`                A collection of tools for QE-related reporting
-:doc:`rs_pr_checker<rs_pr_checker/README>`          Checks a GitHub organization for PRs that have not been updated in a given time
+:doc:`github_tools<github_tools/README>`            A collection of tools around Git and GitHub to make developer's lives easier.
 :doc:`sphinx-gherkindoc<sphinx-gherkindoc/README>`  A tool to convert Gherkin into Sphinx documentation
 :doc:`tableread<tableread/README>`                  A library for converting reStructredText tables into Python objects
 ==================================================  ==============================================================================

@@ -1,14 +1,4 @@
 #!/usr/bin/env python
-'''
-Overdue PR Checker
-
-This PR checker is designed to signal a reviewer if a PR has not been reviewed within a given time
-period. This checker works by getting the repositories associated with a provided organization and
-(optionally) filtering by team name. This is done instead of providing a list of repositories to
-the script because when repository is created and associated with a team, no changes would need to
-be made to the arguments provided to this script.
-'''
-
 import argparse
 import collections
 import datetime
@@ -89,7 +79,7 @@ def main(token, organization, name_filter, pr_age):
         send_email(user, review_list)
 
 
-def cli():
+def pr_checker():
     parser = argparse.ArgumentParser()
     parser.add_argument('--name-filter', help='Filter for team names, if needed', default='')
     parser.add_argument('token', help='GitHub Token')
@@ -101,4 +91,4 @@ def cli():
 
 
 if __name__ == '__main__':
-    cli()
+    pr_checker()

@@ -1,5 +1,10 @@
-GitHub PR Checker
-=================
+GitHub Tools
+============
+
+A collection of tools around Git and GitHub to make developer's lives easier.
+
+gt-pr-checker
+-------------
 
 This PR checker is designed to signal a reviewer if a PR has not been reviewed within a given time
 period. This checker works by getting the repositories associated with a provided organization and
@@ -8,7 +13,8 @@ the script because when repository is created and associated with a team, no cha
 be made to the arguments provided to this script.
 
 Usage
------
+~~~~~
+
 The tool requires a token and organization. The token comes from a user (service account or real)
 and can be obtained by navigating from https://github.rackspace.com to User -> Settings and
 selecting **Personal access tokens**. The organization is *just* the organization name (not the
