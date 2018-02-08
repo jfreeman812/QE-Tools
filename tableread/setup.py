@@ -1,11 +1,14 @@
 from setuptools import setup
 
 setup(name='tableread',
-      version='1.0.2',
+      version='1.0.3',
       description='Table reader for simple reStructredText tables',
       url='https://github.rackspace.com/QualityEngineering/QE-Tools',
       author='RBA QE',
       author_email='rba-qe@rackspace.com',
       license='MIT',
       packages=['tableread'],
+      install_requires=[
+          'attrs==17.4.0'
+      ],
       zip_safe=False)

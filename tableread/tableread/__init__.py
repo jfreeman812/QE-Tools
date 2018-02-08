@@ -1,10 +1,12 @@
 import os
-from collections import namedtuple, OrderedDict
+from collections import OrderedDict
 try:
     from itertools import filterfalse
 except ImportError:
     from itertools import ifilterfalse as filterfalse
 from operator import attrgetter
+
+import attr
 
 
 def _safe_name(name):
@@ -13,6 +15,10 @@ def _safe_name(name):
 
 def get_specific_attr_matcher(key, value):
     return lambda x: getattr(x, key).lower() == value.lower()
+
+
+def make_row(raw_column_list):
+    return attr.make_class('Row', [_safe_name(x) for x in raw_column_list], hash=True)
 
 
 class BaseRSTDataObject(object):
@@ -81,8 +87,8 @@ class SimpleRSTTable(BaseRSTDataObject):
         return words
 
     def _build_data(self):
-        Row = namedtuple('Row', [_safe_name(x) for x in self._row_splitter(self._header)])
-        self.fields = Row._fields
+        Row = make_row(self._row_splitter(self._header))
+        self.fields = [x.name for x in attr.fields(Row)]
         for row in self._rows:
             if self._stop_checker(row):
                 break
