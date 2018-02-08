@@ -57,7 +57,7 @@ pr-checker.py                                        Checks a GitHub organizatio
 :doc:`etcd/<etcd/README>`                            A collection of tools for using etcd
 :doc:`git-support/<git-support/README>`              Helpful git hooks
 :doc:`httpbin-data/<httpbin-data/README>`            An enhancement to httpbin that provides data-persistent endpoints
-`splunk_forwarder/`_                                   Web app that collects data from ``qe_coverage`` and forwards it to Splunk
+`data_broker/`_                                      Web app to collect data from ``qe_coverage`` and forwards it to the data warehouse
 ===================================================  ==================================================================================
 
 .. toctree::
@@ -67,4 +67,4 @@ pr-checker.py                                        Checks a GitHub organizatio
    Coverage Metrics <reporting/qe_coverage/coverage>
 
 .. _Artifactory: https://artifacts.rackspace.net
-.. _`splunk_forwarder/`: https://qetools.rax.io/splunk/doc/
+.. _`data_broker/`: https://qetools.rax.io/coverage/doc/
