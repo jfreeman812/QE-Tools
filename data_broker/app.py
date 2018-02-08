@@ -8,15 +8,16 @@ except ImportError:
     import urlparse as parse
 
 from flask import Flask
-from flask_restplus import Api, Resource, reqparse
+from flask_restplus import Api, Resource, reqparse, fields
 import requests
 
 
 app = Flask(__name__)
 app.config.SWAGGER_UI_DOC_EXPANSION = 'full'
-api = Api(app, title='Splunk Data Forwarder', doc='/splunk/doc/')
+app.url_map.strict_slashes = False
+api = Api(app, title='QE Data Broker', doc='/coverage/doc/')
 
-ns = api.namespace('splunk', description='Splunk Forwarding Endpoint')
+ns = api.namespace('coverage', description='Data Broker Endpoint')
 
 
 SPLUNK_COLLECTOR_HOSTNAME = 'httpc.secops.rackspace.com'
@@ -27,18 +28,21 @@ SPLUNK_UI_BASE_URL = 'sage.rackspace.com:8000'
 SPLUNK_UI_SEARCH_PATH = '/en-US/app/search/search'
 
 
-parser = api.parser()
-parser.add_argument('host', type=str, required=True,
-                    help='A host must be provided', location='json')
-parser.add_argument('events', type=list, required=True,
-                    help='events to be posted must be provided', location='json')
-parser.add_argument('source', type=str, default=SPLUNK_REPORT_SOURCE,
-                    help='the source for the events must be provided', location='json')
-parser.add_argument('index', type=str, default=SPLUNK_REPORT_INDEX,
-                    help='The index for the data was missing', location='json')
-parser.add_argument('timestamp', type=str, default=None,
-                    help='a unix timestamp for the events. Defaults to current time.',
-                    location='json')
+base_parser = api.parser()
+base_parser.add_argument('host', type=str, required=True,
+                         help='A host must be provided', location='json')
+base_parser.add_argument('events', type=list, required=True,
+                         help='events to be posted must be provided', location='json')
+base_parser.add_argument('timestamp', type=float, default=None,
+                         help='a unix timestamp for the events. Defaults to current time.',
+                         location='json')
+
+
+raw_parser = base_parser.copy()
+raw_parser.add_argument('source', type=str, default=SPLUNK_REPORT_SOURCE,
+                        help='the source for the events', location='json')
+raw_parser.add_argument('index', type=str, default=SPLUNK_REPORT_INDEX,
+                        help='The index to which the data will be posted', location='json')
 
 
 def _token_config():
@@ -60,25 +64,29 @@ def coverage_current_time():
 TOKENS = _token_config()
 
 
-@ns.route('/', endpoint='splunk')
 class SplunkAPI(Resource):
+    parser = None
+    fixed_arg_values = {}
+
     def _get_token(self, index):
         return TOKENS[index]['token']
 
     @staticmethod
-    def _splunk_search_url(args):
+    def _display_url(args):
         search_query = 'index="{}" host="{}"'.format(args['index'], args['host'])
         return parse.urlunparse((
             'https', SPLUNK_UI_BASE_URL, SPLUNK_UI_SEARCH_PATH,
             '', 'q=search%20{}'.format(parse.quote(search_query)), ''
         ))
 
-    @api.response(201, 'Accepted')
-    @api.response(500, 'Server Error')
-    @api.doc('POST-Splunk-Data')
-    @api.expect(parser)
+    def _get_args(self):
+        args = self.parser.parse_args()
+        for name, value in self.fixed_arg_values.items():
+            args[name] = value
+        return args
+
     def post(self):
-        args = parser.parse_args()
+        args = self._get_args()
         common_data = {
             'time': args['timestamp'] or coverage_current_time(),
             'host': args['host'],
@@ -95,11 +103,38 @@ class SplunkAPI(Resource):
         try:
             response.raise_for_status()
             return {'message': 'data posted successfully!',
-                    'url': self._splunk_search_url(args)}, 201
+                    'url': self._display_url(args)}, 201
         except requests.exceptions.HTTPError as e:
             return {'message': 'data failed to post!',
                     'error': str(e),
                     'response_text': str(response.content)}, 500
+
+
+# leaving fully-extensible API
+@ns.route('/', endpoint='RAW-Data')
+@api.hide
+class RawCoverage(SplunkAPI):
+    parser = raw_parser
+
+    @api.response(201, 'Accepted')
+    @api.response(500, 'Server Error')
+    @api.doc('POST-Raw-Data')
+    @api.expect(raw_parser)
+    def post(self):
+        return super(RawCoverage, self).post()
+
+
+@ns.route('/staging', endpoint='staging coverage data')
+class StagingCoverage(SplunkAPI):
+    parser = base_parser
+    fixed_arg_values = {'source': SPLUNK_REPORT_SOURCE, 'index': SPLUNK_REPORT_INDEX}
+
+    @api.response(201, 'Accepted')
+    @api.response(500, 'Server Error')
+    @api.doc('POST-Staging-Data')
+    @api.expect(base_parser)
+    def post(self):
+        return super(StagingCoverage, self).post()
 
 
 if __name__ == '__main__':
