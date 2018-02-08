@@ -9,6 +9,6 @@ setup(name='tableread',
       license='MIT',
       packages=['tableread'],
       install_requires=[
-          'attrs==17.3.0'
+          'attrs>=16.0.0'
       ],
       zip_safe=False)
