@@ -12,7 +12,7 @@ This is a collection of tools for reporting and documenting test coverage for te
 Test coverage reporting is part of the commitment of our QE organization to be driven by data.
 Within the TES Technology & Data QE org, we've gone so far as to make it part of our `Table Stakes`_.
 
-For the Rationale on why we want coverage metrics and how to apply the coverage markup to tests, please see `Coverage Metrics standard`_.
+For the Rationale on why we want coverage metrics and how to apply the coverage markup to tests, please see :doc:`Coverage Metrics standard<qe_coverage/coverage>`.
 
 Currently we support any Gherkin-based tests, and Python OpenCAFE-based tests.
 (Pytest is anticipated, but not yet supported.)
@@ -35,14 +35,14 @@ Python 2.7 and Python 3.5+ are the supported versions.
 Annotating Tests
 ----------------
 
-In order to gather coverage data, we need to annotate our test suites, as per the `Coverage Metrics standard`_
+In order to gather coverage data, we need to annotate our test suites, as per the :doc:`Coverage Metrics standard<qe_coverage/coverage>`
 How tests are annotated for coverage metrics reporting depends on the automation framework being used.
 This tooling supports the following frameworks:
 
 - Gherkin-based testing: the annotations are stand-alone, you need no additional tools.
 - OpenCAFE-based testing: you need to install the ``qe_coverage`` python package.
   The ``opencafe_decorators`` module in that package provides the decorators needed to annotate tests for coverage metrics gathering,
-  as per the `Coverage Metrics standard`_.
+  as per the :doc:`Coverage Metrics standard<qe_coverage/coverage>`.
 
 
 Publishing Coverage Data
@@ -71,10 +71,6 @@ Reports are published to Splunk:
   - This environment variable is defined by Jenkins, so you get it 'for free' when you run the scripts to publish your reports in a Jenkins job.
   - If you need to publish from another source, you need to arrange for this environment variable to be set properly before you run the report.
   - If this variable is not set, some form of the hostname of the current machine will be used. This may not be what you want/expect.
-
-- The authentication needed to successfully publish to Splunk is a token that is passed via a command-line switch to all the publishing scripts.
-
-  - When publishing from Jenkins, this token should be configured in your server so that the job using it *does not*, and *should not* hard code this value.
 
 Common Coverage annotations:
 
@@ -163,6 +159,5 @@ if one of the OpenCAFE defined setup/teardown methods is being called.::
     def tearDown(self):
         super(DCXQEBaseTestFixture, self).tearDown()
 
-.. _Coverage Metrics standard: qe_coverage/coverage.rst
 .. _Table Stakes: https://one.rackspace.com/pages/viewpage.action?title=Table+Stakes+Definition&spaceKey=cloudqe
 .. _Artifactory: https://artifacts.rackspace.net
