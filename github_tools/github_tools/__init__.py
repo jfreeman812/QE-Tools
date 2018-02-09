@@ -1,14 +1,4 @@
 #!/usr/bin/env python
-'''
-Overdue PR Checker
-
-This PR checker is designed to signal a reviewer if a PR has not been reviewed within a given time
-period. This checker works by getting the repositories associated with a provided organization and
-(optionally) filtering by team name. This is done instead of providing a list of repositories to
-the script because when repository is created and associated with a team, no changes would need to
-be made to the arguments provided to this script.
-'''
-
 import argparse
 import collections
 import datetime
@@ -21,7 +11,19 @@ import github3
 import github3.users
 import requests
 
-NOW = datetime.datetime.now().replace(tzinfo=datetime.timezone.utc)
+
+class UTC(datetime.tzinfo):
+    def utcoffset(self, dt):
+        return datetime.timedelta(0)
+
+    def tzname(self, dt):
+        return 'UTC'
+
+    def dst(self, dt):
+        return datetime.timedelta(0)
+
+
+NOW = datetime.datetime.now(UTC())
 PULL_WAIT = 20 * 60 * 60
 
 
@@ -49,7 +51,7 @@ def get_reviews(token, organization, pr_age, name_filter=''):
 def send_email(user, review_list):
     msg = email.mime.multipart.MIMEMultipart('alternative')
     msg['Subject'] = 'Pull Requests Needing Attention'
-    msg['From'] = 'pr-checker@rackspace.com'
+    msg['From'] = 'rs-pr-checker@rackspace.com'
     # Get Name and address from Hozer, since it's not in GitHub
     req = requests.get('https://finder.rackspace.net/mini.php?q={}'.format(user))
     for line in req.text.splitlines():
@@ -77,7 +79,7 @@ def main(token, organization, name_filter, pr_age):
         send_email(user, review_list)
 
 
-if __name__ == '__main__':
+def pr_checker():
     parser = argparse.ArgumentParser()
     parser.add_argument('--name-filter', help='Filter for team names, if needed', default='')
     parser.add_argument('token', help='GitHub Token')
@@ -86,3 +88,7 @@ if __name__ == '__main__':
     parser.add_argument('--pr-age', default=PULL_WAIT, help=wait_help)
     args = parser.parse_args()
     main(args.token, args.organization, args.name_filter, args.pr_age)
+
+
+if __name__ == '__main__':
+    pr_checker()
