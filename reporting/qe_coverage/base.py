@@ -17,9 +17,14 @@ except ImportError:
 
 import attr
 import requests
+from requests.packages.urllib3.exceptions import InsecureRequestWarning
 from tableread import SimpleRSTReader
 
 from qecommon_tools import padded_list
+
+
+# Silence requests complaining about insecure connections; needed for our internal certificates
+requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
 
 NO_STATUS_TICKET_KEY = 'Tickets'
