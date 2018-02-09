@@ -135,6 +135,9 @@ class StagingCoverage(SplunkAPI):
     @api.expect([test])
     def post(self, host):
         args = {**self.fixed_arg_values, **{'host': host}}
+        timestamp = request.args.get('timestamp')
+        if timestamp:
+            args.update(timestamp=timestamp)
         return self._post(args, events=request.json)
 
 
