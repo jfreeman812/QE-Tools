@@ -7,7 +7,7 @@ try:
 except ImportError:
     import urlparse as parse
 
-from flask import Flask
+from flask import Flask, request
 from flask_restplus import Api, Resource, reqparse, fields
 import requests
 
@@ -28,21 +28,27 @@ SPLUNK_UI_BASE_URL = 'sage.rackspace.com:8000'
 SPLUNK_UI_SEARCH_PATH = '/en-US/app/search/search'
 
 
-base_parser = api.parser()
-base_parser.add_argument('host', type=str, required=True,
-                         help='A host must be provided', location='json')
-base_parser.add_argument('events', type=list, required=True,
-                         help='events to be posted must be provided', location='json')
-base_parser.add_argument('timestamp', type=float, default=None,
-                         help='a unix timestamp for the events. Defaults to current time.',
-                         location='json')
+test = api.model('Test', {
+    'Categories': fields.List(fields.String, example=['Variable Builder']),
+    'Execution Method': fields.String(example='automated'),
+    'Feature Name': fields.String(example='Variable Builder'),
+    'Interface Type': fields.String(example='gui'),
+    'Polarity': fields.String(example='positive'),
+    'Priority': fields.String(example='medium'),
+    'Product': fields.String(example='ARIC'),
+    'Status': fields.String(example='operational'),
+    'Suite': fields.String(example='smoke'),
+    'Test Name': fields.String(example='Edit and upate a created Variable'),
+})
 
 
-raw_parser = base_parser.copy()
-raw_parser.add_argument('source', type=str, default=SPLUNK_REPORT_SOURCE,
-                        help='the source for the events', location='json')
-raw_parser.add_argument('index', type=str, default=SPLUNK_REPORT_INDEX,
-                        help='The index to which the data will be posted', location='json')
+raw_args = api.model('Raw Input', {
+    'events': fields.List(fields.Nested(test), required=True),
+    'host': fields.String(required=True, example='jenkinsqe.rba.rackspace.com'),
+    'timestamp': fields.Float(example=1518209250.403),
+    'source': fields.String(default=SPLUNK_REPORT_SOURCE),
+    'index': fields.String(default=SPLUNK_REPORT_INDEX),
+})
 
 
 def _token_config():
@@ -65,7 +71,6 @@ TOKENS = _token_config()
 
 
 class SplunkAPI(Resource):
-    parser = None
     fixed_arg_values = {}
 
     def _get_token(self, index):
@@ -79,22 +84,18 @@ class SplunkAPI(Resource):
             '', 'q=search%20{}'.format(parse.quote(search_query)), ''
         ))
 
-    def _get_args(self):
-        args = self.parser.parse_args()
-        for name, value in self.fixed_arg_values.items():
-            args[name] = value
-        return args
-
-    def post(self):
-        args = self._get_args()
+    def _post(self, args, events=None):
+        events = events or args.get('events', [])
+        if not events:
+            return {'message': 'No events to post!'}, 400
         common_data = {
-            'time': args['timestamp'] or coverage_current_time(),
+            'time': args.get('timestamp') or coverage_current_time(),
             'host': args['host'],
             'index': args['index'],
             'source': args['source'],
             'sourcetype': '_json'
         }
-        events = [{'event': x} for x in args['events']]
+        events = [{'event': x} for x in events]
         for event in events:
             event.update(common_data)
         response = requests.post(SPLUNK_COLLECTOR_URL, data='\n'.join(map(json.dumps, events)),
@@ -114,27 +115,27 @@ class SplunkAPI(Resource):
 @ns.route('/', endpoint='RAW-Data')
 @api.hide
 class RawCoverage(SplunkAPI):
-    parser = raw_parser
 
     @api.response(201, 'Accepted')
     @api.response(500, 'Server Error')
     @api.doc('POST-Raw-Data')
-    @api.expect(raw_parser)
+    @api.expect(raw_args)
     def post(self):
-        return super(RawCoverage, self).post()
+        args = request.json
+        return self._post(args)
 
 
-@ns.route('/staging', endpoint='staging coverage data')
+@ns.route('/staging/<string:host>', endpoint='staging coverage data')
 class StagingCoverage(SplunkAPI):
-    parser = base_parser
     fixed_arg_values = {'source': SPLUNK_REPORT_SOURCE, 'index': SPLUNK_REPORT_INDEX}
 
     @api.response(201, 'Accepted')
     @api.response(500, 'Server Error')
     @api.doc('POST-Staging-Data')
-    @api.expect(base_parser)
-    def post(self):
-        return super(StagingCoverage, self).post()
+    @api.expect([test])
+    def post(self, host):
+        args = {**self.fixed_arg_values, **{'host': host}}
+        return self._post(args, events=request.json)
 
 
 if __name__ == '__main__':
