@@ -32,7 +32,7 @@ TAG_DEFINITION_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), '
 REPORT_PATH = 'reports'
 COVERAGE_REPORT_FILE = '{repo_name}_coverage_report_{time_stamp}.{ext}'
 TICKET_RE = re.compile('([A-Z][A-Z]+-?[0-9]+)')
-COVERAGE_URL_TEMPLATE = 'https://qetools.rax.io/coverage/{}'
+COVERAGE_URL_TEMPLATE = 'https://qetools.rax.io/coverage/{}/{{}}'
 COVERAGE_STAGING_URL = COVERAGE_URL_TEMPLATE.format('staging')
 
 ####################################################################################################
@@ -297,11 +297,8 @@ class ReportWriter(object):
         return csv_data
 
     def send_report(self):
-        data = {
-            'host': _hostname_from_env() or socket.gethostname(),
-            'events': self.data
-        }
-        response = requests.post(COVERAGE_STAGING_URL, json=data, verify=False)
+        host = _hostname_from_env() or socket.gethostname(),
+        response = requests.post(COVERAGE_STAGING_URL.format(host), json=self.data, verify=False)
         response.raise_for_status()
         return response.json().get('url', '')
 
