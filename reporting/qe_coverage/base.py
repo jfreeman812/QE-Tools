@@ -27,8 +27,8 @@ TAG_DEFINITION_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), '
 REPORT_PATH = 'reports'
 COVERAGE_REPORT_FILE = '{repo_name}_coverage_report_{time_stamp}.{ext}'
 TICKET_RE = re.compile('([A-Z][A-Z]+-?[0-9]+)')
-SPLUNK_FORWARDER_URL = 'https://qetools.rax.io/splunk/'
-SPLUNK_COVERAGE_SOURCE = 'rax_qe_coverage'
+COVERAGE_URL_TEMPLATE = 'https://qetools.rax.io/coverage/{}'
+COVERAGE_STAGING_URL = COVERAGE_URL_TEMPLATE.format('staging')
 
 ####################################################################################################
 # Globals
@@ -173,7 +173,6 @@ def _hostname_from_env():
 
 class ReportWriter(object):
     base_file_name = ''
-    _source = None
 
     def __init__(self, test_group, product_name, interface_type, output_dir):
         self.test_group = test_group
@@ -294,16 +293,14 @@ class ReportWriter(object):
     def _send_to_splunk(self):
         data = {
             'host': _hostname_from_env() or socket.gethostname(),
-            'source': self._source,
             'events': self.data
         }
-        response = requests.post(SPLUNK_FORWARDER_URL, json=data, verify=False)
+        response = requests.post(COVERAGE_STAGING_URL, json=data, verify=False)
         response.raise_for_status()
 
 
 class CoverageReport(ReportWriter):
     base_file_name = COVERAGE_REPORT_FILE
-    _source = SPLUNK_COVERAGE_SOURCE
 
     def _csv_heading_order(self):
         '''The base non extended order of the csv columns for the Coverage Report'''
