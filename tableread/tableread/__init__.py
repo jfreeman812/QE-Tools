@@ -1,10 +1,12 @@
 import os
-from collections import namedtuple, OrderedDict
+from collections import OrderedDict
 try:
     from itertools import filterfalse
 except ImportError:
     from itertools import ifilterfalse as filterfalse
 from operator import attrgetter
+
+import attr
 
 
 def _safe_name(name):
@@ -81,8 +83,8 @@ class SimpleRSTTable(BaseRSTDataObject):
         return words
 
     def _build_data(self):
-        Row = namedtuple('Row', [_safe_name(x) for x in self._row_splitter(self._header)])
-        self.fields = Row._fields
+        self.fields = [_safe_name(x) for x in self._row_splitter(self._header)]
+        row_class = attr.make_class('Row', self.fields, hash=True)
         for row in self._rows:
             if self._stop_checker(row):
                 break
@@ -91,7 +93,7 @@ class SimpleRSTTable(BaseRSTDataObject):
                 row = self._row_splitter(row)
                 message = "Row '{}' does not match field list '{}' length."
                 assert len(row) == len(self.fields), message.format(row, self.fields)
-                self.data.append(Row(*row))
+                self.data.append(row_class(*row))
 
     def _filter_data(self, data, filter_kwargs, filter_func):
         filters = [v if callable(v) else get_specific_attr_matcher(k, v)
