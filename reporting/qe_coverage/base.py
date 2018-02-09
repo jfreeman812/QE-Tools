@@ -17,9 +17,14 @@ except ImportError:
 
 import attr
 import requests
+from requests.packages.urllib3.exceptions import InsecureRequestWarning
 from tableread import SimpleRSTReader
 
 from qecommon_tools import padded_list
+
+
+# Silence requests complaining about insecure connections; needed for our internal certificates
+requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
 
 NO_STATUS_TICKET_KEY = 'Tickets'
@@ -182,9 +187,10 @@ class ReportWriter(object):
         self._max_lens = {}
         self.data = self._data()
         self._json_keys_that_exist = {k for d in self.data for k in d.keys()}
+
+    def write_report(self):
         self._write_json_report()
         self._write_csv_report()
-        self._send_to_splunk()
 
     def _max_len(self, key):
         '''
@@ -290,13 +296,14 @@ class ReportWriter(object):
             csv_data.extend(self._csv_cols_from(json_name, value) or [(json_name, value)])
         return csv_data
 
-    def _send_to_splunk(self):
+    def send_report(self):
         data = {
             'host': _hostname_from_env() or socket.gethostname(),
             'events': self.data
         }
         response = requests.post(COVERAGE_STAGING_URL, json=data, verify=False)
         response.raise_for_status()
+        return response.json().get('url', '')
 
 
 class CoverageReport(ReportWriter):
@@ -337,5 +344,7 @@ class CSVWriter(object):
 
 
 def run_reports(test_group, product_name, *report_args, **report_kwargs):
-    CoverageReport(test_group, product_name, *report_args, **report_kwargs)
+    report = CoverageReport(test_group, product_name, *report_args, **report_kwargs)
+    report.write_report()
+    print(report.send_report())
     test_group.validate()
