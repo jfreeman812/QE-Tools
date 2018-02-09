@@ -22,6 +22,7 @@ Several libraries have been created that can be installed via Artifactory_.
    :caption: Libraries
 
    qe_jira <qe_jira/README>
+   qecommon_tools <docs/qecommon_tools>
    qe_coverage <reporting/README>
    github_tools <github_tools/README>
    sphinx-gherkindoc <sphinx-gherkindoc/README>
@@ -31,7 +32,7 @@ Several libraries have been created that can be installed via Artifactory_.
 Library Name                                        Description
 ==================================================  ==============================================================================
 :doc:`qe_jira<qe_jira/README>`                      Quickly creates a JIRA on a QE board for testing of a JIRA from a dev board
-qecommon_tools                                      A library for helper functions across QE-Tools designed for larger consumption
+:doc:`qecommon_tools<docs/qecommon_tools>`          A library for helper functions across QE-Tools designed for larger consumption
 :doc:`qe_coverage<reporting/README>`                A collection of tools for QE-related reporting
 :doc:`github_tools<github_tools/README>`            A collection of tools around Git and GitHub to make developers' lives easier.
 :doc:`sphinx-gherkindoc<sphinx-gherkindoc/README>`  A tool to convert Gherkin into Sphinx documentation

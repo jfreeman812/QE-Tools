@@ -21,4 +21,5 @@ if [ "$1" = "--setup" ] ; then
     fi
 fi
 
+sphinx-apidoc --output-dir docs --no-toc --force qecommon_tools/qecommon_tools
 sphinx-build -c $SPHINX_CONF_PATH -aE . docs/

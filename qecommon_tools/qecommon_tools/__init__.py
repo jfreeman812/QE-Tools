@@ -8,10 +8,11 @@ import sys as _sys
 
 
 def display_name(path, package_name=''):
-    '''Create a human-readable name for a given project.
+    '''
+    Create a human-readable name for a given project.
 
     Determine the display name for a project given a path and (optional) package name. If a
-    display_name.txt file is found, the first line is returned. Oterwise, return a title-cased
+    display_name.txt file is found, the first line is returned. Otherwise, return a title-cased
     string from either the base directory or package_name (if provided)
 
     Args:
@@ -30,7 +31,8 @@ def display_name(path, package_name=''):
 
 
 def padded_list(iterable, size, padding=None):
-    '''Genereate a fixed-length list from an iterable, padding as needed.
+    '''
+    Genereate a fixed-length list from an iterable, padding as needed.
 
     Args:
         iterable (iterable): Any iterable that needs padding
@@ -44,13 +46,20 @@ def padded_list(iterable, size, padding=None):
 
 
 def cleanup_and_exit(dir_name=None):
+    '''
+    Cleanup a directory tree that was created and exit.
+
+    Args:
+        dir_name (string): Full path to a directory to remove (optional)
+    '''
     if dir_name:
         _shutil.rmtree(dir_name)
     _sys.exit(0)
 
 
 def safe_run(commands):
-    '''run the given list of commands, only return if no error.
+    '''
+    Run the given list of commands, only return if no error.
 
     If there is an error in attempting or actually running the commands
     error messages are printed on stdout and sys.exit will be called.
@@ -73,11 +82,30 @@ def safe_run(commands):
 
 
 def exit(status=0, message=None):
+    '''
+    Exit the program and optionally print a message to standard error.
+
+    Args:
+        status (int): Exit code to use for exit (optional)
+        message (string): Message to print to standard error (optional)
+    '''
     if message:
         print(message, file=_sys.stderr)
     _sys.exit(status)
 
 
 def error_if(check, status=None, message=''):
+    '''
+    Exit the program if a provided check is true.
+
+    Exit the program if the check is true. If a status is provided, that code is used for the
+    exit code; otherwise the value from check is used. An optional message for standard error can
+    also be provided
+
+    Args:
+        check: Anything with truthiness that can determine if the program should exit or not
+        status (int): Exit code to use for exit (optional)
+        message (string): Message to print to standard error if check is True (optional)
+    '''
     if check:
         exit(status=status or check, message=message.format(check))
