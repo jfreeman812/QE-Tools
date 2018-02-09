@@ -297,7 +297,7 @@ class ReportWriter(object):
         return csv_data
 
     def send_report(self):
-        host = _hostname_from_env() or socket.gethostname(),
+        host = _hostname_from_env() or socket.gethostname()
         response = requests.post(COVERAGE_STAGING_URL.format(host), json=self.data, verify=False)
         response.raise_for_status()
         return response.json().get('url', '')
