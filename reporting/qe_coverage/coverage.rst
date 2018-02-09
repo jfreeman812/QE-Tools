@@ -216,8 +216,7 @@ Example JSON Object
 
 .. code:: json
 
-    {
-        "coverage": [
+        [
             {
                 "Product": "Script Management",
                 "Projects": [],
@@ -250,6 +249,4 @@ Example JSON Object
                 "Execution Method": "automated",
                 "quarantined": ["JIRA-1234", "JIRA-4321"]
             }
-        ],
-        "report_date": "2016-10-11T22:57:43.511Z"
-    }
+        ]

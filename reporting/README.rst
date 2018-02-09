@@ -159,5 +159,25 @@ if one of the OpenCAFE defined setup/teardown methods is being called.::
     def tearDown(self):
         super(DCXQEBaseTestFixture, self).tearDown()
 
+
+Publishing Raw JSON Coverage Data
++++++++++++++++++++++++++++++++++
+
+If you already have your Coverage Data in the proper JSON format (see the example at the end of :doc:`Coverage Metrics standard<qe_coverage/coverage>`),
+you can wrap it with a simple envelope and publish it with a curl command: ::
+
+`curl -X POST -H 'Content-Type: application/json' -H 'Accept: application/json' -d @coverage_envelope.json 'https://qetools.rax.io/coverage/staging'`
+
+Create the ``coverage_envelope.json`` file (file name is arbitrary) as a JSON dictionary:
+
+.. code:: json
+
+    {
+        "host": "Your Jenkins Server URL goes here",
+        "events":  <Your coverage metrics JSON (list) here>
+    }
+
+
+
 .. _Table Stakes: https://one.rackspace.com/pages/viewpage.action?title=Table+Stakes+Definition&spaceKey=cloudqe
 .. _Artifactory: https://artifacts.rackspace.net
