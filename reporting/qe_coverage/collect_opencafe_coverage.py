@@ -18,9 +18,9 @@ TAGS_DIR_ENV_NAME = 'COLLECT_TAGS_DATA_INTO'
 
 def main():
     parser = argparse.ArgumentParser(description='Collect and Publish OpenCAFE Coverage Report')
-    parser.add_argument('--no-clean', default=False, action='store_true',
-                        help='Do not remove the temporary directory, so that humans can look at it')
-    parser.add_argument('--check-only', default=False, action='store_true',
+    parser.add_argument('--preserve-files', default=False, action='store_true',
+                        help='Preserve report files generated')
+    parser.add_argument('--dry-run', default=False, action='store_true',
                         help='Gather metrics, but do not send to splunk.')
     parser.add_argument('--leading-categories-to-strip', type=int, default=0,
                         help='The number of leading categories to omit from the coverage data '
@@ -76,8 +76,8 @@ def main():
 
     safe_run(publish_command)
 
-    if args.no_clean:
-        print('no cleanup done, temporary files are in: {}'.format(tmp_dir_name))
+    if args.preserve_files:
+        print('Generated files located at: {}'.format(tmp_dir_name))
         tmp_dir_name = None
     cleanup_and_exit(dir_name=tmp_dir_name)
 
