@@ -2,7 +2,7 @@ import setuptools
 
 
 setuptools.setup(name='qe_coverage',
-                 version='1.1.1',
+                 version='1.1.2',
                  description='Collection of tools to enable coverage reporting',
                  url='https://github.rackspace.com/QualityEngineering/QE-Tools',
                  author='RBA QE',
