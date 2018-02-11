@@ -120,7 +120,8 @@ def main():
     if args.dry_run:
         sys.exit(test_group.validate())
 
-    run_reports(test_group, args.product_name, args.default_interface_type, args.output_dir)
+    run_reports(test_group, args.product_name, args.default_interface_type, args.output_dir,
+                host=args.host)
 
 
 if __name__ == '__main__':

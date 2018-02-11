@@ -46,6 +46,7 @@ def main():
     publish_command = [
         'coverage-send-opencafe-report',
         '-o', tmp_dir_name,
+        '--host', args.host,
         '--leading-categories-to-strip', str(args.leading_categories_to_strip),
     ]
     if args.dry_run:

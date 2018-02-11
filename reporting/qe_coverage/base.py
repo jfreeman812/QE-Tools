@@ -297,9 +297,9 @@ class ReportWriter(object):
             csv_data.extend(self._csv_cols_from(json_name, value) or [(json_name, value)])
         return csv_data
 
-    def send_report(self):
+    def send_report(self, host=''):
         data = {
-            'host': _hostname_from_env() or socket.gethostname(),
+            'host': host or _hostname_from_env() or socket.gethostname(),
             'events': self.data
         }
         response = requests.post(COVERAGE_STAGING_URL, json=data, verify=False)
@@ -345,9 +345,10 @@ class CSVWriter(object):
 
 
 def run_reports(test_group, product_name, *report_args, **report_kwargs):
+    host = report_kwargs.pop('host', '')
     report = CoverageReport(test_group, product_name, *report_args, **report_kwargs)
     report.write_report()
-    print(report.send_report())
+    print(report.send_report(host=host))
     test_group.validate()
 
 
@@ -361,6 +362,7 @@ def build_parser(description):
                         help='Preserve report files generated')
     parser.add_argument('--dry-run', action='store_true',
                         help='Do not generate reports or upload; only validate the tags.')
+    parser.add_argument('--host', help='Host name to provide to the reporting tool.')
     return parser
 
 
