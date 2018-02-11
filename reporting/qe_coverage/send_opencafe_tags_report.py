@@ -40,7 +40,7 @@ import os
 import re
 import sys
 
-from qe_coverage.base import REPORT_PATH, TestGroup, run_reports
+from qe_coverage.base import REPORT_PATH, TestGroup, build_opencafe_parser, run_reports
 from qecommon_tools import display_name
 
 
@@ -107,24 +107,11 @@ def coverage_json_to_test_group(coverage_file_name, default_interface_type,
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Test Reports')
+    parser = build_opencafe_parser('Collect and publish OpenCAFE coverage report')
     parser.add_argument('coverage_json_file',
                         help='The name of the coverage json file to process')
-    # NOTE: This is a temporary work-around, each coverage file's line has a product available,
-    #       but since we have multiple product right now, the reporting code needs to be expanded
-    #       to handle that use case. QGTM-671 is tracking this.
-    parser.add_argument('product_name',
-                        help='The name of the product')
-    parser.add_argument('default_interface_type', choices=sorted(set(INTERFACE_TYPES.values())),
-                        help='The interface type of the product '
-                             'if it is not otherwise specified or in the category list')
     parser.add_argument('-o', '--output-dir', default=REPORT_PATH,
                         help='Output directory for the generated report files.')
-    parser.add_argument('--leading-categories-to-strip', type=int, default=0,
-                        help='The number of leading categories to omit from the coverage data '
-                             'sent to Splunk')
-    parser.add_argument('--dry-run', action='store_true',
-                        help='Do not generate reports or upload; only validate the tags.')
     args = parser.parse_args()
 
     test_group = coverage_json_to_test_group(args.coverage_json_file,

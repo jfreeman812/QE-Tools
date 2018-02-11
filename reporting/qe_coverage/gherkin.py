@@ -1,4 +1,3 @@
-import argparse
 import fnmatch
 import os
 import sys
@@ -7,7 +6,7 @@ from tempfile import mkdtemp
 import attr
 import behave.parser
 
-from qe_coverage.base import TestGroup, run_reports
+from qe_coverage.base import TestGroup, run_reports, build_parser
 from qecommon_tools import cleanup_and_exit, display_name
 
 
@@ -77,19 +76,11 @@ def run_gherkin_reports(product_dir, *report_args, **product_kwargs):
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Test Reports from Gherkin sources',
-                                     epilog='Note: Run this script from the root of the test tree'
-                                            ' being reported on.')
-    parser.add_argument('interface_type', choices=['api', 'gui'],
-                        help='The interface type of the product')
+    parser = build_parser('Collect and publish Gherkin coverage report')
     product_help = 'The director(ies) to start looking for feature files. Useful when cloning a '\
                    'repository and the feature files are stored in a sub folder.'
     parser.add_argument('-p', '--product_dir', nargs='?', default='', help=product_help)
-    parser.add_argument('--preserve-files', default=False, action='store_true',
-                        help='Preserve report files generated')
     parser.add_argument('--search_hidden', action='store_true', help='Include ".hidden" folders')
-    parser.add_argument('--dry-run', action='store_true',
-                        help='Do not generate reports or upload; only validate the tags.')
     args = parser.parse_args()
     output_path = mkdtemp()
     run_gherkin_reports(args.product_dir, args.interface_type, output_path,
