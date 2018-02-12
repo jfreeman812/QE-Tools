@@ -3,7 +3,7 @@ import setuptools
 
 setuptools.setup(
     name='qe_jira',
-    version='1.0.3',
+    version='1.0.4',
     description='Simple helper to create a QE Test JIRA from a dev JIRA',
     author='RBA QE',
     author_email='rba-qe@rackspace.com',
