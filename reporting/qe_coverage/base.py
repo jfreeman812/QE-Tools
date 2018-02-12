@@ -359,7 +359,8 @@ def build_parser(description):
                         help='Preserve report files generated')
     parser.add_argument('--dry-run', action='store_true',
                         help='Do not generate reports or upload; only validate the tags.')
-    parser.add_argument('--host', help='Host name to provide to the reporting tool.')
+    parser.add_argument('--host', type=str, default='',
+                        help='Host name to provide to the reporting tool.')
     return parser
 
 
