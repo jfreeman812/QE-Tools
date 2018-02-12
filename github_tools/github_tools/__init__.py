@@ -4,11 +4,14 @@ import collections
 import datetime
 import email.mime.multipart
 import email.mime.text
+import os
 import re
+import shutil
 import smtplib
 
 import github3
 import github3.users
+import qecommon_tools
 import requests
 
 
@@ -88,6 +91,45 @@ def pr_checker():
     parser.add_argument('--pr-age', default=PULL_WAIT, help=wait_help)
     args = parser.parse_args()
     main(args.token, args.organization, args.name_filter, args.pr_age)
+
+
+def _update_hooks(update_dir, force, source_hooks):
+    '''Find existing repositories and install hooks'''
+    for dir_path, dir_names, file_names in os.walk(update_dir):
+        if '.git' in dir_names:
+            if force:
+                existing_dir = os.path.join(dir_path, '.git', 'hooks')
+                for existing_hook in source_hooks.intersection(os.listdir(existing_dir)):
+                    os.remove(os.path.join(existing_dir, existing_hook))
+            qecommon_tools.safe_run(['git', 'init'], cwd=dir_path)
+
+
+def install_hooks():
+    parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+                                     description='Install helpful git hook templates')
+    update_help = 'Optional list of directories to scan for git projects and update the hooks.'
+    parser.add_argument('update_paths', nargs='*', help=update_help)
+    parser.add_argument('--force', action='store_true',
+                        help='Override git hooks in existing git projects')
+    parser.add_argument('--template-path', default='~/.git-templates',
+                        help='Path to install hook templates')
+    args = parser.parse_args()
+    # Update git config for template path
+    config_command = ['git', 'config', '--global', 'init.templatedir', args.template_path]
+    qecommon_tools.safe_run(config_command)
+    # Create necessary directories
+    destination_dir = os.path.expanduser(os.path.join(args.template_path, 'hooks'))
+    for check_path in (args.template_path, destination_dir):
+        if not os.path.exists(check_path):
+            os.mkdir(check_path)
+    # Copy hooks to template directory
+    source_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'hooks')
+    source_hooks = set(os.listdir(source_dir))
+    for source_hook in source_hooks:
+        shutil.copy(os.path.join(source_dir, source_hook), destination_dir)
+    # (Optionally) Update any git repositories found in the provided path(s)
+    for update_dir in args.update_paths:
+        _update_hooks(update_dir, args.force, source_hooks)
 
 
 if __name__ == '__main__':

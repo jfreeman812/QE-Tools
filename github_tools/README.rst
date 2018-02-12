@@ -3,6 +3,9 @@ GitHub Tools
 
 A collection of tools around Git and GitHub to make developers' lives easier.
 
+- `gt-pr-checker`_
+- `gt-install-hooks`_
+
 gt-pr-checker
 -------------
 
@@ -27,3 +30,31 @@ with the string provided. For example, if there are multiple GitHub teams affili
 team (e.g., ``qe-tools-api`` and ``qe-tools-ui``), then ``--name-filter`` could be called with
 ``qe-tools`` and all repositories associated with both GitHub teams will be checked, but no other
 repositories.
+
+gt-install-hooks
+----------------
+
+Install useful git hooks that work within common workflows. These hooks may be installed separately from this script, but this script provides an easy mechanism for installing and updating them in existing repositories.
+
+commit-msg
+~~~~~~~~~~
+
+Ensure that a commit message conforms to some best practices:
+
+#. Subject lines should not be longer than 50 characters
+#. Wrap the body at 72 characters
+#. Separate the subject from body with a blank line.
+
+These are taken from `A Note About Git Commit Messages`_.
+
+pre-commit
+~~~~~~~~~~
+
+Can perform validations before making a commit. If an executable file named ``self-check.sh`` exists in the root of the repository and a Python, Ruby, or Gherkin file was changed, the checker is executed and the return status serves as a gate for the commit to occur. The check can be bypassed via ``git commit -n``.
+
+prepare-commit-msg
+~~~~~~~~~~~~~~~~~~
+
+Prepare a commit message by including an appropriate prefix, when possible, based on the branch name. If the branch name contains a JIRA ID, that is included in the prefix. If the branch name also contains either "FF" or "Spike", that is appended to the prefix. If a branch name, without including a JIRA ID, contains "FF", "Spike", "Enhancement" or "Fix", those phrases are set as the prefix. All searches are case-insensitive.
+
+.. _`A Note About Git Commit Messages`: https://tbaggery.com/2008/04/19/a-note-about-git-commit-messages.html
