@@ -1,11 +1,7 @@
 from __future__ import print_function
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
+from configparser import ConfigParser
 import os
-import sys
-if sys.version_info[0] < 3:
-    from ConfigParser import ConfigParser
-else:
-    from configparser import ConfigParser
 
 import qecommon_tools
 import jira
