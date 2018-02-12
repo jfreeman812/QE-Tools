@@ -59,10 +59,9 @@ def main():
 
     safe_run(publish_command)
 
-    if args.preserve_files:
-        print('Generated files located at: {}'.format(tmp_dir_name))
-        tmp_dir_name = None
-    cleanup_and_exit(dir_name=tmp_dir_name)
+    if not args.preserve_files:
+        cleanup_and_exit(dir_name=tmp_dir_name)
+    print('Generated files located at: {}'.format(tmp_dir_name))
 
 
 if __name__ == '__main__':
