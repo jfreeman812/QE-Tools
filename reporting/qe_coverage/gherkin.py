@@ -1,13 +1,13 @@
-import argparse
 import fnmatch
 import os
 import sys
+from tempfile import mkdtemp
 
 import attr
 import behave.parser
 
-from qe_coverage.base import REPORT_PATH, TestGroup, run_reports
-from qecommon_tools import display_name
+from qe_coverage.base import TestGroup, run_reports, build_parser
+from qecommon_tools import cleanup_and_exit, display_name
 
 
 # Any display name in nuisance_category_names will be omitted from the categories. 'features' is
@@ -76,22 +76,18 @@ def run_gherkin_reports(product_dir, *report_args, **product_kwargs):
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Test Reports from Gherkin sources',
-                                     epilog='Note: Run this script from the root of the test tree'
-                                            ' being reported on.')
-    parser.add_argument('interface_type', choices=['api', 'gui'],
-                        help='The interface type of the product')
+    parser = build_parser('Collect and publish Gherkin coverage report')
     product_help = 'The director(ies) to start looking for feature files. Useful when cloning a '\
                    'repository and the feature files are stored in a sub folder.'
     parser.add_argument('-p', '--product_dir', nargs='?', default='', help=product_help)
-    parser.add_argument('-o', '--output-dir', default=REPORT_PATH,
-                        help='Output directory for the generated report files.')
     parser.add_argument('--search_hidden', action='store_true', help='Include ".hidden" folders')
-    parser.add_argument('--dry-run', action='store_true',
-                        help='Do not generate reports or upload; only validate the tags.')
     args = parser.parse_args()
-    run_gherkin_reports(args.product_dir, args.interface_type, args.output_dir,
-                        search_hidden=args.search_hidden, dry_run=args.dry_run)
+    output_path = mkdtemp()
+    run_gherkin_reports(args.product_dir, args.default_interface_type, output_path,
+                        search_hidden=args.search_hidden, dry_run=args.dry_run, host=args.host)
+    if not args.preserve_files:
+        cleanup_and_exit(dir_name=output_path)
+    print('Generated files located at: {}'.format(output_path))
 
 
 if __name__ == '__main__':

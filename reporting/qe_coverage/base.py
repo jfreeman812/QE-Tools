@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 from __future__ import print_function
+import argparse
 from collections import defaultdict, namedtuple
 from contextlib import closing
 import csv
@@ -296,8 +297,8 @@ class ReportWriter(object):
             csv_data.extend(self._csv_cols_from(json_name, value) or [(json_name, value)])
         return csv_data
 
-    def send_report(self):
-        host = _hostname_from_env() or socket.gethostname()
+    def send_report(self, host=''):
+        host = host or _hostname_from_env() or socket.gethostname()
         response = requests.post(COVERAGE_STAGING_URL.format(host), json=self.data, verify=False)
         response.raise_for_status()
         return response.json().get('url', '')
@@ -341,7 +342,36 @@ class CSVWriter(object):
 
 
 def run_reports(test_group, product_name, *report_args, **report_kwargs):
+    host = report_kwargs.pop('host', '')
     report = CoverageReport(test_group, product_name, *report_args, **report_kwargs)
     report.write_report()
-    print(report.send_report())
+    print(report.send_report(host=host))
     test_group.validate()
+
+
+def build_parser(description):
+    parser = argparse.ArgumentParser(description=description,
+                                     epilog='Note: Run this script from the root of the test tree'
+                                            ' being reported on.')
+    parser.add_argument('default_interface_type', choices='gui api'.split(),
+                        help='The interface type of the product if it is not otherwise specified')
+    parser.add_argument('--preserve-files', default=False, action='store_true',
+                        help='Preserve report files generated')
+    parser.add_argument('--dry-run', action='store_true',
+                        help='Do not generate reports or upload; only validate the tags.')
+    parser.add_argument('--host', type=str, default='',
+                        help='Host name to provide to the reporting tool.')
+    return parser
+
+
+def build_opencafe_parser(description):
+    parser = build_parser(description)
+    # NOTE: This is a temporary work-around, each coverage file's line has a product available,
+    #       but since we have multiple product right now, the reporting code needs to be expanded
+    #       to handle that use case. QET-22 is tracking this.
+    parser.add_argument('product_name',
+                        help='The name of the product')
+    parser.add_argument('--leading-categories-to-strip', type=int, default=0,
+                        help='The number of leading categories to omit from the coverage data '
+                             'sent to Splunk')
+    return parser
