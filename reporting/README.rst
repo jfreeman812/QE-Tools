@@ -168,7 +168,7 @@ you can publish it with a curl command: ::
 
 `curl -X POST -H 'Content-Type: application/json' -H 'Accept: application/json' -d @coverage_list.json 'https://qetools.rax.io/coverage/staging/HOST'`
 
-Where ``HOST`` is the name of the host (such as ``$JENKINS_URL`` if you are using this from a Jenkins job) that the data is to be reported under.
+Where ``HOST`` is the fully qualified domain name of the host that the data is to be reported under.
 
 
 .. _Table Stakes: https://one.rackspace.com/pages/viewpage.action?title=Table+Stakes+Definition&spaceKey=cloudqe
