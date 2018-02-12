@@ -164,19 +164,11 @@ Publishing Raw JSON Coverage Data
 +++++++++++++++++++++++++++++++++
 
 If you already have your Coverage Data in the proper JSON format (see the example at the end of :doc:`Coverage Metrics standard<qe_coverage/coverage>`),
-you can wrap it with a simple envelope and publish it with a curl command: ::
+you can publish it with a curl command: ::
 
-`curl -X POST -H 'Content-Type: application/json' -H 'Accept: application/json' -d @coverage_envelope.json 'https://qetools.rax.io/coverage/staging'`
+`curl -X POST -H 'Content-Type: application/json' -H 'Accept: application/json' -d @coverage_list.json 'https://qetools.rax.io/coverage/staging/HOST'`
 
-Create the ``coverage_envelope.json`` file (file name is arbitrary) as a JSON dictionary:
-
-.. code:: json
-
-    {
-        "host": "Your Jenkins Server URL goes here",
-        "events":  <Your coverage metrics JSON (list) here>
-    }
-
+Where ``HOST`` is the name of the host (such as ``$JENKINS_URL`` if you are using this from a Jenkins job) that the data is to be reported under.
 
 
 .. _Table Stakes: https://one.rackspace.com/pages/viewpage.action?title=Table+Stakes+Definition&spaceKey=cloudqe
