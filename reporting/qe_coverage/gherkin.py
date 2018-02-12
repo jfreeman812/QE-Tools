@@ -83,7 +83,7 @@ def main():
     parser.add_argument('--search_hidden', action='store_true', help='Include ".hidden" folders')
     args = parser.parse_args()
     output_path = mkdtemp()
-    run_gherkin_reports(args.product_dir, args.interface_type, output_path,
+    run_gherkin_reports(args.product_dir, args.default_interface_type, output_path,
                         search_hidden=args.search_hidden, dry_run=args.dry_run, host=args.host)
     if not args.preserve_files:
         cleanup_and_exit(dir_name=output_path)

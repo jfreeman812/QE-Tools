@@ -373,3 +373,4 @@ def build_opencafe_parser(description):
     parser.add_argument('--leading-categories-to-strip', type=int, default=0,
                         help='The number of leading categories to omit from the coverage data '
                              'sent to Splunk')
+    return parser
