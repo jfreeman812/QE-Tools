@@ -10,6 +10,7 @@ name = "artifactory"
 requests = "*"
 Flask = "*"
 flask-restplus = "*"
+qe_coverage = "*"
 
 
 [dev-packages]
