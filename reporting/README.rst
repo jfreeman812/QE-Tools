@@ -166,9 +166,7 @@ Publishing Raw JSON Coverage Data
 If you already have your Coverage Data in the proper JSON format (see the example at the end of :doc:`Coverage Metrics standard<qe_coverage/coverage>`),
 you can publish it with a curl command: ::
 
-`curl -X POST -H 'Content-Type: application/json' -H 'Accept: application/json' -d @coverage_list.json 'https://qetools.rax.io/coverage/staging/HOST'`
-
-Where ``HOST`` is the fully qualified domain name of the host that the data is to be reported under.
+`curl -X POST -H 'Content-Type: application/json' -H 'Accept: application/json' -d @coverage_list.json 'https://qetools.rax.io/coverage/staging'`
 
 
 .. _Table Stakes: https://one.rackspace.com/pages/viewpage.action?title=Table+Stakes+Definition&spaceKey=cloudqe
