@@ -139,6 +139,7 @@ class StagingCoverage(SplunkAPI):
     fixed_arg_values = {'source': SPLUNK_REPORT_SOURCE, 'index': SPLUNK_REPORT_INDEX}
 
     @api.response(201, 'Accepted')
+    @api.response(400, 'Bad Request')
     @api.response(500, 'Server Error')
     @api.doc('POST-Staging-Data')
     @api.expect([coverage_entry], validate=True)
