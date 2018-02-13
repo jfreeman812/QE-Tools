@@ -112,9 +112,7 @@ def testlink_xml_to_test_group(xml_file_name, leading_categories_to_strip):
     '''
     content = TestLinkContentHandler(leading_categories_to_strip)
     parse(xml_file_name, content)
-    tests = content.tests
-
-    return tests
+    return content.tests
 
 
 def main():
