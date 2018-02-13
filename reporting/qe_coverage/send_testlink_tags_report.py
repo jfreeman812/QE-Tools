@@ -119,10 +119,10 @@ def testlink_xml_to_test_group(xml_file_name, leading_categories_to_strip):
 
 def main():
     parser = argparse.ArgumentParser(description='Test Reports')
-    parser.add_argument('coverage_json_file',
-                        help='The name of the coverage json file to process')
-    # NOTE: This is a temporary work-around, each coverage file's line has a product available,
-    #       but since we have multiple product right now, the reporting code needs to be expanded
+    parser.add_argument('testlink_xml_file',
+                        help='The name of the exported testlink xml file to process')
+    # NOTE: This is a temporary work-around, TestLink structure is such that multiple
+    #       product test suites can be present together, the reporting code needs to be expanded
     #       to handle that use case. QGTM-671 is tracking this.
     parser.add_argument('product_name',
                         help='The name of the product')
@@ -138,7 +138,7 @@ def main():
                         help='Do not generate reports or upload; only validate the tags.')
     args = parser.parse_args()
 
-    test_group = testlink_xml_to_test_group(args.coverage_json_file,
+    test_group = testlink_xml_to_test_group(args.testlink_xml_file,
                                             args.leading_categories_to_strip)
     if args.dry_run:
         sys.exit(test_group.validate())
