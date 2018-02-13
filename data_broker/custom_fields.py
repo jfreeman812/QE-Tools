@@ -45,7 +45,7 @@ class CoverageField(CustomField):
     def validate(self, value):
         labels = labels_from(self.table_name)
         if value not in labels:
-            message = '"{}" is not a valid {} value: {}'
+            message = '"{}" is not a valid option for {}: {}'
             return message.format(value, self.table_name, labels)
         return ''
 
@@ -76,6 +76,7 @@ class ExecutionMethod(CoverageField):
 
 class TicketId(CustomField):
     def validate(self, value):
-        if not qe_coverage.base.TICKET_RE.match(value):
-            return '"{}" does not match Ticket label specifications.'.format(value)
+        ticket_re = qe_coverage.base.TICKET_RE
+        if not ticket_re.match(value):
+            return '"{}" does not match Ticket pattern: {}'.format(value, ticket_re.pattern)
         return ''
