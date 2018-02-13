@@ -2,6 +2,7 @@ from configparser import ConfigParser
 import json
 from os import environ, path
 import time
+import uuid
 try:
     from urllib import parse
 except ImportError:
@@ -77,12 +78,18 @@ class SplunkAPI(Resource):
         return TOKENS[index]['token']
 
     @staticmethod
-    def _display_url(args):
-        search_query = 'index="{}" host="{}"'.format(args['index'], args['host'])
+    def _display_url(**kwargs):
+        search_query = ' '.join(['{}="{}"'.format(k, v) for k, v in kwargs.items()])
         return parse.urlunparse((
             'https', SPLUNK_UI_BASE_URL, SPLUNK_UI_SEARCH_PATH,
             '', 'q=search%20{}'.format(parse.quote(search_query)), ''
         ))
+
+    def _prep_event(self, upload_id, common_data, event):
+        event.update(upload_id=upload_id)
+        event = {'event': event}
+        event.update(common_data)
+        return event
 
     def _post(self, args, events=None):
         events = events or args.get('events', [])
@@ -95,16 +102,15 @@ class SplunkAPI(Resource):
             'source': args['source'],
             'sourcetype': '_json'
         }
-        events = [{'event': x} for x in events]
-        for event in events:
-            event.update(common_data)
+        upload_id = str(uuid.uuid4())
+        events = [self._prep_event(upload_id, common_data, x) for x in events]
         response = requests.post(SPLUNK_COLLECTOR_URL, data='\n'.join(map(json.dumps, events)),
                                  headers={'Authorization': self._get_token(args['index'])},
                                  verify=False)
         try:
             response.raise_for_status()
             return {'message': 'data posted successfully!',
-                    'url': self._display_url(args)}, 201
+                    'url': self._display_url(index=args['index'], upload_id=upload_id)}, 201
         except requests.exceptions.HTTPError as e:
             return {'message': 'data failed to post!',
                     'error': str(e),
@@ -125,7 +131,8 @@ class RawCoverage(SplunkAPI):
         return self._post(args)
 
 
-@ns.route('/staging/<string:host>', endpoint='staging coverage data')
+@ns.route('/staging', endpoint='staging data')
+@ns.route('/staging/<string:host>', endpoint='staging data with host')
 class StagingCoverage(SplunkAPI):
     fixed_arg_values = {'source': SPLUNK_REPORT_SOURCE, 'index': SPLUNK_REPORT_INDEX}
 
@@ -133,7 +140,7 @@ class StagingCoverage(SplunkAPI):
     @api.response(500, 'Server Error')
     @api.doc('POST-Staging-Data')
     @api.expect([test])
-    def post(self, host):
+    def post(self, host=''):
         args = {**self.fixed_arg_values, **{'host': host}}
         timestamp = request.args.get('timestamp')
         if timestamp:
