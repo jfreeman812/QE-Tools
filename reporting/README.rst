@@ -172,7 +172,7 @@ How TestLink data is used for coverage reporting:
   There is no default for test Polarity.
   Unless a keyword specifying 'automated' is used, all test cases will have their Exeuction Method set to 'manual.'
 * Test Name comes from the TestLink "Test Case Title."
-* Product is specified on the command line of the ``coverage-testlink` tool.
+* Product is specified on the command line of the ``coverage-testlink`` tool.
 
 (No other data from the TestLink export is currently being used.)
 
