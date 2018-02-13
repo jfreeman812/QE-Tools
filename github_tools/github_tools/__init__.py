@@ -119,9 +119,8 @@ def install_hooks():
     qecommon_tools.safe_run(config_command)
     # Create necessary directories
     destination_dir = os.path.expanduser(os.path.join(args.template_path, 'hooks'))
-    for check_path in (args.template_path, destination_dir):
-        if not os.path.exists(check_path):
-            os.mkdir(check_path)
+    if not os.path.exists(destination_dir):
+        os.makedirs(destination_dir)
     # Copy hooks to template directory
     source_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'hooks')
     source_hooks = set(os.listdir(source_dir))
