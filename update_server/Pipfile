@@ -1,0 +1,22 @@
+[[source]]
+
+url = "https://pypi.python.org/simple"
+verify_ssl = true
+name = "pypi"
+
+
+[packages]
+
+pbr = "==1.10.0"
+behave = {git = "ssh://git@github.rackspace.com/AutomationServices/behave.git"}
+requests = "==2.18.4"
+flask-restplus = "*"
+
+
+[dev-packages]
+
+
+
+[requires]
+
+python_version = "3.6"
