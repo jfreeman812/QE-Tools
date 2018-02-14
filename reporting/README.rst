@@ -160,6 +160,39 @@ if one of the OpenCAFE defined setup/teardown methods is being called.::
         super(DCXQEBaseTestFixture, self).tearDown()
 
 
+Publishing TestLink Coverage Data
++++++++++++++++++++++++++++++++++
+
+How TestLink data is used for coverage reporting:
+
+* Categories are derived from the TestLink test suite hierachy (which has 3 levels at most).
+* Tags are collected from the custom Keywords associated with each Test.
+  Tags/Keywords not part of the recognized set from :doc:`Coverage Metrics standard<qe_coverage/coverage>`
+  are ignored. Any missing tags are defaulted as per that document.
+  There is no default for test Polarity.
+  Unless a keyword specifying 'automated' is used, all test cases will have their Exeuction Method set to 'manual.'
+* Test Name comes from the TestLink "Test Case Title."
+* Product is specified on the command line of the ``coverage-testlink`` tool.
+
+(No other data from the TestLink export is currently being used.)
+
+The ``coverage-testlink`` tool takes as a parameter the name of an XML export file of a TestLink testsuite.
+The TestLink export must have the "Export with Keywords" check-box checked.
+
+The ``coverage-testlink`` tool also takes a parameter for stripping out the
+higher levels of the hierarchy when constructing the Categories list for each test.
+Each run of the ``coverage-testlink`` tool has a command line parameter for specifying
+the Product associated with the coverage being generated.
+If the test hierarchy covers many Products, it is necessary to export just from
+the level corresponding to one Product at a time. (Plans are to remove this limitation,
+but for now you have to export each Product separately).
+This can be used in combination with the ability to strip hierarchy layers to get the results you want,
+since the first Category is what will be displayed in the dashboard. (This may also change,
+but you need to know this right now in order for your data upload to be visible as expected.)
+
+See ``coverage-testlink --help`` for details on the order and meaning of the command line parameters.
+
+
 Publishing Raw JSON Coverage Data
 +++++++++++++++++++++++++++++++++
 
