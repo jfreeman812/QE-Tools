@@ -30,7 +30,7 @@ SPLUNK_UI_BASE_URL = 'sage.rackspace.com:8000'
 SPLUNK_UI_SEARCH_PATH = '/en-US/app/search/search'
 
 
-JIRA_LIST = fields.List(custom_fields.TicketId(example='JIRA-1234'))
+TICKET_LIST = fields.List(custom_fields.TicketId(example='JIRA-1234'))
 
 
 coverage_entry = api.model('Coverage Entry', {
@@ -44,10 +44,10 @@ coverage_entry = api.model('Coverage Entry', {
     'Status': custom_fields.Status(example='operational', required=True),
     'Suite': custom_fields.Suite(example='smoke', required=True),
     'Test Name': fields.String(example='Edit and upate a created Variable', required=True),
-    'Tickets': JIRA_LIST,
-    'quarantined': JIRA_LIST,
-    'needs work': JIRA_LIST,
-    'not yet implemented': JIRA_LIST,
+    'Tickets': TICKET_LIST,
+    'quarantined': TICKET_LIST,
+    'needs work': TICKET_LIST,
+    'not yet implemented': TICKET_LIST,
 })
 
 
