@@ -12,6 +12,8 @@ from flask import Flask, request
 from flask_restplus import Api, Resource, reqparse, fields
 import requests
 
+import custom_fields
+
 
 app = Flask(__name__)
 app.config.SWAGGER_UI_DOC_EXPANSION = 'full'
@@ -29,22 +31,29 @@ SPLUNK_UI_BASE_URL = 'sage.rackspace.com:8000'
 SPLUNK_UI_SEARCH_PATH = '/en-US/app/search/search'
 
 
-test = api.model('Test', {
-    'Categories': fields.List(fields.String, example=['Variable Builder']),
-    'Execution Method': fields.String(example='automated'),
-    'Feature Name': fields.String(example='Variable Builder'),
-    'Interface Type': fields.String(example='gui'),
-    'Polarity': fields.String(example='positive'),
-    'Priority': fields.String(example='medium'),
-    'Product': fields.String(example='ARIC'),
-    'Status': fields.String(example='operational'),
-    'Suite': fields.String(example='smoke'),
-    'Test Name': fields.String(example='Edit and upate a created Variable'),
+TICKET_LIST = fields.List(custom_fields.TicketId(example='JIRA-1234'))
+
+
+coverage_entry = api.model('Coverage Entry', {
+    'Categories': fields.List(fields.String, example=['Variable Builder'], required=True),
+    'Execution Method': custom_fields.ExecutionMethod(example='automated', required=True),
+    'Feature Name': fields.String(example='Variable Builder', required=True),
+    'Interface Type': custom_fields.InterfaceType(example='gui', required=True),
+    'Polarity': custom_fields.Polarity(example='positive', required=True),
+    'Priority': custom_fields.Priority(example='medium', required=True),
+    'Product': fields.String(example='ARIC', required=True),
+    'Status': custom_fields.Status(example='operational', required=True),
+    'Suite': custom_fields.Suite(example='smoke', required=True),
+    'Test Name': fields.String(example='Edit and upate a created Variable', required=True),
+    'Tickets': TICKET_LIST,
+    'quarantined': TICKET_LIST,
+    'needs work': TICKET_LIST,
+    'not yet implemented': TICKET_LIST,
 })
 
 
 raw_args = api.model('Raw Input', {
-    'events': fields.List(fields.Nested(test), required=True),
+    'events': fields.List(fields.Nested(coverage_entry), required=True),
     'host': fields.String(required=True, example='jenkinsqe.rba.rackspace.com'),
     'timestamp': fields.Float(example=1518209250.403),
     'source': fields.String(default=SPLUNK_REPORT_SOURCE),
@@ -137,10 +146,15 @@ class StagingCoverage(SplunkAPI):
     fixed_arg_values = {'source': SPLUNK_REPORT_SOURCE, 'index': SPLUNK_REPORT_INDEX}
 
     @api.response(201, 'Accepted')
+    @api.response(400, 'Bad Request')
     @api.response(500, 'Server Error')
     @api.doc('POST-Staging-Data')
-    @api.expect([test])
+    @api.expect([coverage_entry], validate=True)
     def post(self, host=''):
+        errors = custom_fields.validate_response_list(request.json, coverage_entry, 'Test Name')
+        if errors:
+            return {'message': 'payload validation failed!',
+                    'errors': errors}, 400
         args = {**self.fixed_arg_values, **{'host': host}}
         timestamp = request.args.get('timestamp')
         if timestamp:
