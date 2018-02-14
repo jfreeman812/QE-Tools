@@ -46,7 +46,7 @@ def update_repo():
 
 def restart_servers():
     for service in _comma_separated_to_list(CONFIGS['services']):
-        subprocess.check_call('sudo supervisord signal HUP {}'.format(service))
+        subprocess.check_call('supervisorctl signal HUP {}'.format(service))
 
 
 @ns.route('/', endpoint='TriggerUpdate')
