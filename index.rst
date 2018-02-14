@@ -49,7 +49,6 @@ In addition to libraries that can be installed via ``pip``, this repository prov
    :caption: Local Scripts
 
    etcd/ <etcd/README>
-   git-support/ <git-support/README>
    httpbin-data/ <httpbin-data/README>
 
 ===================================================  ==================================================================================
@@ -57,7 +56,6 @@ File Name                                            Description
 ===================================================  ==================================================================================
 check-unicode.py                                     Checks a directory structure for Unicode errors in Python, Ruby, and Feature files
 :doc:`etcd/<etcd/README>`                            A collection of tools for using etcd
-:doc:`git-support/<git-support/README>`              Helpful git hooks
 :doc:`httpbin-data/<httpbin-data/README>`            An enhancement to httpbin that provides data-persistent endpoints
 `data_broker/`_                                      Web app to collect data from ``qe_coverage`` and forward it to the reporting tool
 ===================================================  ==================================================================================

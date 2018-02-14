@@ -57,7 +57,7 @@ def cleanup_and_exit(dir_name=None):
     _sys.exit(0)
 
 
-def safe_run(commands):
+def safe_run(commands, cwd=None):
     '''
     Run the given list of commands, only return if no error.
 
@@ -66,7 +66,7 @@ def safe_run(commands):
     '''
 
     try:
-        status = _subprocess.call(commands)
+        status = _subprocess.call(commands, cwd=cwd)
     except OSError as e:
         print('')
         print('Error when trying to execute: "{}"'.format(' '.join(commands)))
