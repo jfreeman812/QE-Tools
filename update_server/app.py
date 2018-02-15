@@ -20,6 +20,7 @@ authorizations = {
 
 bp = Blueprint('api', __name__, url_prefix='/trigger_update')
 api = Api(bp, title='Server Updater', doc='/trigger_update/doc', authorizations=authorizations)
+ns = api.namespace('', description='update server')
 
 
 def updater_configs():
@@ -49,7 +50,7 @@ def restart_servers():
         subprocess.check_call('supervisorctl signal HUP {}'.format(service).split())
 
 
-@bp.route('/', endpoint='TriggerUpdate')
+@ns.route('/', endpoint='TriggerUpdate')
 class UpdaterAPI(Resource):
     @api.header('X-Auth-Token', 'Shared token', required=True)
     @api.response(200, 'OK')
