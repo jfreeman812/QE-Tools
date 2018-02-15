@@ -2,7 +2,7 @@ from configparser import ConfigParser
 from os import path, environ
 import subprocess
 
-from flask import Flask, request
+from flask import Flask, Blueprint, request
 from flask_restplus import Api, Resource
 
 
@@ -18,9 +18,8 @@ authorizations = {
     }
 }
 
-api = Api(app, title='Server Updater', doc='/trigger_update/doc', authorizations=authorizations)
-
-ns = api.namespace('trigger_update', description='Update server with new code')
+bp = Blueprint('api', __name__, url_prefix='/trigger_update')
+api = Api(bp, title='Server Updater', doc='/trigger_update/doc', authorizations=authorizations)
 
 
 def updater_configs():
@@ -50,7 +49,7 @@ def restart_servers():
         subprocess.check_call('supervisorctl signal HUP {}'.format(service).split())
 
 
-@ns.route('/', endpoint='TriggerUpdate')
+@bp.route('/', endpoint='TriggerUpdate')
 class UpdaterAPI(Resource):
     @api.header('X-Auth-Token', 'Shared token', required=True)
     @api.response(200, 'OK')
@@ -69,6 +68,8 @@ class UpdaterAPI(Resource):
                     'error': str(e)}, 500
         return {'message': 'Update successfully triggered!'}, 200
 
+
+app.register_blueprint(bp)
 
 if __name__ == '__main__':
     app.run()
