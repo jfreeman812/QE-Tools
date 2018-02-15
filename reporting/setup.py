@@ -2,7 +2,7 @@ import setuptools
 
 
 setuptools.setup(name='qe_coverage',
-                 version='1.1.3',
+                 version='1.1.4',
                  description='Collection of tools to enable coverage reporting',
                  url='https://github.rackspace.com/QualityEngineering/QE-Tools',
                  author='RBA QE',
@@ -14,6 +14,7 @@ setuptools.setup(name='qe_coverage',
                         'coverage-send-opencafe-report=qe_coverage.send_opencafe_tags_report:main',
                         'coverage-cloned-repo=qe_coverage.coverage_cloned_repo:main',
                         'coverage-opencafe=qe_coverage.collect_opencafe_coverage:main',
+                        'coverage-testlink=qe_coverage.send_testlink_tags_report:main',
                      ],
                  },
                  packages=setuptools.find_packages(),
