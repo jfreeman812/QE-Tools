@@ -1,5 +1,5 @@
 from configparser import ConfigParser
-from os import path
+from os import path, environ
 import subprocess
 
 from flask import Flask, request
@@ -25,7 +25,7 @@ ns = api.namespace('trigger_update', description='Update server with new code')
 
 def updater_configs():
     parser = ConfigParser()
-    file_path = path.join(path.expanduser('~'), 'updater.config')
+    file_path = environ.get('CONFIG_FILE_PATH')
     assert parser.read(file_path), 'Error: can not find {}'.format(file_path)
     data = parser['DEFAULT']
     return data
