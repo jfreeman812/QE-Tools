@@ -1,18 +1,13 @@
 .. sectnum::
 
-Coverage Metrics
-================
+Coverage Metrics Schema
+=======================
 
-Rationale
----------
-In order to communicate test coverage clearly, both within and across our teams, it is important to ensure that a common coverage nomenclature is established. This page documents the common nomenclature used by our teams to collect and communicate our coverage metrics. All test coverage shall be reported using the nomenclature established here.
+This document breaks down the schema that is required for reporting on the QE Coverage Metrics. For an overview of QE Coverage Metrics, as well as information about available tooling, visit the QE Coverage Metrics :doc:`main page<../README>`.
 
-While allowing us to communicate our coverage, the markup mechanisms defined in this page also allow us to selectively control execution of our tests. Again, it’s important to use common nomenclature so that teams can leverage each other's work in consistent way.
-
-Metrics Fields
---------------
+Metrics Attributes
+------------------
 Within the available coverage data, the following attributes have been identified as significant and useful for reporting:
-
 
 ===================  =================================================================================
 Attribute            Description
@@ -30,7 +25,7 @@ Categories_          Hierarchical levels of functional groups into which tests c
 Tickets_             Any tickets associated with a given test.
 ===================  =================================================================================
 
-Data Collection
+Attribute Usage
 ---------------
 The data for the coverage metrics can be collected through a number of ways. The following tables break down the acceptable values for each group listed above:
 
@@ -194,8 +189,8 @@ The following attributes are populated outside the above tagging mechanism.
 :Description:
     This is the test name captured from the source files. For Gherkin, this is the scenario title. For OpenCAFE, this is the function name or the first line of the doc string, if present.
 
-Coverage Data Reporting Format
-------------------------------
+Reporting Specification
+-----------------------
 
 The coverage data needs to be reported in a standard format that conforms to the above fields and restrictions. The coverage data must be output in an array of json objects.
 
