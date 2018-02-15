@@ -49,6 +49,7 @@ coverage_entry = api.model('Coverage Entry', {
     'quarantined': TICKET_LIST,
     'needs work': TICKET_LIST,
     'not yet implemented': TICKET_LIST,
+    'pending': TICKET_LIST,
 })
 
 
