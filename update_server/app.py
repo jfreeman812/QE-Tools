@@ -27,7 +27,7 @@ def updater_configs():
     parser = ConfigParser()
     file_path = environ.get('CONFIG_FILE_PATH')
     assert parser.read(file_path), 'Error: can not find {}'.format(file_path)
-    data = parser['DEFAULT']
+    data = parser['updater']
     return data
 
 
@@ -40,14 +40,14 @@ def _comma_separated_to_list(comma_separated):
 
 def update_repo():
     cwd = path.join(path.expanduser('~'), CONFIGS['repo_name'])
-    subprocess.check_call('git reset --hard HEAD', cwd=cwd)
-    subprocess.check_call('git clean -fdx', cwd=cwd)
-    subprocess.check_call('git pull origin master', cwd=cwd)
+    subprocess.check_call('git reset --hard HEAD'.split(), cwd=cwd)
+    subprocess.check_call('git clean -fdx'.split(), cwd=cwd)
+    subprocess.check_call('git pull origin master'.split(), cwd=cwd)
 
 
 def restart_servers():
     for service in _comma_separated_to_list(CONFIGS['services']):
-        subprocess.check_call('supervisorctl signal HUP {}'.format(service))
+        subprocess.check_call('supervisorctl signal HUP {}'.format(service).split())
 
 
 @ns.route('/', endpoint='TriggerUpdate')
