@@ -27,8 +27,7 @@ def updater_configs():
     parser = ConfigParser()
     file_path = environ.get('CONFIG_FILE_PATH')
     assert parser.read(file_path), 'Error: can not find {}'.format(file_path)
-    data = parser['updater']
-    return data
+    return parser['updater']
 
 
 CONFIGS = updater_configs()
