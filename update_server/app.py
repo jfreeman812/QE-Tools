@@ -19,7 +19,7 @@ authorizations = {
 }
 
 bp = Blueprint('api', __name__, url_prefix='/trigger_update')
-api = Api(bp, title='Server Updater', doc='/trigger_update/doc', authorizations=authorizations)
+api = Api(bp, title='Server Updater', doc='/doc', authorizations=authorizations)
 ns = api.namespace('', description='update server')
 
 
