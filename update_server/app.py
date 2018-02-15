@@ -27,7 +27,8 @@ def updater_configs():
     parser = ConfigParser()
     file_path = path.join(path.expanduser('~'), 'updater.config')
     assert parser.read(file_path), 'Error: can not find {}'.format(file_path)
-    return parser
+    data = parser['DEFAULT']
+    return data
 
 
 CONFIGS = updater_configs()
