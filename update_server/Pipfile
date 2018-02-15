@@ -7,9 +7,6 @@ name = "pypi"
 
 [packages]
 
-pbr = "==1.10.0"
-behave = {git = "ssh://git@github.rackspace.com/AutomationServices/behave.git"}
-requests = "==2.18.4"
 flask-restplus = "*"
 
 
