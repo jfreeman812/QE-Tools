@@ -141,6 +141,13 @@ class RawCoverage(SplunkAPI):
         return self._post(args)
 
 
+def _enrich_data(entry):
+    product_hierarchy = entry.pop('ProductHierarchy')
+    team, product = product_hierarchy.split(custom_fields.ProductHierarchy.hierarchy_separator)
+    entry.update({'Team': team, 'Product': product})
+    return entry
+
+
 @ns.route('/staging', endpoint='staging data')
 @ns.route('/staging/<string:host>', endpoint='staging data with host')
 class StagingCoverage(SplunkAPI):
@@ -160,7 +167,7 @@ class StagingCoverage(SplunkAPI):
         timestamp = request.args.get('timestamp')
         if timestamp:
             args.update(timestamp=timestamp)
-        return self._post(args, events=request.json)
+        return self._post(args, events=[_enrich_data(x) for x in request.json])
 
 
 if __name__ == '__main__':
