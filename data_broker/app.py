@@ -41,7 +41,7 @@ coverage_entry = api.model('Coverage Entry', {
     'Interface Type': custom_fields.InterfaceType(example='gui', required=True),
     'Polarity': custom_fields.Polarity(example='positive', required=True),
     'Priority': custom_fields.Priority(example='medium', required=True),
-    'Product': custom_fields.ProductHierarchy(example='RBA::ARIC', required=True),
+    'ProductHierarchy': custom_fields.ProductHierarchy(example='RBA::ARIC', required=True),
     'Status': custom_fields.Status(example='operational', required=True),
     'Suite': custom_fields.Suite(example='smoke', required=True),
     'Test Name': fields.String(example='Edit and upate a created Variable', required=True),
