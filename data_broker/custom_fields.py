@@ -74,6 +74,19 @@ class ExecutionMethod(CoverageField):
     table_name = 'Execution Method'
 
 
+class ProductHierarchy(CustomField):
+    hierarchy_separator = '::'
+    expected_hierarchy_levels = 2
+
+    def validate(self, value):
+        found_levels = len(value.split(self.hierarchy_separator))
+        if found_levels != self.expected_hierarchy_levels:
+            message = '"{}" does not contain the expected Product Hierarchy format of '
+            message += '{} levels with a "{}" separator'
+            return message.format(value, self.expected_hierarchy_levels, self.hierarchy_separator)
+        return ''
+
+
 class TicketId(CustomField):
     def validate(self, value):
         ticket_re = qe_coverage.base.TICKET_RE
