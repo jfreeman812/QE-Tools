@@ -45,7 +45,7 @@ coverage_entry = api.model('Coverage Entry', {
     'Polarity': custom_fields.Polarity(example='positive', required=True),
     'Priority': custom_fields.Priority(example='medium', required=True),
     'Product': PH_FIELD,
-    'ProductHierarchy': PH_FIELD,
+    'Product Hierarchy': PH_FIELD,
     'Status': custom_fields.Status(example='operational', required=True),
     'Suite': custom_fields.Suite(example='smoke', required=True),
     'Test Name': fields.String(example='Edit and upate a created Variable', required=True),
@@ -163,7 +163,7 @@ class StagingCoverage(SplunkAPI):
     @api.doc('POST-Staging-Data')
     @api.expect([coverage_entry], validate=True)
     def post(self, host=''):
-        field_name_alternates = {'ProductHierarchy': 'Product'}
+        field_name_alternates = {'Product Hierarchy': 'Product'}
         errors = custom_fields.validate_response_list(request.json, coverage_entry, 'Test Name',
                                                       field_name_alternates=field_name_alternates)
         if errors:
