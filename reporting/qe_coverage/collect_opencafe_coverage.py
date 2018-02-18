@@ -48,8 +48,6 @@ def main():
         '-o', tmp_dir_name,
         '--leading-categories-to-strip', str(args.leading_categories_to_strip),
     ]
-    if args.host:
-        publish_command += ['--host', args.host]
     if args.dry_run:
         publish_command += ['--dry-run']
     publish_command += [

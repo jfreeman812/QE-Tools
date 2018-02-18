@@ -33,7 +33,7 @@ TAG_DEFINITION_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), '
 REPORT_PATH = 'reports'
 COVERAGE_REPORT_FILE = '{repo_name}_coverage_report_{time_stamp}.{ext}'
 TICKET_RE = re.compile('([A-Z][A-Z]+-?[0-9]+)')
-COVERAGE_URL_TEMPLATE = 'https://qetools.rax.io/coverage/{}/{{}}'
+COVERAGE_URL_TEMPLATE = 'https://qetools.rax.io/coverage/{}'
 COVERAGE_STAGING_URL = COVERAGE_URL_TEMPLATE.format('staging')
 
 ####################################################################################################
@@ -172,11 +172,6 @@ def _empty_str_padded_list(list_or_none, pad_to_length):
     return padded_list(list_to_pad, pad_to_length, '')
 
 
-def _hostname_from_env():
-    jenkins_url = os.environ.get('JENKINS_URL')
-    return parse.urlparse(jenkins_url).netloc if jenkins_url else None
-
-
 class ReportWriter(object):
     base_file_name = ''
 
@@ -297,9 +292,8 @@ class ReportWriter(object):
             csv_data.extend(self._csv_cols_from(json_name, value) or [(json_name, value)])
         return csv_data
 
-    def send_report(self, host=''):
-        host = host or _hostname_from_env() or socket.gethostname()
-        response = requests.post(COVERAGE_STAGING_URL.format(host), json=self.data, verify=False)
+    def send_report(self):
+        response = requests.post(COVERAGE_STAGING_URL, json=self.data, verify=False)
         response.raise_for_status()
         return response.json().get('url', '')
 
@@ -342,10 +336,9 @@ class CSVWriter(object):
 
 
 def run_reports(test_group, product_name, *report_args, **report_kwargs):
-    host = report_kwargs.pop('host', '')
     report = CoverageReport(test_group, product_name, *report_args, **report_kwargs)
     report.write_report()
-    print(report.send_report(host=host))
+    print(report.send_report())
     test_group.validate()
 
 
@@ -359,8 +352,6 @@ def build_parser(description):
                         help='Preserve report files generated')
     parser.add_argument('--dry-run', action='store_true',
                         help='Do not generate reports or upload; only validate the tags.')
-    parser.add_argument('--host', type=str, default='',
-                        help='Host name to provide to the reporting tool.')
     return parser
 
 

@@ -84,7 +84,7 @@ def main():
     args = parser.parse_args()
     output_path = mkdtemp()
     run_gherkin_reports(args.product_dir, args.default_interface_type, output_path,
-                        search_hidden=args.search_hidden, dry_run=args.dry_run, host=args.host)
+                        search_hidden=args.search_hidden, dry_run=args.dry_run)
     if not args.preserve_files:
         cleanup_and_exit(dir_name=output_path)
     print('Generated files located at: {}'.format(output_path))
