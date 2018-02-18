@@ -208,7 +208,7 @@ class ReportWriter(object):
         '''The csv heading order that the data will appear in on the reports'''
         return [
             'Business Unit',
-            'Product',
+            'Product Hierarchy',
             'Project',
             'Interface Type',
             'Categories',
@@ -228,7 +228,8 @@ class ReportWriter(object):
         Takes the categories and any additional data and returns a data dictionary with common
         reporting values
         '''
-        data_item = {'Product': self.product_hierarchy, 'Interface Type': self.interface_type}
+        data_item = {'Product Hierarchy': self.product_hierarchy,
+                     'Interface Type': self.interface_type}
         data_item.update(additional_data)
         return data_item
 
