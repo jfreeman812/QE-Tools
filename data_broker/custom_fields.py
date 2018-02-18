@@ -7,10 +7,23 @@ def labels_from(table_name):
     return [x for x in table.get_fields('report_as') if not x.startswith('``')]
 
 
-def validate_fields(payload, api_model):
+def validate_fields(payload, api_model, field_name_alternates=None):
     messages = []
+    field_name_alternates = field_name_alternates or {}
+    for main, alternate in field_name_alternates.items():
+        if not any([x in payload for x in (main, alternate)]):
+            message = 'One of the following fields is required: {}, {}'
+            messages.append(message.format(main, alternate))
+            continue
+        if alternate in payload:
+            value = payload.pop(alternate)
+            # only write the alt key value if a value isn't already set on main key
+            if main not in payload:
+                payload[main] = value
     for key in payload:
-        field = api_model[key]
+        field = api_model.get(key)
+        if field is None:
+            continue
         if isinstance(field, fields.List):
             field = field.container
             data = payload[key]
@@ -22,10 +35,10 @@ def validate_fields(payload, api_model):
     return list(filter(None, messages))
 
 
-def validate_response_list(response_list, api_model, label_name):
+def validate_response_list(response_list, api_model, label_name, field_name_alternates=None):
     collected_errors = []
     for entry in response_list:
-        errors = validate_fields(entry, api_model)
+        errors = validate_fields(entry, api_model, field_name_alternates)
         if errors:
             collected_errors.append({label_name: entry[label_name], 'errors': errors})
     return collected_errors
