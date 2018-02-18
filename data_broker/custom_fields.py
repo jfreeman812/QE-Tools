@@ -11,15 +11,11 @@ def validate_fields(payload, api_model, field_name_alternates=None):
     messages = []
     field_name_alternates = field_name_alternates or {}
     for main, alternate in field_name_alternates.items():
-        if not any([x in payload for x in (main, alternate)]):
-            message = 'One of the following fields is required: {}, {}'
-            messages.append(message.format(main, alternate))
+        if (main in payload) == (alternate in payload):
+            messages.append('Either {} or {} are required, but not both.'.format(main, alternate))
             continue
         if alternate in payload:
-            value = payload.pop(alternate)
-            # only write the alt key value if a value isn't already set on main key
-            if main not in payload:
-                payload[main] = value
+            payload[main] = payload.pop(alternate)
     for key in payload:
         field = api_model.get(key)
         if field is None:
