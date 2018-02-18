@@ -16,7 +16,7 @@ import sys
 from xml.sax import parse
 from xml.sax.handler import ContentHandler
 
-from qe_coverage.base import REPORT_PATH, TestGroup, run_reports
+from qe_coverage.base import REPORT_PATH, TestGroup, product_hierarchy, run_reports
 from qecommon_tools import display_name
 
 
@@ -122,8 +122,8 @@ def main():
     # NOTE: This is a temporary work-around, TestLink structure is such that multiple
     #       product test suites can be present together, the reporting code needs to be expanded
     #       to handle that use case. QGTM-671 is tracking this.
-    parser.add_argument('product_name',
-                        help='The name of the product')
+    parser.add_argument('product_hierarchy', type=product_hierarchy,
+                        help='Product hierarchy, formatted <TEAM_NAME>::<PRODUCT_NAME>')
     parser.add_argument('default_interface_type', choices=INTERFACE_TYPES,
                         help='The interface type of the product '
                              'if it is not otherwise specified or in the category list')

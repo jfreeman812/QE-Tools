@@ -52,7 +52,7 @@ def main():
         publish_command += ['--dry-run']
     publish_command += [
         args.default_interface_type,
-        args.product_name,
+        args.product_hierarchy,
         json_coverage_file,
     ]
 

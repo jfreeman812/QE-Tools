@@ -175,9 +175,9 @@ def _empty_str_padded_list(list_or_none, pad_to_length):
 class ReportWriter(object):
     base_file_name = ''
 
-    def __init__(self, test_group, product_name, interface_type, output_dir):
+    def __init__(self, test_group, product_hierarchy, interface_type, output_dir):
         self.test_group = test_group
-        self.product_name = product_name
+        self.product_hierarchy = product_hierarchy
         self.interface_type = interface_type
         self.output_dir = output_dir
         self._max_lens = {}
@@ -222,7 +222,7 @@ class ReportWriter(object):
         Takes the categories and any additional data and returns a data dictionary with common
         reporting values
         '''
-        data_item = {'Product': self.product_name, 'Interface Type': self.interface_type}
+        data_item = {'Product': self.product_hierarchy, 'Interface Type': self.interface_type}
         data_item.update(additional_data)
         return data_item
 
@@ -238,7 +238,7 @@ class ReportWriter(object):
         following format keywords in this example: "{repo_name}_some_report_{time_stamp}.{ext}"
         '''
         format_kwargs = {
-            'repo_name': self.product_name,
+            'repo_name': self.product_hierarchy.split('::')[-1],
             'time_stamp': '{:%Y_%m_%d_%H_%M_%S_%f}'.format(datetime.datetime.now()),
             'ext': extension,
         }
@@ -335,11 +335,18 @@ class CSVWriter(object):
         self.file.close()
 
 
-def run_reports(test_group, product_name, *report_args, **report_kwargs):
-    report = CoverageReport(test_group, product_name, *report_args, **report_kwargs)
+def run_reports(test_group, product_hierarchy, *report_args, **report_kwargs):
+    report = CoverageReport(test_group, product_hierarchy, *report_args, **report_kwargs)
     report.write_report()
     print(report.send_report())
     test_group.validate()
+
+
+def product_hierarchy(string):
+    if '::' not in string:
+        message = 'product_hierarchy must be formatted <TEAM_NAME>::<PRODUCT_NAME>'
+        raise argparse.ArgumentTypeError(message)
+    return string
 
 
 def build_parser(description):
@@ -360,8 +367,8 @@ def build_opencafe_parser(description):
     # NOTE: This is a temporary work-around, each coverage file's line has a product available,
     #       but since we have multiple product right now, the reporting code needs to be expanded
     #       to handle that use case. QET-22 is tracking this.
-    parser.add_argument('product_name',
-                        help='The name of the product')
+    parser.add_argument('product_hierarchy', type=product_hierarchy,
+                        help='Product hierarchy, formatted <TEAM_NAME>::<PRODUCT_NAME>')
     parser.add_argument('--leading-categories-to-strip', type=int, default=0,
                         help='The number of leading categories to omit from the coverage data '
                              'sent to Splunk')
