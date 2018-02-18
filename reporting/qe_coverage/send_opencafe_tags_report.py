@@ -40,7 +40,7 @@ import os
 import re
 import sys
 
-from qe_coverage.base import REPORT_PATH, TestGroup, run_reports, update_parser
+from qe_coverage.base import REPORT_PATH, TestGroup, update_parser, run_reports
 from qecommon_tools import display_name
 
 
@@ -106,22 +106,20 @@ def coverage_json_to_test_group(coverage_file_name, default_interface_type,
     return tests
 
 
+def run_opencafe_reports(coverage_json_file, *args, **kwargs):
+    test_group = coverage_json_to_test_group(coverage_json_file, args[0],
+                                             kwargs.get('leading_categories_to_strip'))
+    run_reports(test_group, *args, **kwargs)
+
+
 def main():
-    parser = argparse.ArgumentParser(description='Collect and publish OpenCAFE coverage report')
-    parser.add_argument('coverage_json_path',
-                        help='The path to the coverage json file to process')
-    parser.add_argument('-o', '--output-dir', default=REPORT_PATH,
-                        help='Output directory for the generated report files.')
+    parser = argparse.ArgumentParser(description='Send OpenCAFE coverage report')
+    parser.add_argument('coverage_json_file',
+                        help='The name of the coverage json file to process')
     parser = update_parser(parser)
-    args = parser.parse_args()
-
-    test_group = coverage_json_to_test_group(args.coverage_json_path,
-                                             args.default_interface_type,
-                                             args.leading_categories_to_strip)
-    if args.dry_run:
-        sys.exit(test_group.validate())
-
-    run_reports(test_group, args.product_hierarchy, args.default_interface_type, args.output_dir)
+    kwargs = vars(parser.parse_args())
+    run_opencafe_reports(kwargs.pop('coverage_json_file'), kwargs.pop('default_interface_type'),
+                         kwargs.pop('product_hierarchy'), **kwargs)
 
 
 if __name__ == '__main__':

@@ -10,6 +10,8 @@ import json
 import os
 import re
 import socket
+import sys
+import tempfile
 import time  # Needed because Python 2.7 doesn't support datetime.datetime.now().timestamp()
 try:
     from urllib import parse
@@ -21,7 +23,7 @@ import requests
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 from tableread import SimpleRSTReader
 
-from qecommon_tools import padded_list
+from qecommon_tools import cleanup_and_exit, padded_list
 
 
 # Silence requests complaining about insecure connections; needed for our internal certificates
@@ -155,7 +157,7 @@ class TestGroup(object):
 
     def validate(self):
         if self.errors:
-            print('\n'.join(self.errors))
+            print('\n'.join(self.errors), file=sys.stderr)
         return len(self.errors)
 
 
@@ -175,11 +177,13 @@ def _empty_str_padded_list(list_or_none, pad_to_length):
 class ReportWriter(object):
     base_file_name = ''
 
-    def __init__(self, test_group, product_hierarchy, interface_type, output_dir):
+    def __init__(self, test_group, product_hierarchy, interface_type, output_dir='',
+                 preserve_files=False, **kwargs):
         self.test_group = test_group
         self.product_hierarchy = product_hierarchy
         self.interface_type = interface_type
-        self.output_dir = output_dir
+        self.output_dir = output_dir or tempfile.mkdtemp()
+        self.preserve_files = preserve_files
         self._max_lens = {}
         self.data = self._data()
         self._json_keys_that_exist = {k for d in self.data for k in d.keys()}
@@ -187,6 +191,8 @@ class ReportWriter(object):
     def write_report(self):
         self._write_json_report()
         self._write_csv_report()
+        if self.preserve_files:
+            print('Generated files located at: {}'.format(self.output_dir))
 
     def _max_len(self, key):
         '''
@@ -335,11 +341,14 @@ class CSVWriter(object):
         self.file.close()
 
 
-def run_reports(test_group, product_hierarchy, *report_args, **report_kwargs):
-    report = CoverageReport(test_group, product_hierarchy, *report_args, **report_kwargs)
+def run_reports(test_group, *args, **kwargs):
+    report = CoverageReport(test_group, *args, **kwargs)
     report.write_report()
-    print(report.send_report())
-    test_group.validate()
+    status = test_group.validate()
+    if not kwargs.get('dry_run'):
+        print(report.send_report())
+        status = 0
+    cleanup_and_exit(dir_name='' if report.preserve_files else report.output_dir, status=status)
 
 
 def product_hierarchy(string):

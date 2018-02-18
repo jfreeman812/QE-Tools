@@ -10,12 +10,14 @@ for the test case.
 
 
 import argparse
+import json
 import os
 import sys
+from tempfile import mkdtemp
 from xml.sax import parse
 from xml.sax.handler import ContentHandler
 
-from qe_coverage.base import REPORT_PATH, TestGroup, product_hierarchy, run_reports, update_parser
+from qe_coverage.base import REPORT_PATH, TestGroup, update_parser, run_reports
 from qecommon_tools import display_name
 
 
@@ -114,21 +116,20 @@ def testlink_xml_to_test_group(xml_file_name, leading_categories_to_strip):
     return content.tests
 
 
+def run_testlink_reports(testlink_xml_file, *args, **kwargs):
+    test_group = testlink_xml_to_test_group(testlink_xml_file,
+                                            kwargs.get('leading_categories_to_strip'))
+    run_reports(test_group, *args, **kwargs)
+
+
 def main():
-    parser = argparse.ArgumentParser(description='Collect and publish OpenCAFE coverage report')
-    parser.add_argument('testlink_xml_path',
-                        help='The path to the exported testlink xml file to process')
-    parser.add_argument('-o', '--output-dir', default=REPORT_PATH,
-                        help='Output directory for the generated report files.')
+    parser = argparse.ArgumentParser(description='Create and publish TestLink coverage report')
+    parser.add_argument('testlink_xml_file',
+                        help='The name of the exported testlink xml file to process')
     parser = update_parser(parser)
-    args = parser.parse_args()
-
-    test_group = testlink_xml_to_test_group(args.testlink_xml_path,
-                                            args.leading_categories_to_strip)
-    if args.dry_run:
-        sys.exit(test_group.validate())
-
-    run_reports(test_group, args.product_name, args.default_interface_type, args.output_dir)
+    kwargs = vars(parser.parse_args())
+    run_testlink_reports(kwargs.pop('testlink_xml_file'), kwargs.pop('default_interface_type'),
+                         kwargs.pop('product_hierarchy'), **kwargs)
 
 
 if __name__ == '__main__':
