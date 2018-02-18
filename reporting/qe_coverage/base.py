@@ -349,27 +349,18 @@ def product_hierarchy(string):
     return string
 
 
-def build_parser(description):
-    parser = argparse.ArgumentParser(description=description,
-                                     epilog='Note: Run this script from the root of the test tree'
-                                            ' being reported on.')
+def update_parser(parser):
     parser.add_argument('default_interface_type', choices='gui api'.split(),
                         help='The interface type of the product if it is not otherwise specified')
-    parser.add_argument('--preserve-files', default=False, action='store_true',
-                        help='Preserve report files generated')
-    parser.add_argument('--dry-run', action='store_true',
-                        help='Do not generate reports or upload; only validate the tags.')
-    return parser
-
-
-def build_opencafe_parser(description):
-    parser = build_parser(description)
     # NOTE: This is a temporary work-around, each coverage file's line has a product available,
     #       but since we have multiple product right now, the reporting code needs to be expanded
     #       to handle that use case. QET-22 is tracking this.
     parser.add_argument('product_hierarchy', type=product_hierarchy,
                         help='Product hierarchy, formatted <TEAM_NAME>::<PRODUCT_NAME>')
+    parser.add_argument('--preserve-files', default=False, action='store_true',
+                        help='Preserve report files generated')
+    parser.add_argument('--dry-run', action='store_true',
+                        help='Do not generate reports or upload; only validate the tags.')
     parser.add_argument('--leading-categories-to-strip', type=int, default=0,
-                        help='The number of leading categories to omit from the coverage data '
-                             'sent to Splunk')
+                        help='The number of leading categories to omit from the coverage data JSON')
     return parser

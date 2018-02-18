@@ -3,21 +3,25 @@
 Run OpenCAFE command in a mode that collects coverage data and send it to splunk.
 '''
 
+import argparse
 import glob
 import os
 import sys
 from tempfile import mkdtemp
 
 from qecommon_tools import cleanup_and_exit, safe_run
-from qe_coverage.base import build_opencafe_parser
+from qe_coverage.base import update_parser
 
 TAGS_DIR_ENV_NAME = 'COLLECT_TAGS_DATA_INTO'
 
 
 def main():
-    parser = build_opencafe_parser('Collect and publish OpenCAFE coverage report')
+    parser = argparse.ArgumentParser(description='Collect and publish OpenCAFE coverage report',
+                                     epilog='Note: Run this script from the root of the test tree'
+                                            ' being reported on.')
     parser.add_argument('open_cafe_command', nargs='+',
                         help='OpenCAFE command and parameters for running the tests')
+    parser = update_parser(parser)
     args, coverage_kwargs = parser.parse_known_args()
 
     tmp_dir_name = mkdtemp()

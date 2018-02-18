@@ -40,7 +40,7 @@ import os
 import re
 import sys
 
-from qe_coverage.base import REPORT_PATH, TestGroup, build_opencafe_parser, run_reports
+from qe_coverage.base import REPORT_PATH, TestGroup, run_reports, update_parser
 from qecommon_tools import display_name
 
 
@@ -107,14 +107,15 @@ def coverage_json_to_test_group(coverage_file_name, default_interface_type,
 
 
 def main():
-    parser = build_opencafe_parser('Collect and publish OpenCAFE coverage report')
-    parser.add_argument('coverage_json_file',
-                        help='The name of the coverage json file to process')
+    parser = argparse.ArgumentParser(description='Collect and publish OpenCAFE coverage report')
+    parser.add_argument('coverage_json_path',
+                        help='The path to the coverage json file to process')
     parser.add_argument('-o', '--output-dir', default=REPORT_PATH,
                         help='Output directory for the generated report files.')
+    parser = update_parser(parser)
     args = parser.parse_args()
 
-    test_group = coverage_json_to_test_group(args.coverage_json_file,
+    test_group = coverage_json_to_test_group(args.coverage_json_path,
                                              args.default_interface_type,
                                              args.leading_categories_to_strip)
     if args.dry_run:

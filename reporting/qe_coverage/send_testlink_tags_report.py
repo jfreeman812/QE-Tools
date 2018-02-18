@@ -10,13 +10,12 @@ for the test case.
 
 
 import argparse
-import json
 import os
 import sys
 from xml.sax import parse
 from xml.sax.handler import ContentHandler
 
-from qe_coverage.base import REPORT_PATH, TestGroup, product_hierarchy, run_reports
+from qe_coverage.base import REPORT_PATH, TestGroup, product_hierarchy, run_reports, update_parser
 from qecommon_tools import display_name
 
 
@@ -116,27 +115,15 @@ def testlink_xml_to_test_group(xml_file_name, leading_categories_to_strip):
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Test Reports')
-    parser.add_argument('testlink_xml_file',
-                        help='The name of the exported testlink xml file to process')
-    # NOTE: This is a temporary work-around, TestLink structure is such that multiple
-    #       product test suites can be present together, the reporting code needs to be expanded
-    #       to handle that use case. QGTM-671 is tracking this.
-    parser.add_argument('product_hierarchy', type=product_hierarchy,
-                        help='Product hierarchy, formatted <TEAM_NAME>::<PRODUCT_NAME>')
-    parser.add_argument('default_interface_type', choices=INTERFACE_TYPES,
-                        help='The interface type of the product '
-                             'if it is not otherwise specified or in the category list')
+    parser = argparse.ArgumentParser(description='Collect and publish OpenCAFE coverage report')
+    parser.add_argument('testlink_xml_path',
+                        help='The path to the exported testlink xml file to process')
     parser.add_argument('-o', '--output-dir', default=REPORT_PATH,
                         help='Output directory for the generated report files.')
-    parser.add_argument('--leading-categories-to-strip', type=int, default=0,
-                        help='The number of leading categories to omit from the coverage data '
-                             'sent to Splunk')
-    parser.add_argument('--dry-run', action='store_true',
-                        help='Do not generate reports or upload; only validate the tags.')
+    parser = update_parser(parser)
     args = parser.parse_args()
 
-    test_group = testlink_xml_to_test_group(args.testlink_xml_file,
+    test_group = testlink_xml_to_test_group(args.testlink_xml_path,
                                             args.leading_categories_to_strip)
     if args.dry_run:
         sys.exit(test_group.validate())
