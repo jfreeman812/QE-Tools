@@ -118,8 +118,8 @@ def main():
                         help='The name of the coverage json file to process')
     parser = update_parser(parser)
     kwargs = vars(parser.parse_args())
-    run_opencafe_reports(kwargs.pop('coverage_json_file'), kwargs.pop('default_interface_type'),
-                         kwargs.pop('product_hierarchy'), **kwargs)
+    run_opencafe_reports(kwargs.pop('coverage_json_file'), kwargs.pop('product_hierarchy'),
+                         kwargs.pop('default_interface_type'), **kwargs)
 
 
 if __name__ == '__main__':

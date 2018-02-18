@@ -48,8 +48,8 @@ def main():
         sys.exit(-3)
 
     del kwargs['open_cafe_command']  # Only needed for running OpenCAFE
-    run_opencafe_reports(json_coverage_files[0], kwargs.pop('default_interface_type'),
-                         kwargs.pop('product_hierarchy'), **kwargs)
+    run_opencafe_reports(json_coverage_files[0], kwargs.pop('product_hierarchy'),
+                         kwargs.pop('default_interface_type'), **kwargs)
 
 
 if __name__ == '__main__':

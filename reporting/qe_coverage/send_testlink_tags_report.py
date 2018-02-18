@@ -128,8 +128,8 @@ def main():
                         help='The name of the exported testlink xml file to process')
     parser = update_parser(parser)
     kwargs = vars(parser.parse_args())
-    run_testlink_reports(kwargs.pop('testlink_xml_file'), kwargs.pop('default_interface_type'),
-                         kwargs.pop('product_hierarchy'), **kwargs)
+    run_testlink_reports(kwargs.pop('testlink_xml_file'), kwargs.pop('product_hierarchy'),
+                         kwargs.pop('default_interface_type'), **kwargs)
 
 
 if __name__ == '__main__':
