@@ -33,7 +33,7 @@ requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 NO_STATUS_TICKET_KEY = 'Tickets'
 TAG_DEFINITION_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'coverage.rst')
 REPORT_PATH = 'reports'
-COVERAGE_REPORT_FILE = '{repo_name}_coverage_report_{time_stamp}.{ext}'
+COVERAGE_REPORT_FILE = '{product_name}_coverage_report_{time_stamp}.{ext}'
 TICKET_RE = re.compile('([A-Z][A-Z]+-?[0-9]+)')
 COVERAGE_URL_TEMPLATE = 'https://qetools.rax.io/coverage/{}'
 COVERAGE_STAGING_URL = COVERAGE_URL_TEMPLATE.format('staging')
@@ -239,12 +239,9 @@ class ReportWriter(object):
         raise NotImplementedError('_data method must be overridden')
 
     def _format_file_name(self, extension):
-        '''
-        Formats the base_file_name attribute that should be overridden with a string having the
-        following format keywords in this example: "{repo_name}_some_report_{time_stamp}.{ext}"
-        '''
+        '''Create the file name based on the product name, current timestamp, and extension'''
         format_kwargs = {
-            'repo_name': self.product_hierarchy.split('::')[-1],
+            'product_name': self.product_hierarchy.split('::')[-1].lower().replace(' ', '_'),
             'time_stamp': '{:%Y_%m_%d_%H_%M_%S_%f}'.format(datetime.datetime.now()),
             'ext': extension,
         }
