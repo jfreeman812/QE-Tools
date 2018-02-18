@@ -2,7 +2,7 @@ import setuptools
 
 
 setuptools.setup(name='qe_coverage',
-                 version='1.1.4',
+                 version='1.2.0',
                  description='Collection of tools to enable coverage reporting',
                  url='https://github.rackspace.com/QualityEngineering/QE-Tools',
                  author='RBA QE',
@@ -19,7 +19,7 @@ setuptools.setup(name='qe_coverage',
                  },
                  packages=setuptools.find_packages(),
                  install_requires=['attrs>=16.0.0', 'requests>=2.10', 'tableread>=1.0.2',
-                                   'qecommon_tools>=1.0.1', 'wrapt'],
+                                   'qecommon_tools>=1.0.4', 'wrapt'],
                  extras_require={'gherkin': ['behave==1.2.6.dev1']},
                  include_package_data=True,
                  zip_safe=False)
