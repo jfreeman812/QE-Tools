@@ -146,7 +146,7 @@ class RawCoverage(SplunkAPI):
 
 
 def _enrich_data(entry):
-    product_hierarchy = entry.pop('ProductHierarchy')
+    product_hierarchy = entry.pop('Product Hierarchy')
     team, product = product_hierarchy.split(custom_fields.ProductHierarchy.hierarchy_separator)
     entry.update({'Team': team, 'Product': product})
     return entry
