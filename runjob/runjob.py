@@ -240,11 +240,10 @@ def run_job_and_display_result(job, job_params):
     # Next we build the job
     url_endpoint = 'buildWithParameters' if job_params else 'build'
     http_code, http_body = make_http_request(job['url'], url_endpoint, job_params)
-    if http_code == HTTPStatus.CREATED:
-        print('Began executing Jenkins job')
-    else:
+    if http_code != HTTPStatus.CREATED:
         eprint('Error building the the Jenkins job: HTTP {0}:\n{1}'.format(http_code, http_body))
         sys.exit(1)
+    print('Began executing Jenkins job')
 
     # Poll to check the build status of the job
     # When the job is finished, a field with the name 'result' will show a value such as
@@ -255,19 +254,17 @@ def run_job_and_display_result(job, job_params):
         http_code, http_body = make_http_request(job['url'], new_job_build_number)
         # The new job ID has not been assigned yet. Jenkins nodes are most likely all busy
         if http_code == HTTPStatus.NOT_FOUND:
-            if job_in_queue:
-                job_in_queue = _job_in_queue(job['name'], job_params, check_delay=1)
-                continue
-            else:
+            if not job_in_queue:
                 eprint('The job does not seem to be in the Jenkins queue, '
                        'nor is it being run by Jenkins.')
                 eprint(http_body)
                 sys.exit(1)
+            job_in_queue = _job_in_queue(job['name'], job_params, check_delay=1)
+            continue
         http_body = json.loads(http_body)
-        if job_params and not _job_has_correct_parameters(http_body, job_params):
-            new_job_build_number += 1
-        else:
+        if not (job_params and not _job_has_correct_parameters(http_body, job_params)):
             break
+        new_job_build_number += 1
         time.sleep(5)
 
     # Display the console output of the Jenkins job
