@@ -31,6 +31,8 @@ requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
 
 NO_STATUS_TICKET_KEY = 'Tickets'
+HIERARCHY_DELIMITER = '::'
+HIERARCHY_FORMAT = '<TEAM_NAME>{}<PRODUCT_NAME>'.format(HIERARCHY_DELIMITER)
 TAG_DEFINITION_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'coverage.rst')
 COVERAGE_REPORT_FILE = '{product_name}_coverage_report_{time_stamp}.{ext}'
 TICKET_RE = re.compile('([A-Z][A-Z]+-?[0-9]+)')
@@ -173,6 +175,10 @@ def _empty_str_padded_list(list_or_none, pad_to_length):
     return padded_list(list_to_pad, pad_to_length, '')
 
 
+def _product_hierarchy_as_list(product_hierarchy):
+    return product_hierarchy.lower().replace(' ', '_').split(HIERARCHY_DELIMITER)
+
+
 class ReportWriter(object):
     base_file_name = ''
 
@@ -241,7 +247,7 @@ class ReportWriter(object):
     def _format_file_name(self, extension):
         '''Create the file name based on the product name, current timestamp, and extension'''
         format_kwargs = {
-            'product_name': self.product_hierarchy.split('::')[-1].lower().replace(' ', '_'),
+            'product_name': _product_hierarchy_as_list(self.product_hierarchy)[-1],
             'time_stamp': '{:%Y_%m_%d_%H_%M_%S_%f}'.format(datetime.datetime.now()),
             'ext': extension,
         }
@@ -349,8 +355,8 @@ def run_reports(test_group, *args, **kwargs):
 
 
 def product_hierarchy(string):
-    if '::' not in string:
-        message = 'product_hierarchy must be formatted <TEAM_NAME>::<PRODUCT_NAME>'
+    if len(_product_hierarchy_as_list(string)) != 2:
+        message = 'product_hierarchy must be formatted {}'.format(HIERARCHY_FORMAT)
         raise argparse.ArgumentTypeError(message)
     return string
 
@@ -362,7 +368,7 @@ def update_parser(parser):
     #       but since we have multiple products right now, the reporting code needs to be expanded
     #       to handle that use case. QET-22 is tracking this.
     parser.add_argument('product_hierarchy', type=product_hierarchy,
-                        help='Product hierarchy, formatted <TEAM_NAME>::<PRODUCT_NAME>')
+                        help='Product hierarchy, formatted {}'.format(HIERARCHY_FORMAT))
     parser.add_argument('--preserve-files', default=False, action='store_true',
                         help='Preserve report files generated')
     parser.add_argument('--dry-run', action='store_true',
