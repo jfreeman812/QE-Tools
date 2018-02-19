@@ -360,7 +360,7 @@ def update_parser(parser):
     parser.add_argument('default_interface_type', choices='gui api'.split(),
                         help='The interface type of the product if it is not otherwise specified')
     # NOTE: This is a temporary work-around, each coverage file's line has a product available,
-    #       but since we have multiple product right now, the reporting code needs to be expanded
+    #       but since we have multiple products right now, the reporting code needs to be expanded
     #       to handle that use case. QET-22 is tracking this.
     parser.add_argument('product_hierarchy', type=product_hierarchy,
                         help='Product hierarchy, formatted <TEAM_NAME>::<PRODUCT_NAME>')
