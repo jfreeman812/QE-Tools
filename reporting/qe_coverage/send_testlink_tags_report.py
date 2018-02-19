@@ -17,7 +17,7 @@ from tempfile import mkdtemp
 from xml.sax import parse
 from xml.sax.handler import ContentHandler
 
-from qe_coverage.base import REPORT_PATH, TestGroup, update_parser, run_reports
+from qe_coverage.base import TestGroup, update_parser, run_reports
 from qecommon_tools import display_name
 
 

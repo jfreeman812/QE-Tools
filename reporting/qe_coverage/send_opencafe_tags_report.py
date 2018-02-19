@@ -40,7 +40,7 @@ import os
 import re
 import sys
 
-from qe_coverage.base import REPORT_PATH, TestGroup, update_parser, run_reports
+from qe_coverage.base import TestGroup, update_parser, run_reports
 from qecommon_tools import display_name
 
 
