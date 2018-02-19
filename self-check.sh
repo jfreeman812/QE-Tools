@@ -9,7 +9,7 @@ if [ "$1" = "--setup" ] ; then
 fi
 
 # Capture all test output into a file
-self_check_output=$(mktemp)
+self_check_output='.self-test-stdout.log'
 echo "output capture in $self_check_output"
 echo
 
