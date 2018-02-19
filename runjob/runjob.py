@@ -75,8 +75,8 @@ def make_http_request(http_url, url_endpoint='', request_params=None):
 def _get_choice_selection(start, end, selection_list, statement, default=None):
     '''Get the choice selection from the user and ensure it is valid.
 
-    If the user does not pick a selection, then use the default_value if it is set,
-    else prompt the user again
+    If the user does not pick a selection, then use the default value if it is set,
+    else prompt the user again.
 
     Args:
         start (int): The lowest valid selection from the multiple choices
@@ -94,6 +94,35 @@ def _get_choice_selection(start, end, selection_list, statement, default=None):
             return default
         selection = input('Invalid selection. {0}'.format(statement))
     return selection_list[int(selection) - 1]
+
+
+def _get_input_selection(param_name, validation_function=None, default=''):
+    '''Get the input selection from the user and ensure it is valid.
+
+    If the user does not type in a value, then use the default value if it is set,
+    else prompt the user again.
+
+    Args:
+        param_name (str): The name of the parameter
+        validation_function (function): A function to use to validate the user input (optional)
+        default (str): The default parameter value (optional)
+
+    Returns:
+        str: The user input if it is valid
+    '''
+    if default:
+        statement = ('Please enter a value for the parameter "{0}" [{1}]: '
+                     ''.format(param_name, default))
+    else:
+        statement = 'Please enter a value for the parameter "{0}": '.format(param_name)
+
+    input_value = input(statement) or default
+
+    while input_value == '' or \
+            validation_function is not None and not validation_function(input_value):
+        input_value = input('Invalid value. {0}'.format(statement)) or default
+
+    return input_value
 
 
 def interactive_mode():
@@ -163,14 +192,16 @@ def interactive_mode():
 
                 # Parameters with no options
                 else:
-                    default_value = param['defaultParameterValue']['value']
-                    value_input = input('Please enter a value for the parameter "{0}" [{1}]: '
-                                        ''.format(param['name'], default_value))
-                    while param['name'] == 'url' and \
-                            not (value_input == '' or URL_REGEX.match(value_input)):
+                    if 'defaultParameterValue' in param:
+                        default_value = param['defaultParameterValue']['value']
+                    else:
+                        default_value = ''
 
-                        value_input = input('Invalid URL. Please enter a valid URL [{0}]: '
-                                            ''.format(default_value))
+                    validation_function = None
+                    if param['name'] == 'url':
+                        validation_function = URL_REGEX.match
+                    value_input = _get_input_selection(param['name'], validation_function, default_value)
+
                     selected_job_params[param['name']] = value_input or default_value
                     quick_command.extend(('--{0}'.format(param['name']),
                                           value_input or default_value))
@@ -412,7 +443,7 @@ def read_config_and_set_globals(config_file):
         if not config['jenkins']['url_timeout'].isdigit():
             raise ValueError('"url_timeout" value must be an int. Received value of {0} instead.'
                              ''.format(config['jenkins']['url_timeout']))
-        TIMEOUT = config['jenkins']['url_timeout']
+        TIMEOUT = int(config['jenkins']['url_timeout'])
 
     except configparser.Error as e:
         eprint('Error while attempting to read config file "{0}": {1}'.format(config_file, str(e)))
