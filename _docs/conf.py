@@ -7,12 +7,6 @@ extensions = ['sphinx.ext.autodoc', 'sphinx.ext.napoleon', 'sphinx.ext.todo',
               'sphinx.ext.coverage', 'sphinx.ext.ifconfig',
               'sphinx.ext.viewcode', 'sphinx.ext.githubpages']
 
-# Update the path for local libraries so that `autodoc` can find and document them
-base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-for tool_dir in ('qecommon_tools', 'reporting'):
-    sys.path.append(os.path.join(base_dir, tool_dir))
-
-
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
 
