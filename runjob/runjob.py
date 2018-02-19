@@ -136,7 +136,7 @@ def interactive_mode():
         sys.exit(1)
 
     list_of_jobs = json.loads(http_body)['jobs']
-    options_reg = re.compile('(?<=Options are: )(.+)(?=\\n)')
+    options_reg = re.compile('(?<=Options are: )([^, ]+)[, ]?(?=\\n)')
 
     # Begin interactive mode
     while True:
@@ -173,8 +173,7 @@ def interactive_mode():
                 # Parameters with options
                 if 'Options are:' in param['description']:
                     print('Choices for parameter "{0}":'.format(param['name']))
-                    options_text = options_reg.search(param['description']).group()
-                    options = tuple(map(str.strip, options_text.split(',')))
+                    options = options_reg.findall(param['description'])
                     default_option = param['defaultParameterValue']['value']
                     for count, option in enumerate(options, start=1):
                         print('{0}. {1}'.format(count, option))
@@ -184,8 +183,8 @@ def interactive_mode():
                     statement = ('Please select one of the options above [{0}. {1}]: '
                                  ''.format(default_option_index, default_option))
                     selected_job_params[param['name']] = \
-                            _get_choice_selection(start=1, end=len(options), selection_list=options,
-                                                  default=default_option_index, statement=statement)
+                        _get_choice_selection(start=1, end=len(options), selection_list=options,
+                                              default=default_option_index, statement=statement)
 
                     quick_command.extend(('--{0}'.format(param['name']),
                                          selected_job_params[param['name']]))
@@ -200,11 +199,11 @@ def interactive_mode():
                     validation_function = None
                     if param['name'] == 'url':
                         validation_function = URL_REGEX.match
-                    value_input = _get_input_selection(param['name'], validation_function, default_value)
+                    value_input = _get_input_selection(param['name'], validation_function,
+                                                       default_value)
 
-                    selected_job_params[param['name']] = value_input or default_value
-                    quick_command.extend(('--{0}'.format(param['name']),
-                                          value_input or default_value))
+                    selected_job_params[param['name']] = value_input
+                    quick_command.extend(('--{0}'.format(param['name']), value_input))
                 print('')
             state = 'DISPLAY_RESULTS'
 
