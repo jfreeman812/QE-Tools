@@ -18,7 +18,7 @@ set -e
 
 echo running flake8...
 flake8 .
-for f in $(find . -name self-check.sh -perm +111 -mindepth 2 -maxdepth 2); do
+for f in */self-check.sh ; do
     echo running $f...
     (cd $(dirname $f); ./self-check.sh) >> $self_check_output
 done
