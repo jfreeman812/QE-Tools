@@ -5,14 +5,16 @@ import subprocess
 import sys
 
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DOCS_DIR = os.path.dirname(os.path.abspath(__file__))
+BASE_DIR = os.path.dirname(DOCS_DIR)
 
 
 def main():
     # Setup environment variables
-    commit_id = str(subprocess.check_output(['git', 'rev-parse', 'HEAD'])).rstrip('\n')
-    os.environ['GIT_COMMIT_ID'] = commit_id
-    origin_url = str(subprocess.check_output(['git', 'config', '--get', 'remote.origin.url']))
+    commit_id = str(subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=BASE_DIR))
+    os.environ['GIT_COMMIT_ID'] = commit_id.rstrip('\n')
+    origin_url = str(subprocess.check_output(['git', 'config', '--get', 'remote.origin.url'],
+                                             cwd=BASE_DIR))
     os.environ['GIT_ORIGIN_URL'] = origin_url.rstrip('\n')
     # Build parser
     parser = argparse.ArgumentParser()
@@ -21,14 +23,14 @@ def main():
     # Run necessary commands
     if args.setup:
         try:
-            pip_install = ['pip', 'install', '-r', '{}/requirements.txt'.format(BASE_DIR)]
-            subprocess.check_call(pip_install)
+            pip_install = ['pip', 'install', '-r', '{}/requirements.txt'.format(DOCS_DIR)]
+            subprocess.check_call(pip_install, cwd=BASE_DIR)
         except BaseException:
             print('Environment setup failed; aborting self-checks')
             sys.exit(1)
     subprocess.call(['sphinx-apidoc', '--output-dir', 'docs', '--no-toc', '--force',
-                     'qecommon_tools/qecommon_tools'])
-    subprocess.call(['sphinx-build', '-c', BASE_DIR, '-aE', '.', 'docs/'])
+                     'qecommon_tools/qecommon_tools'], cwd=BASE_DIR)
+    subprocess.call(['sphinx-build', '-c', DOCS_DIR, '-aE', '.', 'docs/'], cwd=BASE_DIR)
 
 
 if __name__ == '__main__':
