@@ -178,7 +178,7 @@ class ReportWriter(object):
     base_file_name = ''
 
     def __init__(self, test_group, product_hierarchy, interface_type, output_dir='',
-                 preserve_files=False, **kwargs):
+                 preserve_files=False, **_):
         self.test_group = test_group
         self.product_hierarchy = product_hierarchy
         self.interface_type = interface_type
