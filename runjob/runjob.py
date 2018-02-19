@@ -125,6 +125,20 @@ def _get_input_selection(param_name, validation_function=None, default=''):
     return input_value
 
 
+def _get_default_value(param):
+    '''Return the default parameter value, if one exists, else return an empty string.
+
+    Args:
+        param (dict): The parameter to get the default value for
+
+    Returns:
+        str: The default value for the parameter
+    '''
+    if 'defaultParameterValue' in param:
+        return param['defaultParameterValue']['value']
+    return ''
+
+
 def interactive_mode():
     '''Run the interactive mode by prompting the user for each input and validating it.'''
     state = 'JOB_SELECTION'
@@ -174,33 +188,29 @@ def interactive_mode():
                 if 'Options are:' in param['description']:
                     print('Choices for parameter "{0}":'.format(param['name']))
                     options = options_reg.findall(param['description'])
-                    default_option = param['defaultParameterValue']['value']
+                    default = _get_default_value(param)
                     for count, option in enumerate(options, start=1):
                         print('{0}. {1}'.format(count, option))
-                        if option == default_option:
-                            default_option_index = count
+                        if option == default:
+                            default_index = count
 
                     statement = ('Please select one of the options above [{0}. {1}]: '
-                                 ''.format(default_option_index, default_option))
+                                 ''.format(default_index, default))
                     selected_job_params[param['name']] = \
                         _get_choice_selection(start=1, end=len(options), selection_list=options,
-                                              default=default_option_index, statement=statement)
+                                              default=default_index, statement=statement)
 
                     quick_command.extend(('--{0}'.format(param['name']),
                                          selected_job_params[param['name']]))
 
                 # Parameters with no options
                 else:
-                    if 'defaultParameterValue' in param:
-                        default_value = param['defaultParameterValue']['value']
-                    else:
-                        default_value = ''
+                    default = _get_default_value(param)
 
                     validation_function = None
                     if param['name'] == 'url':
                         validation_function = URL_REGEX.match
-                    value_input = _get_input_selection(param['name'], validation_function,
-                                                       default_value)
+                    value_input = _get_input_selection(param['name'], validation_function, default)
 
                     selected_job_params[param['name']] = value_input
                     quick_command.extend(('--{0}'.format(param['name']), value_input))
