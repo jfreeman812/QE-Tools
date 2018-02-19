@@ -51,6 +51,8 @@ def cleanup_and_exit(dir_name=None, status=0, message=None):
 
     Args:
         dir_name (string): Full path to a directory to remove (optional)
+        status (int): Exit code to use for exit (optional)
+        message (string): Message to print to standard error (optional)
     '''
     if dir_name:
         _shutil.rmtree(dir_name)
