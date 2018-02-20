@@ -1,0 +1,1 @@
+./build-docs.py --setup

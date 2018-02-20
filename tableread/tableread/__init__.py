@@ -22,7 +22,7 @@ class BaseRSTDataObject(object):
     header_divider = '='
     # The full set of potential ReStructuredText section markers is sourced from
     # http://docutils.sourceforge.net/docs/ref/rst/restructuredtext.html#sections
-    header_markers = set('!"#$%&\'()*+,-./:;<=>?@[\]^_`{|}~')
+    header_markers = set(r'!"#$%&\'()*+,-./:;<=>?@[]^_`{|}~')
     comment_char = '#'
     data_format = None
 
@@ -154,7 +154,8 @@ class SimpleRSTReader(BaseRSTDataObject):
 
     def _parse(self, file_path):
         # readlines() does not strip the '\n' from the end of each line, so we use splitlines
-        text_lines = open(file_path, 'r').read().splitlines()
+        with open(file_path, 'r') as rst_fo:
+            text_lines = rst_fo.read().splitlines()
         section_header_cursor = None
         i = 0
         while i < len(text_lines) - 1:
