@@ -45,16 +45,18 @@ def padded_list(iterable, size, padding=None):
     return list(_itertools.islice(_itertools.chain(iterable, _itertools.repeat(padding)), size))
 
 
-def cleanup_and_exit(dir_name=None):
+def cleanup_and_exit(dir_name=None, status=0, message=None):
     '''
     Cleanup a directory tree that was created and exit.
 
     Args:
         dir_name (string): Full path to a directory to remove (optional)
+        status (int): Exit code to use for exit (optional)
+        message (string): Message to print to standard error (optional)
     '''
     if dir_name:
         _shutil.rmtree(dir_name)
-    _sys.exit(0)
+    exit(status=status, message=message)
 
 
 def safe_run(commands, cwd=None):

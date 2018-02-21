@@ -1,3 +1,4 @@
+import argparse
 import fnmatch
 import os
 import sys
@@ -6,7 +7,7 @@ from tempfile import mkdtemp
 import attr
 import behave.parser
 
-from qe_coverage.base import TestGroup, run_reports, build_parser
+from qe_coverage.base import TestGroup, run_reports, update_parser
 from qecommon_tools import cleanup_and_exit, display_name
 
 
@@ -18,6 +19,7 @@ NUISANCE_CATEGORY_NAMES = ['features']
 @attr.s
 class ParseProject(object):
     project_path = attr.ib()
+    leading_categories_to_strip = attr.ib(type=int, default=0)
 
     def _feature_for(self, file_path):
         '''Create a behave feature object and attach the relative path of the feature file.'''
@@ -39,9 +41,9 @@ class ParseProject(object):
             name = display_name(full_path)
             if name.lower() not in NUISANCE_CATEGORY_NAMES:
                 categories.append(name)
-        return categories
+        return categories[self.leading_categories_to_strip:]
 
-    def build_coverage(self, search_hidden=False):
+    def build_coverage(self, search_hidden=False, leading_categories_to_strip=0):
         '''
         Returns a list of TestCoverage objects created by walking a product base directory for any
         feature files and parsing them into TestCoverage objects.
@@ -61,33 +63,28 @@ class ParseProject(object):
                               file_path=file_path)
         return tests
 
-    @property
-    def name(self):
-        return display_name(os.path.normpath(self.project_path))
 
-
-def run_gherkin_reports(product_dir, *report_args, **product_kwargs):
-    project = ParseProject(os.path.join(os.getcwd(), product_dir))
-    test_list = project.build_coverage(search_hidden=product_kwargs.pop('search_hidden', False))
-    if product_kwargs.pop('dry_run'):
-        sys.exit(test_list.validate())
-    else:
-        run_reports(test_list, project.name, *report_args, **product_kwargs)
+def run_gherkin_reports(product_dir, *args, **kwargs):
+    leading_categories_to_strip = kwargs.pop('leading_categories_to_strip', 0)
+    project = ParseProject(os.path.join(os.getcwd(), product_dir),
+                           leading_categories_to_strip=leading_categories_to_strip)
+    search_hidden = kwargs.pop('search_hidden', False)
+    test_list = project.build_coverage(search_hidden=search_hidden)
+    run_reports(test_list, *args, **kwargs)
 
 
 def main():
-    parser = build_parser('Collect and publish Gherkin coverage report')
+    epilog = 'Note: Run this script from the root of the test tree being reported on'
+    parser = argparse.ArgumentParser(description='Collect and publish Gherkin coverage report',
+                                     epilog=epilog)
+    parser = update_parser(parser)
     product_help = 'The director(ies) to start looking for feature files. Useful when cloning a '\
                    'repository and the feature files are stored in a sub folder.'
     parser.add_argument('-p', '--product_dir', nargs='?', default='', help=product_help)
     parser.add_argument('--search_hidden', action='store_true', help='Include ".hidden" folders')
-    args = parser.parse_args()
-    output_path = mkdtemp()
-    run_gherkin_reports(args.product_dir, args.default_interface_type, output_path,
-                        search_hidden=args.search_hidden, dry_run=args.dry_run, host=args.host)
-    if not args.preserve_files:
-        cleanup_and_exit(dir_name=output_path)
-    print('Generated files located at: {}'.format(output_path))
+    product_kwargs = vars(parser.parse_args())
+    run_gherkin_reports(product_kwargs.pop('product_dir'), product_kwargs.pop('product_hierarchy'),
+                        product_kwargs.pop('default_interface_type'), **product_kwargs)
 
 
 if __name__ == '__main__':

@@ -10,6 +10,8 @@ import json
 import os
 import re
 import socket
+import sys
+import tempfile
 import time  # Needed because Python 2.7 doesn't support datetime.datetime.now().timestamp()
 try:
     from urllib import parse
@@ -21,7 +23,7 @@ import requests
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 from tableread import SimpleRSTReader
 
-from qecommon_tools import padded_list
+from qecommon_tools import cleanup_and_exit, padded_list
 
 
 # Silence requests complaining about insecure connections; needed for our internal certificates
@@ -29,11 +31,12 @@ requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
 
 NO_STATUS_TICKET_KEY = 'Tickets'
+HIERARCHY_DELIMITER = '::'
+HIERARCHY_FORMAT = '<TEAM_NAME>{}<PRODUCT_NAME>'.format(HIERARCHY_DELIMITER)
 TAG_DEFINITION_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'coverage.rst')
-REPORT_PATH = 'reports'
-COVERAGE_REPORT_FILE = '{repo_name}_coverage_report_{time_stamp}.{ext}'
+COVERAGE_REPORT_FILE = '{product_name}_coverage_report_{time_stamp}.{ext}'
 TICKET_RE = re.compile('([A-Z][A-Z]+-?[0-9]+)')
-COVERAGE_URL_TEMPLATE = 'https://qetools.rax.io/coverage/{}/{{}}'
+COVERAGE_URL_TEMPLATE = 'https://qetools.rax.io/coverage/{}'
 COVERAGE_STAGING_URL = COVERAGE_URL_TEMPLATE.format('staging')
 
 ####################################################################################################
@@ -155,7 +158,7 @@ class TestGroup(object):
 
     def validate(self):
         if self.errors:
-            print('\n'.join(self.errors))
+            print('\n'.join(self.errors), file=sys.stderr)
         return len(self.errors)
 
 
@@ -172,19 +175,20 @@ def _empty_str_padded_list(list_or_none, pad_to_length):
     return padded_list(list_to_pad, pad_to_length, '')
 
 
-def _hostname_from_env():
-    jenkins_url = os.environ.get('JENKINS_URL')
-    return parse.urlparse(jenkins_url).netloc if jenkins_url else None
+def _product_hierarchy_as_list(product_hierarchy):
+    return product_hierarchy.lower().replace(' ', '_').split(HIERARCHY_DELIMITER)
 
 
 class ReportWriter(object):
     base_file_name = ''
 
-    def __init__(self, test_group, product_name, interface_type, output_dir):
+    def __init__(self, test_group, product_hierarchy, interface_type, output_dir='',
+                 preserve_files=False, **_):
         self.test_group = test_group
-        self.product_name = product_name
+        self.product_hierarchy = product_hierarchy
         self.interface_type = interface_type
-        self.output_dir = output_dir
+        self.output_dir = output_dir or tempfile.mkdtemp()
+        self.preserve_files = preserve_files
         self._max_lens = {}
         self.data = self._data()
         self._json_keys_that_exist = {k for d in self.data for k in d.keys()}
@@ -192,6 +196,8 @@ class ReportWriter(object):
     def write_report(self):
         self._write_json_report()
         self._write_csv_report()
+        if self.preserve_files:
+            print('Generated files located at: {}'.format(self.output_dir))
 
     def _max_len(self, key):
         '''
@@ -207,7 +213,7 @@ class ReportWriter(object):
         '''The csv heading order that the data will appear in on the reports'''
         return [
             'Business Unit',
-            'Product',
+            'Product Hierarchy',
             'Project',
             'Interface Type',
             'Categories',
@@ -227,7 +233,8 @@ class ReportWriter(object):
         Takes the categories and any additional data and returns a data dictionary with common
         reporting values
         '''
-        data_item = {'Product': self.product_name, 'Interface Type': self.interface_type}
+        data_item = {'Product Hierarchy': self.product_hierarchy,
+                     'Interface Type': self.interface_type}
         data_item.update(additional_data)
         return data_item
 
@@ -238,12 +245,9 @@ class ReportWriter(object):
         raise NotImplementedError('_data method must be overridden')
 
     def _format_file_name(self, extension):
-        '''
-        Formats the base_file_name attribute that should be overridden with a string having the
-        following format keywords in this example: "{repo_name}_some_report_{time_stamp}.{ext}"
-        '''
+        '''Create the file name based on the product name, current timestamp, and extension'''
         format_kwargs = {
-            'repo_name': self.product_name,
+            'product_name': _product_hierarchy_as_list(self.product_hierarchy)[-1],
             'time_stamp': '{:%Y_%m_%d_%H_%M_%S_%f}'.format(datetime.datetime.now()),
             'ext': extension,
         }
@@ -297,9 +301,8 @@ class ReportWriter(object):
             csv_data.extend(self._csv_cols_from(json_name, value) or [(json_name, value)])
         return csv_data
 
-    def send_report(self, host=''):
-        host = host or _hostname_from_env() or socket.gethostname()
-        response = requests.post(COVERAGE_STAGING_URL.format(host), json=self.data, verify=False)
+    def send_report(self):
+        response = requests.post(COVERAGE_STAGING_URL, json=self.data, verify=False)
         response.raise_for_status()
         return response.json().get('url', '')
 
@@ -341,37 +344,35 @@ class CSVWriter(object):
         self.file.close()
 
 
-def run_reports(test_group, product_name, *report_args, **report_kwargs):
-    host = report_kwargs.pop('host', '')
-    report = CoverageReport(test_group, product_name, *report_args, **report_kwargs)
+def run_reports(test_group, *args, **kwargs):
+    report = CoverageReport(test_group, *args, **kwargs)
     report.write_report()
-    print(report.send_report(host=host))
-    test_group.validate()
+    status = test_group.validate()
+    if not kwargs.get('dry_run'):
+        print(report.send_report())
+        status = 0
+    cleanup_and_exit(dir_name='' if report.preserve_files else report.output_dir, status=status)
 
 
-def build_parser(description):
-    parser = argparse.ArgumentParser(description=description,
-                                     epilog='Note: Run this script from the root of the test tree'
-                                            ' being reported on.')
+def product_hierarchy(string):
+    if len(_product_hierarchy_as_list(string)) != 2:
+        message = 'product_hierarchy must be formatted {}'.format(HIERARCHY_FORMAT)
+        raise argparse.ArgumentTypeError(message)
+    return string
+
+
+def update_parser(parser):
     parser.add_argument('default_interface_type', choices='gui api'.split(),
                         help='The interface type of the product if it is not otherwise specified')
+    # NOTE: This is a temporary work-around, each coverage file's line has a product available,
+    #       but since we have multiple products right now, the reporting code needs to be expanded
+    #       to handle that use case. QET-22 is tracking this.
+    parser.add_argument('product_hierarchy', type=product_hierarchy,
+                        help='Product hierarchy, formatted {}'.format(HIERARCHY_FORMAT))
     parser.add_argument('--preserve-files', default=False, action='store_true',
                         help='Preserve report files generated')
     parser.add_argument('--dry-run', action='store_true',
                         help='Do not generate reports or upload; only validate the tags.')
-    parser.add_argument('--host', type=str, default='',
-                        help='Host name to provide to the reporting tool.')
-    return parser
-
-
-def build_opencafe_parser(description):
-    parser = build_parser(description)
-    # NOTE: This is a temporary work-around, each coverage file's line has a product available,
-    #       but since we have multiple product right now, the reporting code needs to be expanded
-    #       to handle that use case. QET-22 is tracking this.
-    parser.add_argument('product_name',
-                        help='The name of the product')
     parser.add_argument('--leading-categories-to-strip', type=int, default=0,
-                        help='The number of leading categories to omit from the coverage data '
-                             'sent to Splunk')
+                        help='The number of leading categories to omit from the coverage data JSON')
     return parser

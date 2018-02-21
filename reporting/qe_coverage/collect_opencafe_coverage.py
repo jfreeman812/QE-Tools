@@ -3,26 +3,32 @@
 Run OpenCAFE command in a mode that collects coverage data and send it to splunk.
 '''
 
+import argparse
 import glob
 import os
 import sys
 from tempfile import mkdtemp
 
-from qecommon_tools import cleanup_and_exit, safe_run
-from qe_coverage.base import build_opencafe_parser
+from qecommon_tools import safe_run
+from qe_coverage.base import update_parser
+from qe_coverage.send_opencafe_tags_report import run_opencafe_reports
 
 TAGS_DIR_ENV_NAME = 'COLLECT_TAGS_DATA_INTO'
 
 
 def main():
-    parser = build_opencafe_parser('Collect and publish OpenCAFE coverage report')
+    epilog = 'Note: Run this script from the root of the test tree being reported on'
+    parser = argparse.ArgumentParser(description='Collect and publish OpenCAFE coverage report',
+                                     epilog=epilog)
+    parser = update_parser(parser)
     parser.add_argument('open_cafe_command', nargs='+',
                         help='OpenCAFE command and parameters for running the tests')
     args, coverage_kwargs = parser.parse_known_args()
+    kwargs = vars(args)
 
     tmp_dir_name = mkdtemp()
 
-    os.environ[TAGS_DIR_ENV_NAME] = tmp_dir_name
+    os.environ[TAGS_DIR_ENV_NAME] = kwargs['output_dir'] = tmp_dir_name
 
     args.open_cafe_command.extend(coverage_kwargs)
     safe_run(args.open_cafe_command)
@@ -41,28 +47,9 @@ def main():
         print('       {}'.format(' '.join(json_coverage_files)))
         sys.exit(-3)
 
-    json_coverage_file = json_coverage_files[0]
-
-    publish_command = [
-        'coverage-send-opencafe-report',
-        '-o', tmp_dir_name,
-        '--leading-categories-to-strip', str(args.leading_categories_to_strip),
-    ]
-    if args.host:
-        publish_command += ['--host', args.host]
-    if args.dry_run:
-        publish_command += ['--dry-run']
-    publish_command += [
-        args.default_interface_type,
-        args.product_name,
-        json_coverage_file,
-    ]
-
-    safe_run(publish_command)
-
-    if not args.preserve_files:
-        cleanup_and_exit(dir_name=tmp_dir_name)
-    print('Generated files located at: {}'.format(tmp_dir_name))
+    del kwargs['open_cafe_command']  # Only needed for running OpenCAFE
+    run_opencafe_reports(json_coverage_files[0], kwargs.pop('product_hierarchy'),
+                         kwargs.pop('default_interface_type'), **kwargs)
 
 
 if __name__ == '__main__':
