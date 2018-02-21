@@ -17,9 +17,9 @@ def validate_fields(payload, api_model, field_name_alternates=None):
         if alternate in payload:
             payload[main] = payload.pop(alternate)
     for key in payload:
-        field = api_model.get(key)
-        if field is None:
+        if key not in api_model:
             continue
+        field = api_model[key]
         if isinstance(field, fields.List):
             field = field.container
             data = payload[key]
@@ -90,8 +90,8 @@ class ProductHierarchy(CustomField):
     def validate(self, value):
         found_levels = len(value.split(self.hierarchy_separator))
         if found_levels != self.expected_hierarchy_levels:
-            message = '"{}" does not contain the expected Product Hierarchy format of '
-            message += '{} levels with a "{}" separator'
+            message = ('"{}" does not contain the expected Product Hierarchy format of '
+                       '{} levels with a "{}" separator')
             return message.format(value, self.expected_hierarchy_levels, self.hierarchy_separator)
         return ''
 
