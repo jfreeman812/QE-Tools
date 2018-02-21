@@ -33,6 +33,9 @@ SPLUNK_UI_SEARCH_PATH = '/en-US/app/search/search'
 
 TICKET_LIST = fields.List(custom_fields.TicketId(example='JIRA-1234'))
 
+PH_FIELD = custom_fields.ProductHierarchy(example='RBA::ARIC',
+                                          description='The ProductHierachy being tested')
+
 
 coverage_entry = api.model('Coverage Entry', {
     'Categories': fields.List(fields.String, example=['Variable Builder'], required=True),
@@ -41,7 +44,8 @@ coverage_entry = api.model('Coverage Entry', {
     'Interface Type': custom_fields.InterfaceType(example='gui', required=True),
     'Polarity': custom_fields.Polarity(example='positive', required=True),
     'Priority': custom_fields.Priority(example='medium', required=True),
-    'Product': fields.String(example='ARIC', required=True),
+    'Product': PH_FIELD,
+    'Product Hierarchy': PH_FIELD,
     'Status': custom_fields.Status(example='operational', required=True),
     'Suite': custom_fields.Suite(example='smoke', required=True),
     'Test Name': fields.String(example='Edit and upate a created Variable', required=True),
@@ -132,6 +136,13 @@ class RawCoverage(SplunkAPI):
         return self._post(args)
 
 
+def _enrich_data(entry):
+    product_hierarchy = entry.pop('Product Hierarchy')
+    team, product = product_hierarchy.split(custom_fields.ProductHierarchy.hierarchy_separator)
+    entry.update({'Team': team, 'Product': product})
+    return entry
+
+
 @ns.route('/staging', endpoint='staging data')
 @ns.route('/staging/<string:host>', endpoint='staging data with host')
 class StagingCoverage(SplunkAPI):
@@ -143,7 +154,9 @@ class StagingCoverage(SplunkAPI):
     @api.doc('POST-Staging-Data')
     @api.expect([coverage_entry], validate=True)
     def post(self, host=''):
-        errors = custom_fields.validate_response_list(request.json, coverage_entry, 'Test Name')
+        field_name_alternates = {'Product Hierarchy': 'Product'}
+        errors = custom_fields.validate_response_list(request.json, coverage_entry, 'Test Name',
+                                                      field_name_alternates=field_name_alternates)
         if errors:
             return {'message': 'payload validation failed!',
                     'errors': errors}, 400
@@ -151,7 +164,7 @@ class StagingCoverage(SplunkAPI):
         timestamp = request.args.get('timestamp')
         if timestamp:
             args.update(timestamp=timestamp)
-        return self._post(args, events=request.json)
+        return self._post(args, events=[_enrich_data(x) for x in request.json])
 
 
 if __name__ == '__main__':

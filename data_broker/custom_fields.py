@@ -7,9 +7,19 @@ def labels_from(table_name):
     return [x for x in table.get_fields('report_as') if not x.startswith('``')]
 
 
-def validate_fields(payload, api_model):
+def validate_fields(payload, api_model, field_name_alternates=None):
     messages = []
+    field_name_alternates = field_name_alternates or {}
+    for main, alternate in field_name_alternates.items():
+        both_missing_or_both_provided = (main in payload) is (alternate in payload)
+        if both_missing_or_both_provided:
+            messages.append('Either {} or {} are required, but not both.'.format(main, alternate))
+            continue
+        if alternate in payload:
+            payload[main] = payload.pop(alternate)
     for key in payload:
+        if key not in api_model:
+            continue
         field = api_model[key]
         if isinstance(field, fields.List):
             field = field.container
@@ -22,10 +32,10 @@ def validate_fields(payload, api_model):
     return list(filter(None, messages))
 
 
-def validate_response_list(response_list, api_model, label_name):
+def validate_response_list(response_list, api_model, label_name, field_name_alternates=None):
     collected_errors = []
     for entry in response_list:
-        errors = validate_fields(entry, api_model)
+        errors = validate_fields(entry, api_model, field_name_alternates)
         if errors:
             collected_errors.append({label_name: entry[label_name], 'errors': errors})
     return collected_errors
@@ -72,6 +82,19 @@ class Status(CoverageField):
 
 class ExecutionMethod(CoverageField):
     table_name = 'Execution Method'
+
+
+class ProductHierarchy(CustomField):
+    hierarchy_separator = '::'
+    expected_hierarchy_levels = 2
+
+    def validate(self, value):
+        found_levels = len(value.split(self.hierarchy_separator))
+        if found_levels != self.expected_hierarchy_levels:
+            message = ('"{}" does not contain the expected Product Hierarchy format of '
+                       '{} levels with a "{}" separator')
+            return message.format(value, self.expected_hierarchy_levels, self.hierarchy_separator)
+        return ''
 
 
 class TicketId(CustomField):
