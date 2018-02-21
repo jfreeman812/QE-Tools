@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite id="4582" name="Messenger Regression" >
+<node_order><![CDATA[10]]></node_order>
+<details><![CDATA[]]></details> 
+<testsuite id="4685" name="Messenger" >
+<node_order><![CDATA[1]]></node_order>
+<details><![CDATA[]]></details> 
+<testcase internalid="4583" name="TC:Verify each message includes Message created Time Stamp">
+	<node_order><![CDATA[1000]]></node_order>
+	<externalid><![CDATA[260]]></externalid>
+	<version><![CDATA[1]]></version>
+	<summary><![CDATA[]]></summary>
+	<preconditions><![CDATA[]]></preconditions>
+	<execution_type><![CDATA[1]]></execution_type>
+	<importance><![CDATA[2]]></importance>
+	<estimated_exec_duration></estimated_exec_duration>
+	<status>1</status>
+	<is_open>1</is_open>
+	<active>1</active>
+
+<keywords><keyword name="positive"><notes><![CDATA[
+
+]]></notes></keyword>
+<keyword name="p2"><notes><![CDATA[
+Low priority.
+]]></notes></keyword>
+</keywords><custom_fields>
+	<custom_field>
+		<name><![CDATA[Fix Version]]></name>
+		<value><![CDATA[]]></value>
+	</custom_field>	<custom_field>
+		<name><![CDATA[Components]]></name>
+		<value><![CDATA[]]></value>
+	</custom_field>	<custom_field>
+		<name><![CDATA[Sprint]]></name>
+		<value><![CDATA[]]></value>
+	</custom_field>	<custom_field>
+		<name><![CDATA[Actual Result]]></name>
+		<value><![CDATA[]]></value>
+	</custom_field>
+</custom_fields></testcase>
+</testsuite></testsuite>
