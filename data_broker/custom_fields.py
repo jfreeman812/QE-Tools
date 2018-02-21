@@ -11,7 +11,8 @@ def validate_fields(payload, api_model, field_name_alternates=None):
     messages = []
     field_name_alternates = field_name_alternates or {}
     for main, alternate in field_name_alternates.items():
-        if (main in payload) == (alternate in payload):
+        both_missing_or_both_provided = (main in payload) is (alternate in payload)
+        if both_missing_or_both_provided:
             messages.append('Either {} or {} are required, but not both.'.format(main, alternate))
             continue
         if alternate in payload:
