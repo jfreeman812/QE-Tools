@@ -126,8 +126,8 @@ quarantined  quarantined          Test is offline due to bug in application / sy
 
     OpenCAFE
     --------
-    @tags(... "quarantined", "JIRA-1234" ...)
-    @tags(... "needs-work", "JIRA-5678", "JIRA-4321" ...)
+    @tags( ..., "quarantined", "JIRA-1234", ...)
+    @tags( ..., "needs-work", "JIRA-5678", "JIRA-4321", ...)
 
 The quarantined tag can be particularly useful as it provides a mechanism to exclude known failures from a test run, thereby making it easier to isolate new test failures from recurring, known test failures. Similarly, the needs-work tag can be a convenient method to take a test which needs repair work offline while it waits for the repair.
 
