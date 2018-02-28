@@ -76,9 +76,6 @@ def main():
     parser.add_argument('--output-dir', default='reports')
     args, coverage_args = parser.parse_known_args()
     args.by_unit = args.by_unit or _allowed_units(args.start_unit)[0]
-    if VALID_UNITS.index(args.by_unit) <= VALID_UNITS.index(args.start_unit):
-        message = 'The by unit ({}) must be smaller than the start unit ({})'
-        raise ValueError(message.format(args.by_unit, args.start_unit))
     output_path = os.path.abspath(args.output_dir)
     if not os.path.exists(output_path):
         os.makedirs(output_path)
