@@ -19,10 +19,6 @@ def time_ago(unit, delta, start=None):
     return start - relativedelta(**{unit: delta})
 
 
-def datetime_to_stamp(dt):
-    return dt.strftime('%Y-%m-%d 23:59:59')
-
-
 def subdirectory_path(output_path, date):
     return os.path.join(output_path, str(date))
 
@@ -112,7 +108,7 @@ def main():
             'git',
             'rev-list',
             '-n', '1',
-            '--before="{}"'.format(datetime_to_stamp(date)),
+            '--before="{:%Y-%m-%d 23:59:59}"'.format(date),
             'master'
         ]
         rev = subprocess.check_output(rev_command, universal_newlines=True).strip('\n')
