@@ -6,7 +6,7 @@ import time
 
 from dateutil.relativedelta import relativedelta
 
-from qecommon_tools import safe_run
+from qecommon_tools import safe_run, exit
 
 
 PRESERVE_FILES_ARG = '--preserve-files'
@@ -75,6 +75,9 @@ def main():
                              ' Default value is 1 unit of size smaller than the start unit.')
     parser.add_argument('--output-dir', default='reports')
     args, coverage_args = parser.parse_known_args()
+    depth = subprocess.check_output(['git', 'rev-list', '--count', 'HEAD'],
+                                    universal_newlines=True).strip('\n')
+    assert int(depth) > 1, 'History can not be run on a "thin" log: depth was {}'.format(depth)
     args.by_unit = args.by_unit or _allowed_units(args.start_unit)[0]
     output_path = os.path.abspath(args.output_dir)
     if not os.path.exists(output_path):
@@ -88,7 +91,8 @@ def main():
             'master'
         ]
         rev = subprocess.check_output(rev_command, universal_newlines=True).strip('\n')
-        assert rev, 'No rev found in log before "{}"'.format(date)
+        if not rev:
+            exit(message='No rev found before date: {}'.format(date))
         checkout_command = [
             'git',
             'checkout',
