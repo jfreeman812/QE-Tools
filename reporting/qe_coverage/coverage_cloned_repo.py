@@ -34,9 +34,10 @@ def main():
     clone_command = ['git',
                      'clone',
                      'git@github.rackspace.com:{}.git'.format(args.repo_to_clone),
-                     cloned_repo_dir_name,
-                     '--depth',
-                     '1']
+                     cloned_repo_dir_name]
+    # coverage-history requires the full-depth commit log
+    if args.coverage_script != 'coverage-history':
+        clone_command.extend(['--depth', '1'])
 
     safe_run(clone_command)
 
