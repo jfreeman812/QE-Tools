@@ -183,12 +183,13 @@ class ReportWriter(object):
     base_file_name = ''
 
     def __init__(self, test_group, product_hierarchy, interface_type, output_dir='',
-                 preserve_files=False, **_):
+                 preserve_files=False, timestamp=None, **_):
         self.test_group = test_group
         self.product_hierarchy = product_hierarchy
         self.interface_type = interface_type
         self.output_dir = output_dir or tempfile.mkdtemp()
         self.preserve_files = preserve_files
+        self.timestamp = timestamp
         self._max_lens = {}
         self.data = self._data()
         self._json_keys_that_exist = {k for d in self.data for k in d.keys()}
@@ -302,7 +303,10 @@ class ReportWriter(object):
         return csv_data
 
     def send_report(self):
-        response = requests.post(COVERAGE_STAGING_URL, json=self.data, verify=False)
+        params = {}
+        if self.timestamp:
+            params.update(timestamp=self.timestamp)
+        response = requests.post(COVERAGE_STAGING_URL, json=self.data, params=params, verify=False)
         response.raise_for_status()
         return response.json().get('url', '')
 
@@ -375,4 +379,7 @@ def update_parser(parser):
                         help='Do not generate reports or upload; only validate the tags.')
     parser.add_argument('--leading-categories-to-strip', type=int, default=0,
                         help='The number of leading categories to omit from the coverage data JSON')
+    parser.add_argument('--timestamp', default=None,
+                        help='Unix Timestamp for representative date of the data')
+    parser.add_argument('--output-dir', default=None, help=argparse.SUPPRESS)
     return parser
