@@ -87,7 +87,7 @@ def create_qe_jira_from():
     client = get_client()
     try:
         dev_jira = client.issue(args.jira_id)
-    except jira.exceptions.JIRAError as e:
+    except jira.exceptions.JIRAError:
         print('JIRA {} was not found!'.format(args.jira_id))
         exit(1)
     issue_data = {
