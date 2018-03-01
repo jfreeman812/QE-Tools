@@ -24,7 +24,7 @@ def subdirectory_path(output_path, date):
 
 
 def generate_rev_dates(args):
-    first_date = datetime.date(1970, 1, 1)
+    first_date = datetime.date.min
     if hasattr(args, 'start_delta'):
         first_date = time_ago(args.start_unit, args.start_delta)
     cursor_date = datetime.date.today()
