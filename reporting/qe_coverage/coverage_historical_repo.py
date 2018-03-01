@@ -19,8 +19,7 @@ DEFAULT_BY_UNIT = 'weeks'
 
 
 def time_ago(unit, delta, start=None):
-    start = start or datetime.date.today()
-    return start - relativedelta(**{unit: delta})
+    return (start or datetime.date.today()) - relativedelta(**{unit: delta})
 
 
 def subdirectory_path(output_path, date):
@@ -100,8 +99,7 @@ def main():
     output_path = os.path.abspath(args.output_dir)
     if not os.path.exists(output_path):
         os.makedirs(output_path)
-    rev_dates = generate_rev_dates(args)
-    for date in rev_dates:
+    for date in generate_rev_dates(args):
         rev_command = [
             'git',
             'rev-list',
