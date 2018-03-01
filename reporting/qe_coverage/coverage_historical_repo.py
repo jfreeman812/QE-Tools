@@ -18,22 +18,22 @@ VALID_UNITS = ['years', 'months', 'weeks', 'days']
 DEFAULT_BY_UNIT = 'weeks'
 
 
-def time_ago(unit, delta, start=None):
+def _time_ago(unit, delta, start=None):
     return (start or datetime.date.today()) - relativedelta(**{unit: delta})
 
 
-def subdirectory_path(output_path, date):
+def _subdirectory_path(output_path, date):
     return os.path.join(output_path, str(date))
 
 
-def generate_rev_dates(args):
+def _generate_rev_dates(args):
     first_date = datetime.date.min
     if hasattr(args, 'start_delta'):
-        first_date = time_ago(args.start_unit, args.start_delta)
+        first_date = _time_ago(args.start_unit, args.start_delta)
     cursor_date = datetime.date.today()
     while cursor_date > first_date:
         yield cursor_date
-        cursor_date = time_ago(args.by_unit, 1, start=cursor_date)
+        cursor_date = _time_ago(args.by_unit, 1, start=cursor_date)
 
 
 def _prepare_coverage_args(coverage_args, output_dir, date):
@@ -99,7 +99,7 @@ def main():
     output_path = os.path.abspath(args.output_dir)
     if not os.path.exists(output_path):
         os.makedirs(output_path)
-    for date in generate_rev_dates(args):
+    for date in _generate_rev_dates(args):
         rev_command = [
             'git',
             'rev-list',
@@ -116,7 +116,7 @@ def main():
             rev
         ]
         safe_run(checkout_command)
-        safe_run(_prepare_coverage_args(coverage_args, subdirectory_path(output_path, date), date))
+        safe_run(_prepare_coverage_args(coverage_args, _subdirectory_path(output_path, date), date))
 
 
 if __name__ == '__main__':

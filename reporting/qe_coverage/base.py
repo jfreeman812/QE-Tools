@@ -303,9 +303,7 @@ class ReportWriter(object):
         return csv_data
 
     def send_report(self):
-        params = {}
-        if self.timestamp:
-            params.update(timestamp=self.timestamp)
+        params = {'timestamp': self.timestamp} if self.timestamp else {}
         response = requests.post(COVERAGE_STAGING_URL, json=self.data, params=params, verify=False)
         response.raise_for_status()
         return response.json().get('url', '')
