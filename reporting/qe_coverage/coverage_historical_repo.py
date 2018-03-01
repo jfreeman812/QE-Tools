@@ -11,6 +11,8 @@ from qecommon_tools import safe_run, exit
 
 PRESERVE_FILES_ARG = '--preserve-files'
 
+TIMESTAMP_ARG = '--timestamp'
+
 VALID_UNITS = ['years', 'months', 'weeks', 'days']
 
 DEFAULT_BY_UNIT = 'weeks'
@@ -36,11 +38,12 @@ def generate_rev_dates(args):
 
 
 def _prepare_coverage_args(coverage_args, output_dir, date):
-    coverage_args.extend([
-        '--output-dir', output_dir, '--timestamp', str(time.mktime(date.timetuple()))
-    ])
-    if PRESERVE_FILES_ARG not in coverage_args:
-        coverage_args.append(PRESERVE_FILES_ARG)
+    coverage_args.extend(['--output-dir', output_dir])
+    timestamp = str(time.mktime(date.timetuple()))
+    if TIMESTAMP_ARG in coverage_args:
+        coverage_args[coverage_args.index(TIMESTAMP_ARG) + 1] = timestamp
+    else:
+        coverage_args.extend([TIMESTAMP_ARG, timestamp])
     return coverage_args
 
 
