@@ -171,11 +171,12 @@ The following tags, unlike the previous section, do not have a predefined list o
 :Description:
     When applicable, any ticket ID associated with a test should be added as a tag.
     Ticket tags fall into two categories, "status" ticket tags and "independent" ticket tags.
-    "status" ticket tags are those which immediately follow a Status_ tag;
-    "independent" ticket tags are all other ticket tags.
-    As with all tagging, ticket tags can be used to control test runs as well as for coverage reporting.
-    "independent" ticket tags are *strongly* recommended for any non-trivial test; they link the test back to the issue describing why it was created (traceability).
-    "status" tickets answer the question "Why is this test not operational right now?"
+    "Status" ticket tags are those which immediately follow a Status_ tag;
+    "Independent" ticket tags are all other ticket tags.
+
+    "Independent" ticket tags are *strongly* recommended for any non-trivial test; they link the test back to the issue describing why it was created (traceability).
+    "Status" tickets answer the question "Why is this test not operational right now?"
+
     Note that when a status tag is removed, the "status" ticket tags should remain, as the test's "why it was created" history has additional nuance that we also want traceability for.
 
 
