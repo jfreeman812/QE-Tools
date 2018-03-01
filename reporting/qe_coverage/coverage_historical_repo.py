@@ -13,6 +13,8 @@ PRESERVE_FILES_ARG = '--preserve-files'
 
 VALID_UNITS = ['years', 'months', 'weeks', 'days']
 
+DEFAULT_BY_UNIT = 'weeks'
+
 
 def time_ago(unit, delta, start=None):
     start = start or datetime.date.today()
@@ -42,12 +44,6 @@ def _prepare_coverage_args(coverage_args, output_dir, date):
     return coverage_args
 
 
-def _allowed_units(unit):
-    if not unit:
-        return VALID_UNITS
-    return VALID_UNITS[VALID_UNITS.index(unit) + 1:]
-
-
 class StartUnit(argparse.Action):
     def __call__(self, parser, args, value, option_string=None):
         values = value.split()
@@ -65,11 +61,11 @@ class StartUnit(argparse.Action):
         setattr(args, 'start_unit', unit)
 
 
-class SubordinateUnit(argparse.Action):
+class SizeVerifiedUnit(argparse.Action):
     def __call__(self, parser, args, values, option_string=None):
         start_unit = args.start_unit
-        if start_unit and values not in _allowed_units(start_unit):
-            message = 'The `by-unit` ({}) must be smaller than the start unit ({})'
+        if start_unit and VALID_UNITS.index(values) < VALID_UNITS.index(start_unit):
+            message = 'The `by-unit` ({}) must be no bigger than the start unit ({})'
             raise ValueError(message.format(values, start_unit))
         setattr(args, self.dest, values)
 
@@ -77,28 +73,27 @@ class SubordinateUnit(argparse.Action):
 def main():
     epilog = 'Must be run from the root of a repo with the full log history. (not `--depth 1`)'
     parser = argparse.ArgumentParser(
-        description='Build historical coverage reports over a span of time.',
-        epilog=epilog
+        description='Build historical coverage reports over a span of time.', epilog=epilog
+    )
+    start_help = (
+        'The space-separated (quoted) measure and unit representing how far back to look'
+        ' in the repo history. The measure must be an integer.'
+        ' The unit must be one of: {}. E.g. "5 weeks"'.format(VALID_UNITS)
     )
     parser.add_argument('--start-delta', action=StartUnit, dest='start_unit', default=None,
-                        metavar='"<measure> <unit>"',
-                        help='The space-separated (quoted) measure and unit '
-                             'representing how far to look back in the repo history.'
-                             ' The measure must be an integer.'
-                             ' The unit must be one of: {}'
-                             ' E.g. "5 weeks"'.format(VALID_UNITS))
-    parser.add_argument('--by-unit', choices=VALID_UNITS, action=SubordinateUnit, default=None,
-                        help='The unit of measure for the history increment "slices".'
-                             ' Must be a smaller unit that the start unit.'
-                             ' Default value is 1 unit of size smaller than the start unit '
-                             ' or {} if no start unit provided.'.format(VALID_UNITS[0]))
+                        metavar='"<measure> <unit>"', help=start_help)
+    by_help = (
+        'The unit of measure for the history increment "slices".'
+        ' Must be a unit no bigger than the start unit.'
+    )
+    parser.add_argument('--by-unit', choices=VALID_UNITS, action=SizeVerifiedUnit,
+                        default=DEFAULT_BY_UNIT, help=by_help)
     parser.add_argument('--output-dir', default='reports',
                         help='The relative path from repo root to store the reports.')
     args, coverage_args = parser.parse_known_args()
     depth = subprocess.check_output(['git', 'rev-list', '--count', 'HEAD'],
                                     universal_newlines=True).strip('\n')
     assert int(depth) > 1, 'History can not be run on a "thin" log: depth was {}'.format(depth)
-    args.by_unit = args.by_unit or _allowed_units(args.start_unit)[0]
     output_path = os.path.abspath(args.output_dir)
     if not os.path.exists(output_path):
         os.makedirs(output_path)
