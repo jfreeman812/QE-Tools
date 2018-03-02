@@ -24,6 +24,7 @@ from requests.packages.urllib3.exceptions import InsecureRequestWarning
 from tableread import SimpleRSTReader
 
 from qecommon_tools import cleanup_and_exit, padded_list
+from qecommon_tools.http_helpers import validate_response_status_code
 
 
 # Silence requests complaining about insecure connections; needed for our internal certificates
@@ -303,7 +304,7 @@ class ReportWriter(object):
 
     def send_report(self):
         response = requests.post(COVERAGE_STAGING_URL, json=self.data, verify=False)
-        response.raise_for_status()
+        validate_response_status_code('CREATED', response)
         return response.json().get('url', '')
 
 
