@@ -9,5 +9,6 @@ setuptools.setup(name='qecommon_tools',
                  author_email='rba-qe@rackspace.com',
                  license='MIT',
                  packages=setuptools.find_packages(),
+                 tests_require=['pytest'],
                  include_package_data=True,
                  zip_safe=False)

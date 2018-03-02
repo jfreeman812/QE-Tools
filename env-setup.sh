@@ -11,6 +11,7 @@ pip install -U -r development.txt
 for extra in "${@:1}"; do
     pip install -e .[$extra]
 done
+. ./path-setup.sh
 echo
 echo
 echo
