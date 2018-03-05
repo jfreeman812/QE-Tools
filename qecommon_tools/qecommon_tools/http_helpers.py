@@ -41,13 +41,13 @@ def format_items_as_string_tree(*items):
     Each item once flattened with the appropriate level of indentation provided will be placed on
     its own line.
     Ex: items = 'ex1', 'ex2', ['nested1', 'nested2', ['double1'], ['double2]], 'ex3' ->
-    --->ex1
-    --->ex2
-    --->--->nested1
-    --->--->nested2
-    --->--->--->double1
-    --->--->--->double2
-    --->ex3
+    >---ex1
+    >---ex2
+    >--->---nested1
+    >--->---nested2
+    >--->--->---double1
+    >--->--->---double2
+    >---ex3
     '''
     return '\n'.join(_indent_items(*items))
 
