@@ -18,7 +18,7 @@ import custom_fields
 app = Flask(__name__)
 app.config.SWAGGER_UI_DOC_EXPANSION = 'full'
 app.url_map.strict_slashes = False
-api = Api(app, title='QE Data Broker', doc='/coverage/doc/')
+api = Api(app, title='QE Data Broker', doc='/coverage/doc/', version='1.1')
 
 ns = api.namespace('coverage', description='Data Broker Endpoint')
 
