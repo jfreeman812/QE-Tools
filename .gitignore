@@ -26,6 +26,8 @@ var/
 *.egg-info/
 .installed.cfg
 *.egg
+AUTHORS
+ChangeLog
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
@@ -68,3 +70,6 @@ reports/
 
 # AutoENV File
 .env
+
+#PyEnv
+.python-version
