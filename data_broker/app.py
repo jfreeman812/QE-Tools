@@ -29,6 +29,7 @@ SPLUNK_REPORT_INDEX = 'rax_temp_60'
 SPLUNK_REPORT_SOURCE = 'rax_qe_coverage'
 SPLUNK_UI_BASE_URL = 'sage.rackspace.com:8000'
 SPLUNK_UI_SEARCH_PATH = '/en-US/app/search/search'
+SCHEMA_VERSION = 'qe_coverage_metrics_schema_v20180301'
 
 
 TICKET_LIST = fields.List(custom_fields.TicketId(example='JIRA-1234'))
@@ -59,7 +60,6 @@ coverage_entry = api.model('Coverage Entry', {
 
 raw_args = api.model('Raw Input', {
     'events': fields.List(fields.Nested(coverage_entry), required=True),
-    'host': fields.String(required=True, example='jenkinsqe.rba.rackspace.com'),
     'timestamp': fields.Float(example=1518209250.403),
     'source': fields.String(default=SPLUNK_REPORT_SOURCE),
     'index': fields.String(default=SPLUNK_REPORT_INDEX),
@@ -102,7 +102,7 @@ class SplunkAPI(Resource):
             return {'message': 'No events to post!'}, 400
         common_data = {
             'time': args.get('timestamp') or time.time(),
-            'host': args['host'],
+            'host': SCHEMA_VERSION,
             'index': args['index'],
             'source': args['source'],
             'sourcetype': '_json'
@@ -144,7 +144,6 @@ def _enrich_data(entry):
 
 
 @ns.route('/staging', endpoint='staging data')
-@ns.route('/staging/<string:host>', endpoint='staging data with host')
 class StagingCoverage(SplunkAPI):
     fixed_arg_values = {'source': SPLUNK_REPORT_SOURCE, 'index': SPLUNK_REPORT_INDEX}
 
@@ -153,14 +152,14 @@ class StagingCoverage(SplunkAPI):
     @api.response(500, 'Server Error')
     @api.doc('POST-Staging-Data')
     @api.expect([coverage_entry], validate=True)
-    def post(self, host=''):
+    def post(self):
         field_name_alternates = {'Product Hierarchy': 'Product'}
         errors = custom_fields.validate_response_list(request.json, coverage_entry, 'Test Name',
                                                       field_name_alternates=field_name_alternates)
         if errors:
             return {'message': 'payload validation failed!',
                     'errors': errors}, 400
-        args = {**self.fixed_arg_values, **{'host': host}}
+        args = {**self.fixed_arg_values}
         timestamp = request.args.get('timestamp')
         if timestamp:
             args.update(timestamp=timestamp)
