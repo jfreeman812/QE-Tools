@@ -14,11 +14,11 @@ HEADERS_TO_IGNORE_IN_ERROR_MESSAGE = [
     'X-Auth-Token',
 ]
 
-_status_code_ranges = {
-    'a successful response': (200, 300, 'is not a successful response (200-level)'),
-    'a client error': (400, 500, 'is not a client error (400-level)'),
-    'a server error': (500, 600, 'is not a server error (500-level)'),
-    'any error': (400, 600, 'is not an error (400 or 500 level)'),
+STATUS_CODE_RANGES = {
+    'a successful response': (200, 300),
+    'a client error': (400, 500),
+    'a server error': (500, 600),
+    'any error': (400, 600),
 }
 
 
@@ -52,6 +52,12 @@ def format_items_as_string_tree(*items):
     return '\n'.join(_indent_items(*items))
 
 
+def _status_code_from(status_description):
+    if isinstance(status_description, int):
+        return status_description
+    return requests.codes.get(status_description.replace(' ', '_'))
+
+
 def is_status_code(expected_status_description, actual_status_code):
     '''
     Verifies that a given status code matches the expected result
@@ -66,17 +72,16 @@ def is_status_code(expected_status_description, actual_status_code):
     Returns:
         bool: True actual matches expected, False otherwise
     '''
-    lower, upper, error_message = _status_code_ranges.get(expected_status_description,
-                                                          (None, None, None))
-    if lower is None:
-        if isinstance(expected_status_description, int):
-            lower = expected_status_description
-        else:
-            lower = requests.codes.get(expected_status_description.replace(' ', '_'))
-        message = 'Coding error, unknown status code check "{}"'.format(expected_status_description)
-        assert lower is not None, message
-        upper = lower + 1
-    return lower <= actual_status_code < upper
+    if expected_status_description in STATUS_CODE_RANGES:
+        # a range descriptor was provided
+        lower, upper = STATUS_CODE_RANGES[expected_status_description]
+        return lower <= actual_status_code < upper
+
+    # Convert description to code if not provided as code
+    expected_code = _status_code_from(expected_status_description)
+    message = 'Coding error, unknown status code check "{}"'.format(expected_status_description)
+    assert expected_code, message
+    return expected_code == actual_status_code
 
 
 def create_error_message(summary_line, request, response_content, additional_info=None):
