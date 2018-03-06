@@ -13,6 +13,8 @@ PRESERVE_FILES_ARG = '--preserve-files'
 
 TIMESTAMP_ARG = '--timestamp'
 
+OUTPUT_DIR_ARG = '--output-dir'
+
 VALID_UNITS = ['years', 'months', 'weeks', 'days']
 
 DEFAULT_BY_UNIT = 'weeks'
@@ -36,13 +38,18 @@ def _generate_rev_dates(args):
         cursor_date = _time_ago(args.by_unit, 1, start=cursor_date)
 
 
-def _prepare_coverage_args(coverage_args, output_dir, date):
-    coverage_args.extend(['--output-dir', output_dir])
-    timestamp = str(time.mktime(date.timetuple()))
-    if TIMESTAMP_ARG in coverage_args:
-        coverage_args[coverage_args.index(TIMESTAMP_ARG) + 1] = timestamp
+def _add_or_replace_arg(args_list, arg_key, arg_value):
+    if arg_key in args_list:
+        args_list[args_list.index(arg_key) + 1] = arg_value
     else:
-        coverage_args.extend([TIMESTAMP_ARG, timestamp])
+        args_list.extend([arg_key, arg_value])
+    return args_list
+
+
+def _prepare_coverage_args(coverage_args, output_dir, date):
+    _add_or_replace_arg(coverage_args, OUTPUT_DIR_ARG, output_dir)
+    timestamp = str(time.mktime(date.timetuple()))
+    _add_or_replace_arg(coverage_args, TIMESTAMP_ARG, timestamp)
     return coverage_args
 
 
@@ -93,6 +100,7 @@ def main():
     parser.add_argument('--output-dir', default='reports',
                         help='The relative path from repo root to store the reports.')
     args, coverage_args = parser.parse_known_args()
+    assert coverage_args, 'No coverage script/args were provided to run after checkout!'
     depth = subprocess.check_output(['git', 'rev-list', '--count', 'HEAD'],
                                     universal_newlines=True).strip('\n')
     assert int(depth) > 1, 'History can not be run on a "thin" log: depth was {}'.format(depth)
