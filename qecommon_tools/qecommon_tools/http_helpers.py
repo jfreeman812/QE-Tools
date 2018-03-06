@@ -106,13 +106,13 @@ def create_error_message(summary_line, request, response_content, additional_inf
         summary_line,
         ['Request Info:',
             [
-                'Url: {0}'.format(request.url),
-                'HTTP Method: {0}'.format(request.method),
-                'Headers: {0}'.format(headers),
-                'Body: {0}'.format(request.body)
+                'Url: {}'.format(request.url),
+                'HTTP Method: {}'.format(request.method),
+                'Headers: {}'.format(headers),
+                'Body: {}'.format(request.body)
             ]],
-        ['{0}: {1}'.format(k, v) for k, v in additional_info.items()],
-        ['Response Content: {0}'.format(response_content)]
+        ['{}: {}'.format(k, v) for k, v in additional_info.items()],
+        ['Response Content: {}'.format(response_content)]
     )
 
 
@@ -133,7 +133,7 @@ def validate_response_status_code(expected_status_description, response):
         except ValueError:
             response_content = response.content
 
-        status_message = '{0} - Actual Response Status: {1}'
+        status_message = '{} - Actual Response Status: {}'
         err_msg = create_error_message(
             summary_line='The response status does not match the expected status.',
             request=response.request, response_content=response_content,
