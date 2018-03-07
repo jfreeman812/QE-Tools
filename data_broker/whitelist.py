@@ -3,9 +3,6 @@ from os import path
 from tableread import SimpleRSTReader
 
 
-WHITELIST_PATH = ''
-
-
 class Whitelist(object):
     whitelist_path = 'data/whitelist.rst'
     ph_separator = '::'
