@@ -349,7 +349,9 @@ class CSVWriter(object):
 def run_reports(test_group, *args, **kwargs):
     report = CoverageReport(test_group, *args, **kwargs)
     report.write_report()
-    status = test_group.validate()
+    status = 0
+    if kwargs.get('validate'):
+        status = test_group.validate()
     if not kwargs.get('dry_run'):
         print(report.send_report())
         status = 0
@@ -380,4 +382,6 @@ def update_parser(parser):
     parser.add_argument('--timestamp', default=None,
                         help='Unix Timestamp for representative date of the data')
     parser.add_argument('--output-dir', default=None, help=argparse.SUPPRESS)
+    parser.add_argument('--no-validate', dest='validate', action='store_false',
+                        help='write reports without validating data')
     return parser
