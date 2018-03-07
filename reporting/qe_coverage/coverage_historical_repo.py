@@ -107,24 +107,31 @@ def main():
     output_path = os.path.abspath(args.output_dir)
     if not os.path.exists(output_path):
         os.makedirs(output_path)
-    for date in _generate_rev_dates(args):
-        rev_command = [
-            'git',
-            'rev-list',
-            '-n', '1',
-            '--before="{:%Y-%m-%d 23:59:59}"'.format(date),
-            'master'
-        ]
-        rev = subprocess.check_output(rev_command, universal_newlines=True).strip('\n')
-        if not rev:
-            exit(message='No rev found before date: {}'.format(date))
-        checkout_command = [
-            'git',
-            'checkout',
-            rev
-        ]
-        safe_run(checkout_command)
-        safe_run(_prepare_coverage_args(coverage_args, _subdirectory_path(output_path, date), date))
+    head_cache = subprocess.check_output(['cat', '.git/HEAD'], universal_newlines=True).strip('\n')
+    head_cache = head_cache.split('/')[-1]
+    try:
+        for date in _generate_rev_dates(args):
+            rev_command = [
+                'git',
+                'rev-list',
+                '-n', '1',
+                '--before="{:%Y-%m-%d 23:59:59}"'.format(date),
+                'master'
+            ]
+            rev = subprocess.check_output(rev_command, universal_newlines=True).strip('\n')
+            if not rev:
+                exit(message='No rev found before date: {}'.format(date))
+            checkout_command = [
+                'git',
+                'checkout',
+                rev
+            ]
+            safe_run(checkout_command)
+            safe_run(_prepare_coverage_args(coverage_args,
+                                            _subdirectory_path(output_path, date),
+                                            date))
+    finally:
+        safe_run(['git', 'checkout', head_cache])
 
 
 if __name__ == '__main__':
