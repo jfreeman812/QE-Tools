@@ -130,7 +130,7 @@ class SplunkAPI(Resource):
         errors = custom_fields.validate_response_list(request.json, coverage_entry, 'Test Name',
                                                       field_name_alternates=field_name_alternates)
         if errors:
-            return {'message': 'payload validation failed!', 'errors': errors}, 401
+            return {'message': 'payload validation failed!', 'errors': errors}, 400
 
     def _prep_args(self):
         args = {**self.fixed_arg_values}
@@ -183,11 +183,11 @@ class ProductionCoverage(SplunkAPI):
     fixed_arg_values = {'source': SPLUNK_REPORT_SOURCE, 'index': SPLUNK_PRODUCTION_INDEX}
 
     def _check_whitelist(self):
-        rejected = whitelist.get_disallowed([x['Product Hierarchy'] for x in request.json])
+        rejected = whitelist.get_disallowed({x['Product Hierarchy'] for x in request.json})
         if rejected:
             err_msg = 'The listed Product Hierarchies are not allowed to post to production.'
             return {'Message': err_msg,
-                    'Errors': str(rejected)}, 401
+                    'Errors': list(rejected)}, 401
 
     @api.response(201, 'Accepted')
     @api.response(400, 'Bad Request')
