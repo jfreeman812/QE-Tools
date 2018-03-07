@@ -14,6 +14,7 @@ fi
 self_check_output='.self-test-stdout.log'
 echo "output capture in $self_check_output"
 echo
+> $self_check_output
 
 # From this point on any command that fails should cause an exit.
 set -e
