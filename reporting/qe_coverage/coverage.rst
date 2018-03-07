@@ -114,7 +114,7 @@ quarantined  quarantined          Test is offline due to bug in application / sy
 ..           operational          Test is online and being executed.
 ===========  ===================  =======================================================================================
 
-**Note:** For any non-default status tag, the tag should be followed by one or more Ticket tags (see: Tickets_) that are tracking the work needed to bring the test into operational state. For example:
+**Note:** For any non-default status tag, the tag should be followed by one or more Ticket tags (see: Tickets_) that are tracking the work needed to bring the test into operational state. The Ticket tags must follow immediately after the non-default status tag until any non-Ticket tag (or end of tags). For example:
 
 .. code:: Gherkin
 
@@ -126,8 +126,8 @@ quarantined  quarantined          Test is offline due to bug in application / sy
 
     OpenCAFE
     --------
-    @tags("quarantined", "JIRA-1234")
-    @tags("needs-work", "JIRA-5678", "JIRA-4321")
+    @tags( ..., "quarantined", "JIRA-1234", ...)
+    @tags( ..., "needs-work", "JIRA-5678", "JIRA-4321", ...)
 
 The quarantined tag can be particularly useful as it provides a mechanism to exclude known failures from a test run, thereby making it easier to isolate new test failures from recurring, known test failures. Similarly, the needs-work tag can be a convenient method to take a test which needs repair work offline while it waits for the repair.
 
@@ -169,9 +169,16 @@ The following tags, unlike the previous section, do not have a predefined list o
 :Attribute: Tickets
 :Format: ``<Ticket_ID>``
 :Description:
-    When applicable, any ticket ID associated with a test should be added as an independent tag. This allows for tests to be run for specific ticket(s) as well as a historic record of the reason a test was added to the suite. It is strongly encouraged for traceability that all non-trivial tests have a ticket tag associated with them.
+    When applicable, any ticket ID associated with a test should be added as a tag.
+    Ticket tags fall into two categories, "status" ticket tags and "independent" ticket tags.
+    "Status" ticket tags are those which immediately follow a Status_ tag;
+    "Independent" ticket tags are all other ticket tags.
 
-    **Note:** Ticket tags are required after some other tags (see Status_ above). An independent ticket tag must occur prior to any such Status tag (if present)
+    "Independent" ticket tags are *strongly* recommended for any non-trivial test; they link the test back to the issue describing why it was created (traceability).
+    "Status" tickets answer the question "Why is this test not operational right now?"
+
+    Note that when a status tag is removed, the "status" ticket tags should remain, as the test's "why it was created" history has additional nuance that we also want traceability for.
+
 
 Additional Attributes
 ~~~~~~~~~~~~~~~~~~~~~
