@@ -350,9 +350,7 @@ class CSVWriter(object):
 def run_reports(test_group, *args, **kwargs):
     report = CoverageReport(test_group, *args, **kwargs)
     report.write_report()
-    status = 0
-    if kwargs.get('validate'):
-        status = test_group.validate()
+    status = 0 if kwargs.get('validate') is False else test_group.validate()
     if not kwargs.get('dry_run'):
         print(report.send_report())
         status = 0

@@ -80,9 +80,10 @@ class SizeVerifiedUnit(argparse.Action):
 
 
 def main():
-    epilog = 'Must be run from the root of a repo with the full log history. (not `--depth 1`)'
+    epilog = 'Must be run from the repo root with a full log history. (not `--depth 1`)'
     parser = argparse.ArgumentParser(
-        description='Build historical coverage reports over a span of time.', epilog=epilog
+        description='Build historical coverage reports over a span of time.', epilog=epilog,
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
     start_help = (
         'The space-separated (quoted) measure and unit representing how far back to look'
