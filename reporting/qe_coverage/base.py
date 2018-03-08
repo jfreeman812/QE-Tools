@@ -317,8 +317,7 @@ class CoverageReport(ReportWriter):
 
     def _csv_heading_order(self):
         '''The base non extended order of the csv columns for the Coverage Report'''
-        coverage_list = ['Feature Name', 'Test Name', 'Polarity', 'Priority', 'Suite', 'Status',
-                         'Execution Method']
+        coverage_list = ['Test Name', 'Polarity', 'Priority', 'Suite', 'Status', 'Execution Method']
         return (super(CoverageReport, self)._csv_heading_order() + coverage_list +
                 TICKET_STATUS_DISPLAY_NAMES)
 

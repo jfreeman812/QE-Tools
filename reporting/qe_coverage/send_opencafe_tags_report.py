@@ -21,9 +21,6 @@ For any test which does _not_ have a tag to set its interface_type:
 * If it is not under of the directories named above,
   the command line parameter to this tool will be used for that test's interface_type.
 
-The very last entry of the provenence list (explain that term!) will be used
-as the feature name for the test (and removed from the categories list).
-
 The test's reported categories will be based on the directory heirachy,
 as modified and filtered per above descriptions.
 
