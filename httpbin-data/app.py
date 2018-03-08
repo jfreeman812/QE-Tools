@@ -75,7 +75,7 @@ class ETCDHandler(object):
         return key if key is not _DEFAULT_VALUE else default
 
     def _get_subname(self, *layers):
-        return '/'.join([self.name, *layers])
+        return '/'.join([self.name, *layers])  # noqa: E999
 
     def _keyname_from_child(self, child):
         return child['key'].split('/')[-1]
