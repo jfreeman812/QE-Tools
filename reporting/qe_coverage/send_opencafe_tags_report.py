@@ -99,9 +99,7 @@ def coverage_json_to_test_group(coverage_file_name, default_interface_type,
             categories, interface = _parse_provenance(test_data['provenance'],
                                                       default_interface_type,
                                                       leading_categories_to_strip)
-            feature_name = categories.pop()
-            tests.add(name=test_data['test'], categories=categories, tags=test_data['tags'],
-                      feature_name=feature_name)
+            tests.add(name=test_data['test'], categories=categories, tags=test_data['tags'])
 
     return tests
 
