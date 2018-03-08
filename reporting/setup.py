@@ -23,7 +23,7 @@ INSTALL_REQUIRES = [
     'python-dateutil',
 ]
 
-EXTRAS_REQUIRE = {'gherkin': ['behave==1.2.6.dev1']}
+EXTRAS_REQUIRE = {'gherkin': ['behave>=1.2.6.dev1']}
 
 here = os.path.abspath(os.path.dirname(__file__))
 
