@@ -133,7 +133,7 @@ class SplunkAPI(Resource):
             return {'message': 'payload validation failed!', 'errors': errors}, 400
 
     def _prep_args(self):
-        args = {**self.fixed_arg_values}
+        args = {**self.fixed_arg_values}  # noqa: E999
         timestamp = request.args.get('timestamp')
         if timestamp:
             args.update(timestamp=timestamp)
