@@ -104,7 +104,7 @@ def main():
     assert coverage_args, 'No coverage script/args were provided to run after checkout!'
     depth = subprocess.check_output(['git', 'rev-list', '--count', 'HEAD'],
                                     universal_newlines=True).strip('\n')
-    assert int(depth) > 1, 'History can not be run on a "thin" log: depth was {}'.format(depth)
+    assert int(depth) > 1, 'History cannot be run on a "thin" log: depth was {}'.format(depth)
     unclean = subprocess.check_output(['git', 'status', '--porcelain'], universal_newlines=True)
     assert not unclean, 'The repo is not in a clean state: {}'.format(unclean)
     output_path = os.path.abspath(args.output_dir)
