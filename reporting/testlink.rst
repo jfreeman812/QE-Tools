@@ -32,6 +32,8 @@ This script does have an optional parameter, ``--dry-run`` that can be used for 
 
 The script also has the ability to skip past categories. For example, if the first category is the product name, that category should be skipped. The optional parameter is ``--leading-categories-to-strip`` and takes an integer for the number of categories to skip.
 
+When you are ready to push data to the production dashboard, you can do so with ``--production-endpoint``. This will only succeed if all Product Hierarchies you are sending are included in the :doc:`Product Hierarchy Whitelist<../data_broker/data/whitelist>`.
+
 Reviewing the Reports
 ---------------------
 
