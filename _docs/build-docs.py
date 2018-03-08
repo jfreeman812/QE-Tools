@@ -31,7 +31,7 @@ def main():
             sys.exit(1)
     subprocess.call(['sphinx-apidoc', '--output-dir', 'docs', '--no-toc', '--force',
                      'qecommon_tools/qecommon_tools'], cwd=BASE_DIR)
-    subprocess.call(['sphinx-build', '-c', DOCS_DIR, '-aE', '.', 'docs/'], cwd=BASE_DIR)
+    subprocess.check_call(['sphinx-build', '-c', DOCS_DIR, '-aEW', '.', 'docs/'], cwd=BASE_DIR)
 
 
 if __name__ == '__main__':
