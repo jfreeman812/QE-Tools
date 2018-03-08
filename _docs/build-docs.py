@@ -11,10 +11,11 @@ BASE_DIR = os.path.dirname(DOCS_DIR)
 
 def main():
     # Setup environment variables
-    commit_id = str(subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=BASE_DIR))
+    commit_id = subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=BASE_DIR,
+                                        universal_newlines=True)
     os.environ['GIT_COMMIT_ID'] = commit_id.rstrip('\n')
-    origin_url = str(subprocess.check_output(['git', 'config', '--get', 'remote.origin.url'],
-                                             cwd=BASE_DIR))
+    origin_url = subprocess.check_output(['git', 'config', '--get', 'remote.origin.url'],
+                                         cwd=BASE_DIR, universal_newlines=True)
     os.environ['GIT_ORIGIN_URL'] = origin_url.rstrip('\n')
     # Build parser
     parser = argparse.ArgumentParser()

@@ -67,6 +67,7 @@ check-unicode.py                                     Checks a directory structur
 
    Coverage Metrics <reporting/README>
    Coverage Metrics Schema <reporting/qe_coverage/coverage>
+   Production Whitelist <data_broker/data/whitelist>
 
 .. _Artifactory: https://artifacts.rackspace.net
 .. _`data_broker/`: https://qetools.rax.io/coverage/doc/
