@@ -2,7 +2,7 @@ import setuptools
 
 
 setuptools.setup(name='qe_coverage',
-                 version='1.2.1',
+                 version='1.3.0',
                  description='Collection of tools to enable coverage reporting',
                  url='https://github.rackspace.com/QualityEngineering/QE-Tools',
                  author='RBA QE',
@@ -15,11 +15,12 @@ setuptools.setup(name='qe_coverage',
                         'coverage-cloned-repo=qe_coverage.coverage_cloned_repo:main',
                         'coverage-opencafe=qe_coverage.collect_opencafe_coverage:main',
                         'coverage-testlink=qe_coverage.send_testlink_tags_report:main',
+                        'coverage-history=qe_coverage.coverage_historical_repo:main'
                      ],
                  },
                  packages=setuptools.find_packages(),
                  install_requires=['attrs>=16.0.0', 'requests>=2.10', 'tableread>=1.0.2',
-                                   'qecommon_tools>=1.1.0', 'wrapt'],
+                                   'qecommon_tools>=1.1.0', 'wrapt', 'python-dateutil'],
                  extras_require={'gherkin': ['behave==1.2.6.dev1']},
                  include_package_data=True,
                  zip_safe=False)
