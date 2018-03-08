@@ -1,8 +1,5 @@
 import os
 import setuptools
-from shutil import rmtree
-import subprocess
-import sys
 
 NAME = 'github_tools'
 DESCRIPTION = 'A collection of tools for interacting with GitHub'

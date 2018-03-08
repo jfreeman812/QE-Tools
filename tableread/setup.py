@@ -1,8 +1,5 @@
 import os
 import setuptools
-from shutil import rmtree
-import subprocess
-import sys
 
 NAME = 'tableread'
 DESCRIPTION = 'Table reader for simple reStructredText tables'

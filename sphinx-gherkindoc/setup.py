@@ -1,9 +1,5 @@
-
 import os
 import setuptools
-from shutil import rmtree
-import subprocess
-import sys
 
 NAME = 'sphinx-gherkindoc'
 SUBDIR_NAME = NAME.replace('-', '_')

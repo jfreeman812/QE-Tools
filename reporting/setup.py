@@ -1,8 +1,5 @@
 import os
 import setuptools
-from shutil import rmtree
-import subprocess
-import sys
 
 NAME = 'qe_coverage'
 DESCRIPTION = 'Collection of tools to enable coverage reporting'

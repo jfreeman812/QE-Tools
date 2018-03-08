@@ -1,8 +1,5 @@
 import os
 import setuptools
-from shutil import rmtree
-import subprocess
-import sys
 
 NAME = 'qe_jira'
 DESCRIPTION = 'Simple helper to create a QE Test JIRA from a dev JIRA'

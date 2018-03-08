@@ -1,8 +1,5 @@
 import os
 import setuptools
-from shutil import rmtree
-import subprocess
-import sys
 
 NAME = 'qecommon_tools'
 DESCRIPTION = 'Collection of miscellaneous helper methods'
