@@ -39,6 +39,7 @@ COVERAGE_REPORT_FILE = '{product_name}_coverage_report_{time_stamp}.{ext}'
 TICKET_RE = re.compile('([A-Z][A-Z]+-?[0-9]+)')
 COVERAGE_URL_TEMPLATE = 'https://qetools.rax.io/coverage/{}'
 COVERAGE_STAGING_URL = COVERAGE_URL_TEMPLATE.format('staging')
+COVERAGE_PRODUCTION_URL = COVERAGE_URL_TEMPLATE.format('production')
 
 ####################################################################################################
 # Globals
@@ -184,12 +185,13 @@ class ReportWriter(object):
     base_file_name = ''
 
     def __init__(self, test_group, product_hierarchy, interface_type, output_dir='',
-                 preserve_files=False, **_):
+                 preserve_files=False, production_endpoint=False, **_):
         self.test_group = test_group
         self.product_hierarchy = product_hierarchy
         self.interface_type = interface_type
         self.output_dir = output_dir or tempfile.mkdtemp()
         self.preserve_files = preserve_files
+        self.production_endpoint = production_endpoint
         self._max_lens = {}
         self.data = self._data()
         self._json_keys_that_exist = {k for d in self.data for k in d.keys()}
@@ -303,7 +305,8 @@ class ReportWriter(object):
         return csv_data
 
     def send_report(self):
-        response = requests.post(COVERAGE_STAGING_URL, json=self.data, verify=False)
+        coverage_url = COVERAGE_PRODUCTION_URL if self.production_endpoint else COVERAGE_STAGING_URL
+        response = requests.post(coverage_url, json=self.data, verify=False)
         validate_response_status_code('CREATED', response)
         return response.json().get('url', '')
 
@@ -376,4 +379,6 @@ def update_parser(parser):
                         help='Do not generate reports or upload; only validate the tags.')
     parser.add_argument('--leading-categories-to-strip', type=int, default=0,
                         help='The number of leading categories to omit from the coverage data JSON')
+    parser.add_argument('--production-endpoint', action='store_true',
+                        help='Send coverage data to the production endpoint')
     return parser

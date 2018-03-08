@@ -13,6 +13,7 @@ from flask_restplus import Api, Resource, reqparse, fields
 import requests
 
 import custom_fields
+from whitelist import Whitelist
 
 
 app = Flask(__name__)
@@ -22,10 +23,13 @@ api = Api(app, title='QE Data Broker', doc='/coverage/doc/', version='1.1')
 
 ns = api.namespace('coverage', description='Data Broker Endpoint')
 
+whitelist = Whitelist()
+
 
 SPLUNK_COLLECTOR_HOSTNAME = 'httpc.secops.rackspace.com'
 SPLUNK_COLLECTOR_URL = 'https://{}:8088/services/collector'.format(SPLUNK_COLLECTOR_HOSTNAME)
-SPLUNK_REPORT_INDEX = 'rax_temp_60'
+SPLUNK_STAGING_INDEX = 'rax_temp_60'
+SPLUNK_PRODUCTION_INDEX = 'rax_qe_coverage'
 SPLUNK_REPORT_SOURCE = 'rax_qe_coverage'
 SPLUNK_UI_BASE_URL = 'sage.rackspace.com:8000'
 SPLUNK_UI_SEARCH_PATH = '/en-US/app/search/search'
@@ -62,7 +66,7 @@ raw_args = api.model('Raw Input', {
     'events': fields.List(fields.Nested(coverage_entry), required=True),
     'timestamp': fields.Float(example=1518209250.403),
     'source': fields.String(default=SPLUNK_REPORT_SOURCE),
-    'index': fields.String(default=SPLUNK_REPORT_INDEX),
+    'index': fields.String(default=SPLUNK_STAGING_INDEX),
 })
 
 
@@ -121,6 +125,20 @@ class SplunkAPI(Resource):
                     'error': str(e),
                     'response_text': str(response.content)}, 500
 
+    def _validate_payload(self):
+        field_name_alternates = {'Product Hierarchy': 'Product'}
+        errors = custom_fields.validate_response_list(request.json, coverage_entry, 'Test Name',
+                                                      field_name_alternates=field_name_alternates)
+        if errors:
+            return {'message': 'payload validation failed!', 'errors': errors}, 400
+
+    def _prep_args(self):
+        args = {**self.fixed_arg_values}
+        timestamp = request.args.get('timestamp')
+        if timestamp:
+            args.update(timestamp=timestamp)
+        return args
+
 
 # leaving fully-extensible API
 @ns.route('/', endpoint='RAW-Data')
@@ -145,7 +163,7 @@ def _enrich_data(entry):
 
 @ns.route('/staging', endpoint='staging data')
 class StagingCoverage(SplunkAPI):
-    fixed_arg_values = {'source': SPLUNK_REPORT_SOURCE, 'index': SPLUNK_REPORT_INDEX}
+    fixed_arg_values = {'source': SPLUNK_REPORT_SOURCE, 'index': SPLUNK_STAGING_INDEX}
 
     @api.response(201, 'Accepted')
     @api.response(400, 'Bad Request')
@@ -153,16 +171,38 @@ class StagingCoverage(SplunkAPI):
     @api.doc('POST-Staging-Data')
     @api.expect([coverage_entry], validate=True)
     def post(self):
-        field_name_alternates = {'Product Hierarchy': 'Product'}
-        errors = custom_fields.validate_response_list(request.json, coverage_entry, 'Test Name',
-                                                      field_name_alternates=field_name_alternates)
-        if errors:
-            return {'message': 'payload validation failed!',
-                    'errors': errors}, 400
-        args = {**self.fixed_arg_values}
-        timestamp = request.args.get('timestamp')
-        if timestamp:
-            args.update(timestamp=timestamp)
+        validation_message = self._validate_payload()
+        if validation_message:
+            return validation_message
+        args = self._prep_args()
+        return self._post(args, events=[_enrich_data(x) for x in request.json])
+
+
+@ns.route('/production', endpoint='production data')
+class ProductionCoverage(SplunkAPI):
+    fixed_arg_values = {'source': SPLUNK_REPORT_SOURCE, 'index': SPLUNK_PRODUCTION_INDEX}
+
+    def _check_whitelist(self):
+        rejected = whitelist.get_disallowed({x['Product Hierarchy'] for x in request.json})
+        if rejected:
+            err_msg = 'The listed Product Hierarchies are not allowed to post to production.'
+            return {'Message': err_msg,
+                    'Errors': list(rejected)}, 401
+
+    @api.response(201, 'Accepted')
+    @api.response(400, 'Bad Request')
+    @api.response(401, 'Unauthorized')
+    @api.response(500, 'Server Error')
+    @api.doc('POST-Staging-Data')
+    @api.expect([coverage_entry], validate=True)
+    def post(self):
+        validation_message = self._validate_payload()
+        if validation_message:
+            return validation_message
+        whitelist_msg = self._check_whitelist()
+        if whitelist_msg:
+            return whitelist_msg
+        args = self._prep_args()
         return self._post(args, events=[_enrich_data(x) for x in request.json])
 
 
