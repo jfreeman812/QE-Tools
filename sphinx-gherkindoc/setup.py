@@ -1,20 +1,50 @@
+
+import os
 import setuptools
+from shutil import rmtree
+import subprocess
+import sys
+
+NAME = 'sphinx-gherkindoc'
+SUBDIR_NAME = NAME.replace('-', '_')
+DESCRIPTION = 'A tool to convert Gherkin files into Sphinx documentation'
+VERSION = None
+
+CONSOLE_SCRIPTS = [
+    'sphinx-gherkindoc=sphinx_gherkindoc:main'
+]
+
+INSTALL_REQUIRES = [
+    'Sphinx>=1.3,<1.7',
+    'behave==1.2.6.dev1',
+    'qecommon_tools>=1.0.0'
+]
+
+EXTRAS_REQUIRE = {}
+
+here = os.path.abspath(os.path.dirname(__file__))
+
+about = {}
+if not VERSION:
+    with open(os.path.join(here, SUBDIR_NAME, '__version__.py')) as f:
+        exec(f.read(), about)
+else:
+    about['__version__'] = VERSION
 
 
-setuptools.setup(name='sphinx-gherkindoc',
-                 version='1.0.1',
-                 description='An tool to convert Gherkin files into Sphinx documentation',
+setuptools.setup(name=NAME,
+                 version=about['__version__'],
+                 description=DESCRIPTION,
                  url='https://github.rackspace.com/QualityEngineering/QE-Tools',
-                 author='RBA QE',
-                 author_email='rba-qe@rackspace.com',
+                 author='Rackspace QE',
+                 author_email='qe-tools-contributors@rackspace.com',
                  license='MIT',
                  entry_points={
-                     'console_scripts': ['sphinx-gherkindoc=sphinx_gherkindoc:main'],
+                     'console_scripts': CONSOLE_SCRIPTS,
                  },
+                 install_requires=INSTALL_REQUIRES,
                  packages=setuptools.find_packages(),
-                 # Until the behave project accepts our PR or otherwise fixes the bug in
-                 # model_core.py, the behave version must be pinned.
-                 install_requires=['Sphinx>=1.3,<1.7', 'behave==1.2.6.dev1',
-                                   'qecommon_tools>=1.0.0'],
                  include_package_data=True,
-                 zip_safe=False)
+                 zip_safe=False,
+                 extras_require=EXTRAS_REQUIRE,
+                 )
