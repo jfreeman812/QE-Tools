@@ -108,6 +108,18 @@ def expected_error_msg():
     )
 
 
+@pytest.fixture
+def expected_error_msg_without_additional_info():
+    return (
+        '\tThe response status does not match the expected status\n'
+        '\t\tRequest Info:\n'
+        '\t\t\tUrl: mock://test.com/ok\n'
+        '\t\t\tHTTP Method: GET\n'
+        "\t\t\tHeaders: {'Accept': '*/*'}\n"
+        '\t\t\tBody: None'
+    )
+
+
 def test_create_error_msg(expected_error_msg, ok_response):
     created_msg = http_helpers.create_error_message(
         'The response status does not match the expected status',
@@ -118,6 +130,17 @@ def test_create_error_msg(expected_error_msg, ok_response):
     # strip response content line as bytes-vs-str in py2/3 gets messy
     created_msg = '\n'.join(created_msg.split('\n')[:-1])
     assert created_msg == expected_error_msg
+
+
+def test_create_error_msg_without_additional_info(expected_error_msg_without_additional_info, ok_response):
+    created_msg = http_helpers.create_error_message(
+        'The response status does not match the expected status',
+        ok_response.request,
+        ok_response.content
+    )
+    # strip response content line as bytes-vs-str in py2/3 gets messy
+    created_msg = '\n'.join(created_msg.split('\n')[:-1])
+    assert created_msg == expected_error_msg_without_additional_info
 
 
 @pytest.mark.parametrize('expected_description', ALL_ERRORS)
