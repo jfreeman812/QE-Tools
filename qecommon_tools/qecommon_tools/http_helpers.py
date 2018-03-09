@@ -55,7 +55,7 @@ def format_items_as_string_tree(*items):
 def _status_code_from(status_description):
     if isinstance(status_description, int):
         return status_description
-    return requests.codes.get(status_description.replace(' ', '_'))
+    return requests.codes.get(status_description.replace(' ', '_').upper())
 
 
 def is_status_code(expected_status_description, actual_status_code):
@@ -106,6 +106,7 @@ def create_error_message(summary_line, request, response_content, additional_inf
                if header not in HEADERS_TO_IGNORE_IN_ERROR_MESSAGE}
 
     response_content = str(response_content)[:MAX_ERROR_MESSAGE_CONTENT_LENGTH]
+    request_body = str(request.body)[:MAX_ERROR_MESSAGE_CONTENT_LENGTH]
 
     return format_items_as_string_tree(
         summary_line,
@@ -114,7 +115,7 @@ def create_error_message(summary_line, request, response_content, additional_inf
                 'Url: {}'.format(request.url),
                 'HTTP Method: {}'.format(request.method),
                 'Headers: {}'.format(headers),
-                'Body: {}'.format(request.body)
+                'Body: {}'.format(request_body)
             ]],
         ['{}: {}'.format(k, v) for k, v in additional_info.items()],
         ['Response Content: {}'.format(response_content)]
