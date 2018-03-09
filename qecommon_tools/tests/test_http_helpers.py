@@ -132,7 +132,8 @@ def test_create_error_msg(expected_error_msg, ok_response):
     assert created_msg == expected_error_msg
 
 
-def test_create_error_msg_without_additional_info(expected_error_msg_without_additional_info, ok_response):
+def test_create_error_msg_without_additional_info(expected_error_msg_without_additional_info,
+                                                  ok_response):
     created_msg = http_helpers.create_error_message(
         'The response status does not match the expected status',
         ok_response.request,
