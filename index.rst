@@ -71,3 +71,9 @@ check-unicode.py                                     Checks a directory structur
 
 .. _Artifactory: https://artifacts.rackspace.net
 .. _`data_broker/`: https://qetools.rax.io/coverage/doc/
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Contributing
+
+   contributing
