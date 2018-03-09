@@ -54,7 +54,6 @@ class TestCoverage(object):
     name = attr.ib()
     categories = attr.ib(default=attr.Factory(list))
     tags = attr.ib(default=attr.Factory(list))
-    feature_name = attr.ib(default='')
     parent_tags = attr.ib(default=attr.Factory(list))
     file_path = attr.ib(default='')
     # Pre-defined Constants
@@ -150,9 +149,9 @@ class TestGroup(object):
     tests = attr.ib(default=attr.Factory(list), init=False)
     errors = attr.ib(default=attr.Factory(list), init=False)
 
-    def add(self, name, categories=None, tags=None, feature_name='', parent_tags=None,
+    def add(self, name, categories=None, tags=None, parent_tags=None,
             file_path=''):
-        test = TestCoverage(name=name, categories=categories, tags=tags, feature_name=feature_name,
+        test = TestCoverage(name=name, categories=categories, tags=tags,
                             parent_tags=parent_tags or [], file_path=file_path)
         test.build()
         self.tests.append(test)
@@ -318,13 +317,12 @@ class CoverageReport(ReportWriter):
 
     def _csv_heading_order(self):
         '''The base non extended order of the csv columns for the Coverage Report'''
-        coverage_list = ['Feature Name', 'Test Name', 'Polarity', 'Priority', 'Suite', 'Status',
-                         'Execution Method']
+        coverage_list = ['Test Name', 'Polarity', 'Priority', 'Suite', 'Status', 'Execution Method']
         return (super(CoverageReport, self)._csv_heading_order() + coverage_list +
                 TICKET_STATUS_DISPLAY_NAMES)
 
     def _build_test(self, test):
-        test_data = {'Test Name': test.name, 'Feature Name': test.feature_name}
+        test_data = {'Test Name': test.name}
         test_data.update({x: y for (x, y) in test.attributes.items() if y})
         test_data.update({x: y for (x, y) in test.tickets.items() if y})
         return self._data_item(**test_data)
