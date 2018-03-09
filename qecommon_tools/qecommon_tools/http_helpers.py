@@ -55,7 +55,7 @@ def format_items_as_string_tree(*items):
 def _status_code_from(status_description):
     if isinstance(status_description, int):
         return status_description
-    return requests.codes.get(status_description.replace(' ', '_'))
+    return requests.codes.get(status_description.replace(' ', '_').upper())
 
 
 def is_status_code(expected_status_description, actual_status_code):
