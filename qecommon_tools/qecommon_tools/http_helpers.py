@@ -102,6 +102,9 @@ def create_error_message(summary_line, request, response_content, additional_inf
     Returns:
         str: The complete and detailed error message.
     '''
+    if additional_info is None:
+        additional_info = {}
+
     headers = {header: value for header, value in request.headers.items()
                if header not in HEADERS_TO_IGNORE_IN_ERROR_MESSAGE}
 
