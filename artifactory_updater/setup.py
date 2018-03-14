@@ -1,17 +1,15 @@
 import os
 import setuptools
+import sys
 
-from artifactory_updater import ArtifactoryCommand
-
-NAME = 'tableread'
-DESCRIPTION = 'Table reader for simple reStructredText tables'
+NAME = 'artifactory_updater'
+DESCRIPTION = 'Helper to check and update a package within Artifactory'
 VERSION = None
 
 CONSOLE_SCRIPTS = [
 ]
 
 INSTALL_REQUIRES = [
-    'attrs>=16.0.0'
 ]
 
 EXTRAS_REQUIRE = {}
@@ -24,12 +22,6 @@ if not VERSION:
         exec(f.read(), about)
 else:
     about['__version__'] = VERSION
-
-
-class TablereadArtifactory(ArtifactoryCommand):
-    here = here
-    package_name = NAME
-    package_version = about['__version__']
 
 
 setuptools.setup(name=NAME,
@@ -48,5 +40,4 @@ setuptools.setup(name=NAME,
                  zip_safe=False,
                  extras_require=EXTRAS_REQUIRE,
                  cmdclass={
-                     'artifactory': TablereadArtifactory
                  })

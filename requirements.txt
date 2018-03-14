@@ -1,3 +1,5 @@
 pbr==1.10.0
 git+ssh://git@github.rackspace.com/AutomationServices/behave.git#egg=behave
 requests==2.18.4
+wheel>=0.30.0
+-e ./artifactory_updater

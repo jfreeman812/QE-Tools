@@ -1,6 +1,8 @@
 import os
 import setuptools
 
+from artifactory_updater import ArtifactoryCommand
+
 NAME = 'sphinx-gherkindoc'
 SUBDIR_NAME = NAME.replace('-', '_')
 DESCRIPTION = 'A tool to convert Gherkin files into Sphinx documentation'
@@ -28,6 +30,12 @@ else:
     about['__version__'] = VERSION
 
 
+class SphinxGherkindocArtifactory(ArtifactoryCommand):
+    here = here
+    package_name = NAME
+    package_version = about['__version__']
+
+
 setuptools.setup(name=NAME,
                  version=about['__version__'],
                  description=DESCRIPTION,
@@ -43,4 +51,6 @@ setuptools.setup(name=NAME,
                  include_package_data=True,
                  zip_safe=False,
                  extras_require=EXTRAS_REQUIRE,
-                 )
+                 cmdclass={
+                     'artifactory': SphinxGherkindocArtifactory
+                 })
