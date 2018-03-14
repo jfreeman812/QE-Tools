@@ -24,8 +24,8 @@ def _run_reports(builder_args, additional_args):
 
 def _get_parser():
     epilog = (
-        'CSV Files must contain the “product_hierarchy” value.'
-        ' “product_dir” is supported but optional. All other columns are ignored.'
+        'CSV Files must contain the "product_hierarchy" value.'
+        ' "product_dir" is supported but optional. All other columns are ignored.'
         ' All other args flow through to the coverage script.'
     )
     parser = argparse.ArgumentParser(
