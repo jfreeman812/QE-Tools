@@ -6,7 +6,7 @@ The tools for working with the available Gherkin-based frameworks (e.g., ``behav
 Tagging the Data
 ----------------
 
-The coverage tooling is designed to work with the standard tagging described in the `Cucumber documentation`_ and implemented by all libraries. The :doc:`Coverage Metrics Schema<qe_coverage/coverage>` specifies the necessary attributes that should be added as tags. A few recommendations for tagging:
+The coverage tooling is designed to work with the standard tagging described in the `Cucumber documentation`_ and implemented by all libraries. The :doc:`Coverage Metrics Schema<../../reporting/qe_coverage/coverage>` specifies the necessary attributes that should be added as tags. A few recommendations for tagging:
 
 - Group together stable tags, such as polarity and priority
 - Put independent Ticket ID tags as the first (outer-most) line
@@ -33,7 +33,7 @@ This script does have an optional parameter, ``--dry-run`` that can be used for 
 
 This script also has the ability to look into a sub-folder to begin parsing, via ``-p, --product-dir``. This can be useful when cloning a repository and feature files are stored in a sub-folder.
 
-When you are ready to push data to the production dashboard, you can do so with ``--production-endpoint``. This will only succeed if all Product Hierarchies you are sending are included in the :doc:`Product Hierarchy Whitelist<../data_broker/data/whitelist>`.
+When you are ready to push data to the production dashboard, you can do so with ``--production-endpoint``. This will only succeed if all Product Hierarchies you are sending are included in the :doc:`Product Hierarchy Whitelist<../../data_broker/data/whitelist>`.
 
 .. note::
 

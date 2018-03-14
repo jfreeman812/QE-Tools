@@ -19,7 +19,7 @@ For OpenCAFE-based teams, the scripts are installed with the ``qe_coverage`` pac
 
 This script does have an optional parameter, ``--dry-run`` that can be used for validating the tags in a document tree. This will not send any data but will print out any tags that are out of compliance onto standard error and exit with a non-zero status code. If there are no problems, the script will exit with a zero status code and no additional output. This can also be useful for integrating into a Pull Request validation workflow.
 
-When you are ready to push data to the production dashboard, you can do so with ``--production-endpoint``. This will only succeed if all Product Hierarchies you are sending are included in the :doc:`Product Hierarchy Whitelist<../data_broker/data/whitelist>`.
+When you are ready to push data to the production dashboard, you can do so with ``--production-endpoint``. This will only succeed if all Product Hierarchies you are sending are included in the :doc:`Product Hierarchy Whitelist<../../data_broker/data/whitelist>`.
 
 Reviewing the Reports
 ---------------------

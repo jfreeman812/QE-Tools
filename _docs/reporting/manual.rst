@@ -14,7 +14,7 @@ To send data separate from the provided tools, a data broker has been created th
 ``environment`` may be either ``staging`` or ``production``:
 
 - ``staging`` should be used while you are testing your data uploads, and it will provide validation of your payload.
-- ``production`` may be used to send final data, once the relevant Product Hierarchies have been added to the :doc:`Product Hierarchy Whitelist<../data_broker/data/whitelist>`.
+- ``production`` may be used to send final data, once the relevant Product Hierarchies have been added to the :doc:`Product Hierarchy Whitelist<../../data_broker/data/whitelist>`.
 
 
 cURL

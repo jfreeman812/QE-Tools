@@ -3,7 +3,7 @@
 Coverage Metrics Schema
 =======================
 
-This document breaks down the schema that is required for reporting on the QE Coverage Metrics. For an overview of QE Coverage Metrics, as well as information about available tooling, visit the QE Coverage Metrics :doc:`main page<../README>`.
+This document breaks down the schema that is required for reporting on the QE Coverage Metrics. For an overview of QE Coverage Metrics, as well as information about available tooling, visit the QE Coverage Metrics :doc:`main page<../../_docs/reporting/README>`.
 
 Metrics Attributes
 ------------------
