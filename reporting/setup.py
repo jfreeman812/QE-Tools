@@ -14,6 +14,7 @@ CONSOLE_SCRIPTS = [
     'coverage-opencafe=qe_coverage.collect_opencafe_coverage:main',
     'coverage-testlink=qe_coverage.send_testlink_tags_report:main',
     'coverage-history=qe_coverage.coverage_historical_repo:main',
+    'coverage-list=qe_coverage.coverage_product_list:main'
 ]
 
 INSTALL_REQUIRES = [
