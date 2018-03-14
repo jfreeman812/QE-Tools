@@ -28,4 +28,4 @@ To begin using QE Coverage Metrics, the requested workflow is outlined below. Th
 
 #. Review data provided by running coverage with the ``--dry-run`` option in collecting data.
 
-#. Consult with the ``QE Coverage`` team in Slack in ``#qe-tools`` for final approval and sign-off before sending collected data to the production Splunk instance.
+#. Consult with the ``QE Coverage`` team in Slack in ``#qe-tools`` or via email at ``qe-tools-contributors@rackspace.com`` for final approval and sign-off before sending collected data to the production Splunk instance.
