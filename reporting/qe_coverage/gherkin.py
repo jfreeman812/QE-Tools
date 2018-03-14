@@ -58,7 +58,7 @@ class ParseProject(object):
                 feature = self._feature_for(file_path)
                 categories = self._build_categories(feature.relative_path)
                 for test in feature.walk_scenarios():
-                    if test.feature.name != categories[-1]:
+                    if not categories or test.feature.name != categories[-1]:
                         # Only add the feature name if it doesn't match the last category
                         categories.append(test.feature.name)
                     tests.add(name=test.name, categories=categories, tags=test.tags,
