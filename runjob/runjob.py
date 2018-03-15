@@ -29,6 +29,11 @@ JENKINS_URL = ''
 JENKINS_TOKEN = ''
 TIMEOUT = None  # in seconds
 
+# Used when printing job output
+MAX_RETRY_COUNT = 3
+RETRY_SLEEP_SECS = 5
+
+
 
 def make_http_request(http_url, url_endpoint='', request_params=None):
     '''Make an HTTP request to the specified URL with the parameters.
@@ -290,7 +295,7 @@ def _print_job_output_intermittently(job, job_build_number):
     print('Output of Jenkins job "{0}"\n'.format(job['name']))
 
     while not job_is_done:
-        if http_fail_count == 5:
+        if http_fail_count == MAX_RETRY_COUNT:
             eprint('The tool is having trouble connecting to Jenkins. '
                    'Please ensure that Jenkins is still up.')
             sys.exit(1)
@@ -299,7 +304,7 @@ def _print_job_output_intermittently(job, job_build_number):
                                                  '{0}/consoleText'.format(job_build_number))
         if http_code != HTTPStatus.OK:
             http_fail_count += 1
-            time.sleep(5)
+            time.sleep(RETRY_SLEEP_SECS)
             continue
         else:
             http_fail_count = 0
