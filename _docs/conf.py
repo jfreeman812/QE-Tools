@@ -32,9 +32,8 @@ release = ''
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This patterns also effect to html_static_path and html_extra_path
-current_dir = os.path.basename(os.path.dirname(os.path.abspath(__file__)))
-exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', '.tox', '*/.tox',
-                    '.eggs', '*/.eggs', current_dir]
+exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', '.tox', '*/.tox', '.eggs', '*/.eggs',
+                    'README.rst']
 
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = 'sphinx'

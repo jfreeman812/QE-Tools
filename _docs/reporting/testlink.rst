@@ -6,7 +6,7 @@ The tools for working with TestLink can be installed from :doc:`Artifactory<../a
 Tagging the Data
 ----------------
 
-The :doc:`Coverage Metrics Schema<qe_coverage/coverage>` specifies the necessary attributes that should be added as tags. Specifics for adding these attributes within TestLink are as follows:
+The :doc:`Coverage Metrics Schema<../../reporting/qe_coverage/coverage>` specifies the necessary attributes that should be added as tags. Specifics for adding these attributes within TestLink are as follows:
 
 - Categories are derived from the test suite hierarchy (which has three levels at most)
 - Tags are collected from the custom Keywords associated with each test.
@@ -32,7 +32,7 @@ This script does have an optional parameter, ``--dry-run`` that can be used for 
 
 The script also has the ability to skip past categories. For example, if the first category is the product name, that category should be skipped. The optional parameter is ``--leading-categories-to-strip`` and takes an integer for the number of categories to skip.
 
-When you are ready to push data to the production dashboard, you can do so with ``--production-endpoint``. This will only succeed if all Product Hierarchies you are sending are included in the :doc:`Product Hierarchy Whitelist<../data_broker/data/whitelist>`.
+When you are ready to push data to the production dashboard, you can do so with ``--production-endpoint``. This will only succeed if all Product Hierarchies you are sending are included in the :doc:`Product Hierarchy Whitelist<../../data_broker/data/whitelist>`.
 
 Reviewing the Reports
 ---------------------
