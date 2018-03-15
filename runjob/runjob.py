@@ -34,7 +34,6 @@ MAX_RETRY_COUNT = 3
 RETRY_SLEEP_SECS = 5
 
 
-
 def make_http_request(http_url, url_endpoint='', request_params=None):
     '''Make an HTTP request to the specified URL with the parameters.
 
@@ -503,12 +502,8 @@ if __name__ == '__main__':
             job_params = {}
         else:
             for param in job_params:
-                if param['name'] == 'url':
-                    param_type = _is_url
-                elif param['name'] == 'account_device':
-                    param_type = _is_account_device
-                else:
-                    param_type = str
+                param_type = {'url': _is_url,
+                              'account_device': _is_account_device}.get(param['name'], str)
 
                 parser.add_argument('--{0}'.format(param['name']),
                                     default=param['defaultParameterValue']['value'],
