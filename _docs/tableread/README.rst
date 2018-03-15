@@ -1,7 +1,7 @@
 TableRead
 =========
 
-TableRead is a script designed to read simple reStructredText (reST) tables `(1)`_ from a file and convert them into Python objects.
+TableRead is a script designed to read reStructredText (reST) `simple tables`_ from a file and convert them into Python objects.
 
 Usage
 -----
@@ -60,4 +60,4 @@ Usage
   Given a list of fields, return a list of only the values associated with those fields.
   A single field returns a list of values, multiple fields returns a list of value tuples.
 
-.. _`(1)`: http://docutils.sourceforge.net/docs/ref/rst/restructuredtext.html#simple-tables
+.. _`simple tables`: http://docutils.sourceforge.net/docs/ref/rst/restructuredtext.html#simple-tables
