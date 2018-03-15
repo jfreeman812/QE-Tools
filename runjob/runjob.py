@@ -281,7 +281,7 @@ def _print_job_output_intermittently(job, job_build_number):
     start = 0
     job_is_done = False
     http_fail_count = 0
-    job_finish_regex = re.compile('Finished: (SUCCESS|FAILURE)$')
+    job_finish_regex = re.compile('Finished: (SUCCESS|FAILURE|ABORTED)$')
     # Used to add a clickable URL to the log file of the job run
     log_files_regex = re.compile('(Detailed logs: /var/lib/jenkins/workspace/{0})(/logs/[0-9-_.]+)'
                                  ''.format(job['name']))
