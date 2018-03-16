@@ -114,11 +114,10 @@ def _get_input_selection(param_name, validation_function=None, default=''):
     Returns:
         str: The user input if it is valid
     '''
+    statement = 'Please enter a value for the parameter "{0}"'.format(param_name)
     if default:
-        statement = ('Please enter a value for the parameter "{0}" [{1}]: '
-                     ''.format(param_name, default))
-    else:
-        statement = 'Please enter a value for the parameter "{0}": '.format(param_name)
+        statement += ' [{0}]'.format(default)
+    statement += ': '
 
     input_value = input(statement) or default
 
