@@ -473,7 +473,7 @@ def read_config_and_set_globals(config_file):
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(prog='runjob')
+    parser = argparse.ArgumentParser(prog='run_jenkins_job')
     parser.add_argument('--config', type=str, default='config.cfg',
                         help='The name of the config file')
     args, unknown_args = parser.parse_known_args()
