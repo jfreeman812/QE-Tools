@@ -1,8 +1,6 @@
 import os
 import setuptools
 
-from artifactory_updater import ArtifactoryCommand
-
 NAME = 'qecommon_tools'
 DESCRIPTION = 'Collection of miscellaneous helper methods'
 VERSION = None
@@ -30,12 +28,6 @@ else:
     about['__version__'] = VERSION
 
 
-class QECommonArtifactory(ArtifactoryCommand):
-    here = here
-    package_name = NAME
-    package_version = about['__version__']
-
-
 setuptools.setup(name=NAME,
                  version=about['__version__'],
                  description=DESCRIPTION,
@@ -52,6 +44,4 @@ setuptools.setup(name=NAME,
                  include_package_data=True,
                  zip_safe=False,
                  extras_require=EXTRAS_REQUIRE,
-                 cmdclass={
-                     'artifactory': QECommonArtifactory
-                 })
+                 )
