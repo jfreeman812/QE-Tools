@@ -59,7 +59,7 @@ class ParseProject(object):
         tests = TestGroup()
         for dir_path, dir_names, file_names in os.walk(self.project_path):
             # If items are removed from dir_names, os.walk will not search them.
-            dir_names[:] = [x for x in dir_names if self._is_included(x)]
+            dir_names[:] = list(filter(self._is_included, dir_names))
             for file_name in fnmatch.filter(file_names, '*.feature'):
                 file_path = os.path.join(dir_path, file_name)
                 feature = self._feature_for(file_path)
