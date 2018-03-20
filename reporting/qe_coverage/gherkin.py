@@ -47,7 +47,7 @@ class ParseProject(object):
 
     def _is_included(self, check_path):
         '''Check if a file/dir should be included based on exclude and hidden options'''
-        if check_path.startswith('_') and not self.search_hidden:
+        if check_path.startswith('.') and not self.search_hidden:
             return False
         return not any(map(lambda x: fnmatch.fnmatch(check_path, x), self.exclude_patterns))
 
