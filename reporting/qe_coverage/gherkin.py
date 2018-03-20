@@ -20,6 +20,8 @@ NUISANCE_CATEGORY_NAMES = ['features']
 class ParseProject(object):
     project_path = attr.ib()
     leading_categories_to_strip = attr.ib(type=int, default=0)
+    search_hidden = attr.ib(type=bool, default=False)
+    exclude_patterns = attr.ib(default=attr.Factory(list))
 
     def _feature_for(self, file_path):
         '''Create a behave feature object and attach the relative path of the feature file.'''
@@ -43,16 +45,21 @@ class ParseProject(object):
                 categories.append(name)
         return categories[self.leading_categories_to_strip:]
 
-    def build_coverage(self, search_hidden=False, leading_categories_to_strip=0):
+    def _is_included(self, check_path):
+        '''Check if a file/dir should be included based on exclude and hidden options'''
+        if check_path.startswith('.') and not self.search_hidden:
+            return False
+        return not any(map(lambda x: fnmatch.fnmatch(check_path, x), self.exclude_patterns))
+
+    def build_coverage(self):
         '''
         Returns a list of TestCoverage objects created by walking a product base directory for any
         feature files and parsing them into TestCoverage objects.
         '''
         tests = TestGroup()
         for dir_path, dir_names, file_names in os.walk(self.project_path):
-            if not search_hidden:
-                # If items are removed from dir_names, os.walk will not search them.
-                dir_names[:] = [x for x in dir_names if not x.startswith('.')]
+            # If items are removed from dir_names, os.walk will not search them.
+            dir_names[:] = list(filter(self._is_included, dir_names))
             for file_name in fnmatch.filter(file_names, '*.feature'):
                 file_path = os.path.join(dir_path, file_name)
                 feature = self._feature_for(file_path)
@@ -69,9 +76,10 @@ class ParseProject(object):
 def run_gherkin_reports(product_dir, *args, **kwargs):
     leading_categories_to_strip = kwargs.pop('leading_categories_to_strip', 0)
     project = ParseProject(os.path.join(os.getcwd(), product_dir),
-                           leading_categories_to_strip=leading_categories_to_strip)
-    search_hidden = kwargs.pop('search_hidden', False)
-    test_list = project.build_coverage(search_hidden=search_hidden)
+                           leading_categories_to_strip=leading_categories_to_strip,
+                           search_hidden=kwargs.pop('search_hidden', False),
+                           exclude_patterns=kwargs.pop('exclude_patterns', None) or [])
+    test_list = project.build_coverage()
     run_reports(test_list, *args, **kwargs)
 
 
@@ -84,6 +92,8 @@ def main():
                    'repository and the feature files are stored in a sub folder.'
     parser.add_argument('-p', '--product_dir', nargs='?', default='', help=product_help)
     parser.add_argument('--search_hidden', action='store_true', help='Include ".hidden" folders')
+    parser.add_argument('--exclude', dest='exclude_patterns', action='append',
+                        help='file and/or directory patterns that will be excluded')
     product_kwargs = vars(parser.parse_args())
     run_gherkin_reports(product_kwargs.pop('product_dir'), product_kwargs.pop('product_hierarchy'),
                         product_kwargs.pop('default_interface_type'), **product_kwargs)
