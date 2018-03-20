@@ -3,7 +3,11 @@ Whitelisted Product Hierarchies
 
 .. note::
 
-    To have your Product Hierarchies added to the whitelist, open a PR to add them to `this document`_, and include a link to the upload from the staging endpoint.
+    To have your Product Hierarchies added to the whitelist:
+        * open a PR to add them to `this document`_
+        * In the PR comments, include a link to the data uploaded to the staging endpoint
+        * Notify the QE-Tools team in the slack #qe-tools channel with the PR link
+        * We will then review and assign to Chris DeMattio for final approval
 
 
 ====================  ================================
