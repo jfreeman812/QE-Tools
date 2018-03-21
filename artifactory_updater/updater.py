@@ -28,8 +28,10 @@ def _get_setup_info(container_dir, flag):
 
 def _latest_artifactory_version(package_name):
     package_url = 'https://{0}/artifactory/api/storage/{1}-pypi-local/{1}'
-    response = urlopen(package_url.format(ARTIFACTORY_DOMAIN, package_name))
-    package_data = json.loads(response.read())
+    response = urlopen(package_url.format(ARTIFACTORY_DOMAIN, package_name)).read()
+    if isinstance(response, bytes):
+        response = response.decode('utf-8')
+    package_data = json.loads(response)
     versions = [x['uri'].lstrip('/') for x in package_data['children']]
     return max(versions, key=parse_version)
 
