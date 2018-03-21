@@ -7,9 +7,11 @@ VERSION = None
 
 CONSOLE_SCRIPTS = [
     'coverage-gherkin=qe_coverage.gherkin:main [gherkin]',
-    'coverage-send-opencafe-report=qe_coverage.send_opencafe_tags_report:main',
+    'coverage-send-opencafe-report=qe_coverage.send_unittest_tags_report:main',
+    'coverage-send-unittest-report=qe_coverage.send_unittest_tags_report:main',
     'coverage-cloned-repo=qe_coverage.coverage_cloned_repo:main',
-    'coverage-opencafe=qe_coverage.collect_opencafe_coverage:main',
+    'coverage-opencafe=qe_coverage.collect_unittest_coverage:main',
+    'coverage-unittest=qe_coverage.collect_unittest_coverage:main',
     'coverage-testlink=qe_coverage.send_testlink_tags_report:main',
     'coverage-history=qe_coverage.coverage_historical_repo:main',
     'coverage-list=qe_coverage.coverage_product_list:main'

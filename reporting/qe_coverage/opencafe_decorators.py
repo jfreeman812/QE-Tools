@@ -63,172 +63,32 @@ environment in which OpenCafe tests are currently being executed.
 The name of this method must match the ``ENVIRONMENT_MATCHING_METHOD_NAME``
 constant defined in this module.
 '''
-from atexit import register
+
 from inspect import isclass
-from os import environ
-import re
-from traceback import format_stack
-from unittest import skip, SkipTest
+from unittest import skip
+import wrapt
+
+
+from unittest_decorators import (quarantined, needs_work, nyi,
+                                 only_in, production_only,
+                                 not_tested, disable_docstring_hacking,
+                                 staging_only, unless_coverage)
+
+from unittest_decorators import (TICKET_RE, STATUS_TAGS, _print_and_raise,
+                                 _get_coverage_tags_from, _all_ticket_ids_in,
+                                 _environment_matches, _docstring_hacking_enabled,
+                                 _add_text_to_docstring_summary_line, _tags_log_info)
 
 from cafe.drivers.unittest.decorators import tags as _cafe_tags
 # OpenCafe doesn't provide a way to reset tags :-(, so we have to import
 # these attribute names so that we don't have to duplicate them.
 from cafe.drivers.unittest.decorators import (TAGS_DECORATOR_TAG_LIST_NAME,
                                               PARALLEL_TAGS_LIST_ATTR)
-import wrapt
-
-from qe_coverage.base import TICKET_RE
-
-
-#############
-# CONSTANTS #
-#############
-
-ENVIRONMENT_MATCHING_METHOD_NAME = 'current_environment_matches'
-'''The name of the method to implement on the test fixture for environment functionality.
-
-This method must be implemented in order to utilize environment
-related decorator functionality.
-
-NOTE: This method is called when the decorators are being run,
-so it must be a @staticmethod.
-'''
-
-COVERAGE_TAG_DECORATOR_TAG_LIST_NAME = '__coverage_report_tags__'
-'''Name of the field we add to all tagged tests that tracks tags for coverage reporting.
-See the tags decorator documentation for why we are doing this.
-'''
-
-COVERAGE_REPORT_FILE_NAME = None
-
-_TAGS_INFO_DIR_NAME = environ.get('COLLECT_TAGS_DATA_INTO', None)
-if _TAGS_INFO_DIR_NAME is None:
-    # Tags logging function for when we are _not_ collecting/logging tags info.
-    def _tags_log_info(func):
-        '''No logging decorator, just return the function'''
-        return func
-
-    unless_coverage = _tags_log_info
-else:
-    import json
-    from tempfile import NamedTemporaryFile
-
-    _coverage_report_file = NamedTemporaryFile(mode='w', suffix='.json', prefix='coverage-',
-                                               dir=_TAGS_INFO_DIR_NAME, delete=False)
-
-    # Make sure the file is closed on interpreter exit.
-    register(_coverage_report_file.close)
-
-    @wrapt.decorator
-    def unless_coverage(wrapped, instance, args, kwargs):
-        '''Decorate a function (such as setUp) that shouldn't run when doing a coverage only run.'''
-        pass
-
-    # We're going to do a cheap-o jsonlines like solution here, each test
-    # will dump out a one-line json object for reporting.
-    @wrapt.decorator
-    def _tags_log_info(wrapped, instance, args, kwargs):
-        '''decorator to log tags info only, doesn't run func'''
-        # Implementation note:
-        # The insight here is that the decorator is returning a whole different function,
-        # which can extract data from 'func', but which is not obligated to call 'func'.
-        # This makes for a 'safe' full run (no dry-run needed) and greatly simplifies the
-        # code for extracting data.
-        tags_data = dict()
-
-        # While the test name from func and the test_obj are often the same,
-        # in the case of data driven OpenCAFE tests, the the func name is the same
-        # where as the test_obj name is unique and what we need to report on.
-        tags_data['test'] = instance._testMethodName
-        tags_data['doc'] = wrapped.__doc__
-        tags_data['provenance'] = (instance.__class__.__module__.split('.') +
-                                   [instance.__class__.__name__])
-        tags_data['tags'] = _get_coverage_tags_from(wrapped)
-
-        json.dump(tags_data, _coverage_report_file, sort_keys=True)
-        _coverage_report_file.write('\n')
-        # It's annoying to have to flush all the time, but when I tried putting
-        # flush 'atexit' time, it didn't work. I didn't dig deeply in to why.
-        _coverage_report_file.flush()
-
-
-# INTERIM LIST!
-# This *must* come from coverage.rst and table read as a FF on this code.
-STATUS_TAGS = set('nyi not-tested needs-work quarantined'.split())
-
-############
-# SETTINGS #
-############
-
-_docstring_hacking_enabled = True
-'''The default setting for whether or not the docstring hacking feature should be enabled.'''
-
-
-def disable_docstring_hacking():
-    '''Disable this module's docstring hacking feature.'''
-    global _docstring_hacking_enabled
-    _docstring_hacking_enabled = False
 
 
 ###########
 # HELPERS #
 ###########
-
-def _print_and_raise(exc_type, message):
-    '''Print message and raise exception.
-
-    This is needed because an OpenCAFE bug hides exceptions raised
-    during module load (which is when decorators are run),
-    so to aid the test writer, print the message and then raise
-    the exception.
-    '''
-    print('\nERROR:\n{}\n'.format(message))
-    # Skip showing format_stack itself, and this function (neither are helpful).
-    print(''.join(format_stack()[:-2]))
-    raise exc_type(message)
-
-
-def _add_text_to_docstring_summary_line(original_docstring, summary_line_addition):
-    '''
-    Add text to the summary line of the given docstring.
-
-    Args:
-        original_docstring (str): The original docstring to be amended.
-        summary_line_addition (str): The string to append to end of the docstring's summary line
-
-    Returns:
-        str: An updated docstring.
-    '''
-    text_addition = ' ({0})'.format(summary_line_addition)
-
-    if original_docstring is None:
-        docstring_lines = ['<No docstring provided>']
-    else:
-        docstring_lines = original_docstring.splitlines()
-
-    # The summary line may be on the same line as the starting triple quote,
-    # or it may be on the line below. Handle both cases.
-    if docstring_lines[0]:
-        docstring_lines[0] += text_addition
-    elif docstring_lines[1]:
-        docstring_lines[1] += text_addition
-    else:
-        docstring_lines[0] = '<Malformed docstring>' + text_addition
-
-    return '\n'.join(docstring_lines)
-
-
-def _all_ticket_ids_in(s):
-    '''
-    Return a list of all the non-overlapping Ticket IDs contained in s.
-
-    Args:
-        s (str): The string to be searched for Ticket IDs
-
-    Returns:
-        A list of all the Ticket ID strings found.
-    '''
-    return TICKET_RE.findall(s)
 
 
 def _clear_cafe_tags_from(func):
@@ -236,13 +96,6 @@ def _clear_cafe_tags_from(func):
     for attr in (TAGS_DECORATOR_TAG_LIST_NAME, PARALLEL_TAGS_LIST_ATTR):
         if hasattr(func, attr):
             delattr(func, attr)
-
-
-def _get_coverage_tags_from(func):
-    '''Return the coverage tags from func, setting to empty list if needed.'''
-    if not getattr(func, COVERAGE_TAG_DECORATOR_TAG_LIST_NAME, None):
-        setattr(func, COVERAGE_TAG_DECORATOR_TAG_LIST_NAME, [])
-    return getattr(func, COVERAGE_TAG_DECORATOR_TAG_LIST_NAME)
 
 
 def _add_tags(func, cafe_tags=tuple(), coverage_tags=tuple()):
@@ -308,34 +161,6 @@ def _mutate_tags_for_cafe(tags_list):
     for a_tag in tags_list:
         new_tags.append(_cafe_tag_prefix(status_tag, a_tag))
     return new_tags
-
-
-def _environment_matches(test_fixture, environment):
-    '''
-    Determine if a given environment matches the current test environment.
-
-    Args:
-        test_fixture: The class or class instance for the test or class that was decorated.
-        environment (str): The environment to compare against the current test environment.
-
-    Returns:
-        bool: Whether or not the current test environment matches the given environment.
-
-    Raises:
-        NotImplementedError: If no environment matching method is implemented on the
-        test fixture.
-    '''
-    environment_matching_method = getattr(test_fixture, ENVIRONMENT_MATCHING_METHOD_NAME, None)
-
-    if environment_matching_method is None:
-        _print_and_raise(NotImplementedError,
-                         'In order to utilize the this decorator functionality, '
-                         'you must implement a "{0}" method that determines whether '
-                         'or not the current environment matches the environment '
-                         'affected by this decorator.'
-                         ''.format(ENVIRONMENT_MATCHING_METHOD_NAME))
-
-    return environment_matching_method(environment)
 
 
 def _get_decorator_for_skipping_test(reason, details, tag_name, environment_affected=''):
@@ -410,170 +235,6 @@ def _get_decorator_for_skipping_test(reason, details, tag_name, environment_affe
 ##############
 # DECORATORS #
 ##############
-
-
-def quarantined(details, environment_affected=None):
-    '''
-    Mark a test case as quarantined, and skip the test case.
-
-    This should be used for test cases that are not functioning properly
-    due to an issue with the system being tested that is outside the scope
-    of the QE team.
-
-    The ``details`` parameter should include the ID for the ticket.
-    If no ID exists, a ticket should be created before marking the test as
-    quarantined.
-
-    Args:
-        details (str): Information about why the test is quarantined.
-        environment_affected (str): The only environment in which the decorator applies.
-
-    Returns:
-        A decorator function into which to pass the test case or test class.
-    '''
-    return _get_decorator_for_skipping_test(
-        reason='Quarantined', details=details, tag_name='quarantined',
-        environment_affected=environment_affected)
-
-
-def needs_work(details, environment_affected=None):
-    '''
-    Mark a test case as needs work and skip the test case.
-
-    This should be used for test cases that are not functioning properly
-    due to an issue with the test or test framework. This issue should
-    be something that will be fixed by the QE team.
-
-    The ``details`` parameter should include the ID for the ticket.
-    If no ID exists, a ticket should be created before marking the test as
-    needs work.
-
-    Args:
-        details (str): Information about why the test needs work.
-        environment_affected (str): The only environment in which the decorator applies.
-
-    Returns:
-        A decorator function to pass the test case or test class into.
-    '''
-    return _get_decorator_for_skipping_test(
-        reason='Needs Work', details=details, tag_name='needs-work',
-        environment_affected=environment_affected)
-
-
-def not_tested(details, environment_affected=None):
-    '''
-    Mark a test case as not tested and skip the test case.
-
-    This should be used for test cases that are implemented, but the
-    service being tested is not ready.
-
-    The ``details`` parameter should include the ID for the ticket designated
-    for making this service ready.
-
-    Args:
-        details (str): Information about why the test cannot be run yet.
-        environment_affected (str): The only environment in which the decorator applies.
-
-    Returns:
-        A decorator function to pass the test case or test class into.
-    '''
-    return _get_decorator_for_skipping_test(
-        reason='Not Tested - Service Not Ready', details=details,
-        tag_name='not-tested', environment_affected=environment_affected)
-
-
-def nyi(details):
-    '''
-    Mark a test case or class as not implemented, and skip the test case.
-
-    The ``details`` parameter should include the ID for the ticket designated
-    for implementing this test.
-
-    Args:
-        details (str): Information about why the test is not implemented.
-            Typically with ``@nyi``, only the Ticket ID is included,
-            but any other details are welcome.
-
-    Returns:
-        A decorator function to pass the test case or test class into.
-    '''
-    return _get_decorator_for_skipping_test(reason='Not Implemented', details=details,
-                                            tag_name='nyi',)
-
-
-def only_in(environment, reason=None):
-    '''
-    Skip a test case or class if the given environment matches the current test environment.
-
-    Args:
-        environment (str): The environment in which the test case or class
-            is allowed to run.
-        reason (str): The reason why the test case or class must be only
-            run in the given environment.
-
-    Note:
-        In order to use this decorator, an environment matching method **MUST**
-        be implemented on the test fixture. This method should return a boolean
-        value that shows whether or not the current environment matches the
-        requested environment affected.
-
-    Returns:
-        A decorator function to pass the test case or test class into.
-    '''
-    message = 'Only tested in {0}'.format(environment)
-    if reason:
-        message += ': {0}'.format(reason)
-
-    def decorator(test_case_or_class):
-        '''The decorator with which to decorate the test case or class.'''
-        if isclass(test_case_or_class):
-            if _environment_matches(test_fixture=test_case_or_class, environment=environment):
-                return test_case_or_class
-
-            return skip(message)(test_case_or_class)
-
-        # A class method is being decorated
-        if _docstring_hacking_enabled:
-            test_case_or_class.__doc__ = _add_text_to_docstring_summary_line(
-                original_docstring=test_case_or_class.__doc__, summary_line_addition=message)
-
-        @wrapt.decorator
-        def wrapper(wrapped, instance, args, kwargs):
-            '''The replacement logic for the original test case or class.'''
-            if _environment_matches(test_fixture=instance, environment=environment):
-                return wrapped(*args, **kwargs)
-
-            return skip(message)(wrapped)(*args, **kwargs)
-
-        return wrapper(test_case_or_class)
-
-    return decorator
-
-
-def production_only(reason=None):
-    '''
-    Mark a test case as production only and skip the test if in a staging environment.
-
-    Args:
-        reason (str): The reason why the test case or class should only be run in 'production'.
-
-    Returns:
-        A decorator function to pass the test case or test class into.
-    '''
-    return only_in(environment='Production', reason=reason)
-
-
-def staging_only(reason=None):
-    '''
-    Mark a test case as staging only and skip the test if not in a staging environment.
-
-    Args:
-        reason (str): The reason why the test case or class should only be run in 'staging'.
-
-    Returns:
-        A decorator function to pass the test case or test class into.
-    '''
-    return only_in(environment='Staging', reason=reason)
 
 
 def tags(*tags_list):

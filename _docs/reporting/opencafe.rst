@@ -1,12 +1,12 @@
 OpenCAFE Framework
 ==================
 
-The tools for working with OpenCAFE can be installed from :doc:`Artifactory<../artifactory>` using ``qe_coverage``.
+The tools for working with OpenCAFE can be installed from :doc:`Artifactory<../artifactory>` using ``qe_coverage``. OpenCAFE largely inherits from the Unittest framework, only overriding a few OpenCAFE specific functions. OpenCAFE specific scripts and libraries (such as ``coverage-opencafe``) call to Unittest functions and are kept to maintain compatibility with current workflows and usage.
 
 Tagging the Data
 ----------------
 
-For OpenCAFE-based teams, the tagging is managed through the ``qe_coverage`` library installed from :doc:`Artifactory<../artifactory>`. Due to the nature of setting up an OpenCAFE project, the library assumes that OpenCAFE has already been installed. Once installed, the tags can be added via ``from qe_coverage.opencafe_decorators import tags``. All necessary tagging can be done via the ``tags`` decorator by providing multiple items to the decorator. The library does provide additional decorators that are documented in :ref:`API Documentation<api-documentation>`.
+For OpenCAFE-based teams, the tagging is managed through the ``qe_coverage`` library installed from :doc:`Artifactory<../artifactory>`. Due to the nature of setting up an OpenCAFE project, the library assumes that OpenCAFE has already been installed. Once installed, the tags can be added via ``from qe_coverage.opencafe_decorators import tags``. All necessary tagging can be done via the ``tags`` decorator by providing multiple items to the decorator. The library does provide additional decorators that are inherited from Unittest and documented in the Unittest :ref:`API Documentation<api-documentation>`.
 
 An example of using ``tags`` to document all necessary tags::
 
@@ -26,8 +26,8 @@ Reviewing the Reports
 
 When sending data via ``coverage-opencafe``, a URL is returned, when successful, that provides a link to the reporting tool that filters the data to show only the appropriate data. This allows the end user to confirm that the data was successfully uploaded. There is a lag between uploading and data appearing in the reporting tool so allow up to five minutes for the data to appear.
 
-OpenCAFE Decorators
--------------------
+Unittest/OpenCAFE Decorators
+----------------------------
 
 Tips and Need-To-Knows
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -71,18 +71,9 @@ Tips and Need-To-Knows
 
         @unless_coverage
         def setUp(self):
-            super(DCXQEBaseTestFixture, self).setUp()
+            super(ExampleCafeTestFixture, self).setUp()
 
         @unless_coverage
         def tearDown(self):
-            super(DCXQEBaseTestFixture, self).tearDown()
+            super(ExampleCafeTestFixture, self).tearDown()
 
-.. _api-documentation:
-
-API Documentation
-~~~~~~~~~~~~~~~~~
-
-.. automodule:: qe_coverage.opencafe_decorators
-    :members:
-    :undoc-members:
-    :show-inheritance:

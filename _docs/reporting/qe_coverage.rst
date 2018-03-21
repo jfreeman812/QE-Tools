@@ -9,6 +9,7 @@ This document details the tools that are designed to assist developers with crea
 
 
    gherkin
+   unittest
    opencafe
    testlink
    manual
@@ -18,6 +19,7 @@ This document details the tools that are designed to assist developers with crea
     Info for:
 
     - :doc:`Gherkin<gherkin>`
+    - :doc:`Unittest<unittest>`
     - :doc:`OpenCAFE<opencafe>`
     - :doc:`TestLink<testlink>`
     - :doc:`Manual<manual>`

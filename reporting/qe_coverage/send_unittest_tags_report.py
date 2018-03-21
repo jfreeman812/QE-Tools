@@ -1,15 +1,15 @@
 #!/usr/bin/env python
 '''
-Send a tags-based OpenCAFE test coverage report to splunk.
+Send a tags-based OpenCAFE/Unittest test coverage report to splunk.
 
-This tool consumes a JSON file produced by a tags-harvesting run of OpenCAFE.
-The test repo is expected to have the following general structure, as reflected
-by the data in the tags JSON file.
+This tool consumes a JSON file produced by a tags-harvesting run of OpenCAFE or
+Unittest. The test repo is expected to have the following general structure, as
+reflected by the data in the tags JSON file.
 
 For repos with other structures, it might be this tool can be adapted,
 or perhaps just used as a model for other tools.
 
-The repo is expected to have two top-level directories:
+For OpenCAFE the repo is expected to have two top-level directories:
 <something>cafe
 <something>roast
 
@@ -101,19 +101,19 @@ def coverage_json_to_test_group(coverage_file_name, default_interface_type,
     return tests
 
 
-def run_opencafe_reports(coverage_json_file, *args, **kwargs):
+def run_unittest_reports(coverage_json_file, *args, **kwargs):
     test_group = coverage_json_to_test_group(coverage_json_file, args[0],
                                              kwargs.get('leading_categories_to_strip'))
     run_reports(test_group, *args, **kwargs)
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Send OpenCAFE coverage report')
+    parser = argparse.ArgumentParser(description='Send Unittest/OpenCAFE coverage report')
     parser.add_argument('coverage_json_file',
                         help='The name of the coverage json file to process')
     parser = update_parser(parser)
     kwargs = vars(parser.parse_args())
-    run_opencafe_reports(kwargs.pop('coverage_json_file'), kwargs.pop('product_hierarchy'),
+    run_unittest_reports(kwargs.pop('coverage_json_file'), kwargs.pop('product_hierarchy'),
                          kwargs.pop('default_interface_type'), **kwargs)
 
 

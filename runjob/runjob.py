@@ -1,6 +1,7 @@
 #!/usr/bin/env python3 # noqa
 '''Tool that runs a specified Jenkins job with configurable parameters.'''
 
+from __future__ import print_function
 import json
 import argparse
 import sys
@@ -10,6 +11,7 @@ import urllib.parse
 import urllib.error
 import urllib.request
 import configparser
+
 from http import HTTPStatus
 
 

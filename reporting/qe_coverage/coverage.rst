@@ -39,7 +39,7 @@ This section provides the valid tag values which may be applied to the source fi
 
   * For Gherkin-based tests, the tags are applied via the syntax ``@<Tag>`` where the ``<Tag>`` is the value defined in the Tag column. Tags may span across multiple lines and logically-grouped tags should appear together (e.g., adding a Status_ tag and the associated Tickets_)
 
-  * For CAFE-based tests, the tags are applied via the syntax ``@tags("<Tag 1>", "<Tag 2>", ...)``, where the quoted tag values are the values defined in the Tag column. Tags must all be contained in the same decorator.
+  * For Unittest and CAFE-based tests, the tags are applied via the syntax ``@tags("<Tag 1>", "<Tag 2>", ...)``, where the quoted tag values are the values defined in the Tag column. Tags must all be contained in the same decorator.
 
 * Report As – The 'report as' column defines the resulting value which will be written to the coverage metrics when that tag is encountered in a source file.
 
@@ -124,8 +124,8 @@ quarantined  quarantined          Test is offline due to bug in application / sy
     @needs-work @JIRA-5678 @JIRA-4321
 
 
-    OpenCAFE
-    --------
+    Unittest/OpenCAFE
+    -----------------
     @tags( ..., "quarantined", "JIRA-1234", ...)
     @tags( ..., "needs-work", "JIRA-5678", "JIRA-4321", ...)
 
@@ -194,7 +194,7 @@ The following attributes are populated outside the above tagging mechanism.
 
 :Attribute: Test Name
 :Description:
-    This is the test name captured from the source files. For Gherkin, this is the scenario title. For OpenCAFE, this is the function name or the first line of the doc string, if present.
+    This is the test name captured from the source files. For Gherkin, this is the scenario title. For Unittest/OpenCAFE, this is the function name or the first line of the doc string, if present.
 
 Reporting Specification
 -----------------------
