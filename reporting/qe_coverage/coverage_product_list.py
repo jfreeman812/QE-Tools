@@ -14,9 +14,8 @@ def _run_reports(builder_args, additional_args):
                 builder_args.default_interface_type,
                 product_hierarchy,
             ]
-            for k, v in row.items():
-                if v:
-                    coverage_command.extend(['--{}'.format(k), v])
+            for key, value in ((k, v) for k, v in row.items() if v):
+                    coverage_command.extend(['--{}'.format(key), value])
             coverage_command.extend(additional_args)
             safe_run(coverage_command)
 
