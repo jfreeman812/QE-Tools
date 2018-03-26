@@ -14,6 +14,11 @@ Whitelisted Product Hierarchies
 Team                  Product
 ====================  ================================
 Automation Framework  Scripted Parsing Analytics (SPA)
+GSCS                  Document Management
+GSCS                  Product Catalog
+GSCS                  Quote Management
+GSCS                  Raptor
+GSCS                  SF Stash
 ====================  ================================
 
 
