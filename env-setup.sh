@@ -1,6 +1,6 @@
 #! /bin/sh
 
-source check-venv.sh
+source ./check-venv.sh
 
 if [ -z "${VIRTUAL_ENV+x}" ] ; then
     echo "Error: Not running in virtual environment, setup aborted."

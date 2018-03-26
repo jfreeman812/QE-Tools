@@ -1,6 +1,6 @@
 #! /bin/sh
 
-source check-venv.sh
+source ./check-venv.sh
 
 export PIP_INDEX_URL="https://artifacts.rackspace.net/artifactory/api/pypi/pypi/simple"
 
