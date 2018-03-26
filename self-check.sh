@@ -1,5 +1,7 @@
 #! /bin/sh
 
+source ./check-venv.sh
+
 export PIP_INDEX_URL="https://artifacts.rackspace.net/artifactory/api/pypi/pypi/simple"
 
 if [ "$1" = "--setup" ] ; then
