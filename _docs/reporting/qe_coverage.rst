@@ -13,6 +13,7 @@ This document details the tools that are designed to assist developers with crea
    opencafe
    testlink
    manual
+   databroker
 
 .. comment:
 
@@ -23,3 +24,4 @@ This document details the tools that are designed to assist developers with crea
     - :doc:`OpenCAFE<opencafe>`
     - :doc:`TestLink<testlink>`
     - :doc:`Manual<manual>`
+    - :doc:`Data Broker<databroker>`
