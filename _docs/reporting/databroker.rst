@@ -50,4 +50,4 @@ Data posted to ``production`` is also validated to ensure each entry has a Produ
 Output Specifications
 ---------------------
 
-In addition to the input data, the output will also include the data-collector specific formatting and an ``upload_id`` key that helps identify the set of data uploaded when searching.
+In addition to the input data, the output will also include the data-collector specific formatting and an ``upload_id`` key that helps identify the set of data uploaded when searching, and tags the data with a unix timestamp.
