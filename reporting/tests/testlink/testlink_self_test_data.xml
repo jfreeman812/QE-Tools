@@ -5,6 +5,13 @@
 <testsuite id="4685" name="Messenger" >
 <node_order><![CDATA[1]]></node_order>
 <details><![CDATA[]]></details> 
+<keywords><keyword name="positive"><notes><![CDATA[
+
+]]></notes></keyword>
+<keyword name="p2"><notes><![CDATA[
+Low priority.
+]]></notes></keyword>
+</keywords>
 <testcase internalid="4583" name="TC:Verify each message includes Message created Time Stamp">
 	<node_order><![CDATA[1000]]></node_order>
 	<externalid><![CDATA[260]]></externalid>

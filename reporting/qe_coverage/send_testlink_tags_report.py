@@ -63,9 +63,13 @@ class TestLinkContentHandler(ContentHandler):
         ContentHandler.__init__(self)  # super() does not work on this class. :-(
         self.leading_categories_to_strip = leading_categories_to_strip
 
+    def setDocumentLocator(self, locator):
+        self.locator = locator
+
     def startDocument(self):  # noqa: N802
         self.categories = []
         self.testcase = None
+        self.last_testcase = "<No Test Case processed yet>"
         self.tests = TestGroup()
 
     def start_testsuite(self, attrs):
@@ -89,12 +93,21 @@ class TestLinkContentHandler(ContentHandler):
             self.tags.append('manual')
         self.tests.add(name=self.testcase, categories=categories,
                        tags=self.tags)
+        self.last_testcase = self.testcase
         self.testcase = None
         self.tags = None  # Cannot append to none, leave poison pill in case.
 
     def start_keyword(self, attrs):
-        assert self.testcase, 'Keyword found outside of test case'
-        self.tags.append(attrs.get('name'))
+        name = attrs.get('name')
+        if not self.testcase:
+            # NOTE: Experiments with the GSCS QE TestLink data shows that the
+            # locator line-number by itself isn't accurate for reasons still TBD,
+            # so print the name of the last test case seen before the problem,
+            # which helps human reader of the XML to find out where the errant keyword is.
+            msg = 'Warning: Line {}: Ignoring keyword "{}" found outside of test case, after {}'
+            print msg.format(self.locator.getLineNumber(), name, self.last_testcase)
+            return
+        self.tags.append(name)
 
     def startElement(self, element, attrs):  # noqa: N802
         helper = getattr(self, 'start_{}'.format(element.lower()), None)
