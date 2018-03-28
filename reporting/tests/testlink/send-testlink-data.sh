@@ -6,4 +6,4 @@
 # Instead, we're taking a toy example of already exported TestLink XML
 # and making sure that the coverage tool is able to upload it to Splunk.
 
-coverage-testlink --leading-categories-to-strip 1 testlink_self_test_data.xml "QE Tools Self Test" gui
+coverage-testlink --leading-categories-to-strip 1 testlink_self_test_data.xml gui QE-TOOLS::Self-Test
