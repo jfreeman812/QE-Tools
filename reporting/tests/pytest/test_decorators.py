@@ -3,14 +3,15 @@ import pytest
 
 
 @pytest.fixture()
-def decoratorsTestsFixture(staging_env):
+def decorators_tests_fixture(staging_env):
     return ''
+
 
 class TestCaseDecoratorsThatWork:
 
     @pytest.mark.quarantined('JIRA-1234')
     @pytest.mark.tags('positive', 'smoke', 'quarantined', 'JIRA-111')
-    def test_skipped_quarantined(self, decoratorsTestsFixture):
+    def test_skipped_quarantined(self, decorators_tests_fixture):
         print('This test should have been skipped')
         assert False
 
@@ -116,12 +117,13 @@ class TestClassDecoratedAsOnlyInStaging:
         pass
 
 
-@pytest.mark.only_in('production', reason="due to breakage")
+@pytest.mark.only_in('production', reason='due to breakage')
 class TestClassDecoratedAsOnlyInProduction:
 
     def test_skipped_class_only_in_production(self):
         print('This test should have been skipped!')
         assert False
+
 
 @pytest.mark.staging_only
 class TestClassDecoratedAsStagingOnly:
@@ -136,4 +138,3 @@ class TestClassDecoratedAsProductionOnly:
     def test_skipped_class_production_only(self):
         print('This test should have been skipped!')
         assert False
-

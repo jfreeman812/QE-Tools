@@ -23,20 +23,20 @@ def pytest_addoption(parser):
     :param parser: pytest parser object
     '''
     group = parser.getgroup('qe_coverage')
-    group.addoption('--qe-coverage', action="store_true",
-                    help="Run QE-Tools qe_coverage")
+    group.addoption('--qe-coverage', action='store_true',
+                    help='Run QE-Tools qe_coverage')
     group.addoption('--interface-type', default='api',
-                    help="Interface type [api|gui]")
+                    help='Interface type [api|gui]')
     group.addoption('--product-hierarchy',
-                    help="Product hierarchy eg. Team::Product")
-    group.addoption('--dry-run', action="store_true",
-                    help="Run qe_coverage, do not report")
-    group.addoption('--preserve-files', action="store_true",
-                    help="Run qe_coverage, do not remove report files")
+                    help='Product hierarchy eg. Team::Product')
+    group.addoption('--dry-run', action='store_true',
+                    help='Run qe_coverage, do not report')
+    group.addoption('--preserve-files', action='store_true',
+                    help='Run qe_coverage, do not remove report files')
     group.addoption('--environment', default='staging',
-                    help="Environment run")
-    group.addoption('--no-report', action="store_true",
-                    help="Run tag functions but do not compile tags")
+                    help='Environment run')
+    group.addoption('--no-report', action='store_true',
+                    help='Run tag functions but do not compile tags')
 
 
 def pytest_configure(config):
@@ -79,7 +79,7 @@ def pytest_configure(config):
         name = marker.__name__
         docstr = marker.__doc__.split('\n')[1]
         docstr = docstr.strip()
-        config.addinivalue_line("markers", "{}: {}".format(name, docstr))
+        config.addinivalue_line('markers', '{}: {}'.format(name, docstr))
 
 
 def pytest_runtest_setup(item):
@@ -140,14 +140,14 @@ def pytest_terminal_summary(terminalreporter, exitstatus):
     :param exitstatus: pytest exitstatus reported to system
     '''
     kwargs = {
-        'dry_run': _get_global_option("dry-run") or False,
-        'preserve_files': _get_global_option("preserve-files")
+        'dry_run': _get_global_option('dry-run') or False,
+        'preserve_files': _get_global_option('preserve-files')
     }
 
     global test_group
-    if not _get_global_option("no-report"):
-        run_reports(test_group, _get_global_option("product-hierarchy"),
-                    _get_global_option("interface-type"), **kwargs)
+    if not _get_global_option('no-report'):
+        run_reports(test_group, _get_global_option('product-hierarchy'),
+                    _get_global_option('interface-type'), **kwargs)
 
 
 def _get_global_option(_option=None):
@@ -242,9 +242,9 @@ def only_in(*args, **kwargs):
 
     # Allow reason in either args or kwargs
     if len(args) > 1:
-        reason += ": {}".format(args[1])
+        reason += ': {}'.format(args[1])
     elif kwargs.get('reason', None) is not None:
-        reason += ": {}".format(kwargs.get('reason'))
+        reason += ': {}'.format(kwargs.get('reason'))
 
     if _get_global_option('environment') == args[0]:
         pass
@@ -304,10 +304,10 @@ def quarantined(*args, **kwargs):
     Returns:
         A tuple of ( list[tags from details], bool(skip reason), str(skip message from details)
     '''
-
+    env_affected = kwargs.get('environment_affected')
     return _check_and_skip_if_skip_decorator(reason='Quarantined', details=' '.join(list(args)),
                                              tag_name='quarantined',
-                                             environment_affected=kwargs.get('environment_affected'))
+                                             environment_affected=env_affected)
 
 
 def needs_work(*args, **kwargs):
