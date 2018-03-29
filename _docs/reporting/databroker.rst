@@ -27,7 +27,7 @@ Test-Specific Keys
 
 Each of these keys are required.
 
-- Product Hierarchy OR Product (interchangeable names, must match format ``<Team>::<Product>``)
+- Product Hierarchy OR Product (Product is deprecated and may be removed in a future release. Entry must match format ``<Team>::<Product>``)
 - Test Name
 - Categories
 
