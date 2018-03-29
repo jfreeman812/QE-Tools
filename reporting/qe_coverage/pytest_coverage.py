@@ -97,9 +97,6 @@ def pytest_runtest_setup(item):
     if not _get_global_option('qe-coverage'):
         return
 
-    # To prevent skipping the test from a possible skip tag before compiling
-    # all the tags, our functions return a tuple with skip_test boolean and
-    # skip_reason string that will be used to skip the test and provide reason
     _tags = []
 
     # Iterate through tag list and pull any pytest.mark.* tags added for qe_coverage
