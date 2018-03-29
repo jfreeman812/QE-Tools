@@ -25,10 +25,11 @@ class GHSession(requests.Session):
         # the Issue ID and PR ID *should* match,
         # but we will always positively grab the issue link from the PR
         # to prevent mis-commenting
-        url_template = 'https://{}/api/v3/repos/{}/{}/{}'
-        pull_url = url_template.format(domain, repo, 'pulls', pull_id)
+        url_template = 'https://{}/api/v3/repos/{}/pulls/{}'
+        pull_url = url_template.format(domain, repo, pull_id)
         pull_data = self.get(pull_url).json()
-        return pull_data.get('issue_url') + '/'
+        # ensure a single trailing slash to support proper urljoin
+        return pull_data.get('issue_url').rstrip('/') + '/'
 
     def request(self, method, url, *args, **kwargs):
         url = urljoin(self.base_url, url)
