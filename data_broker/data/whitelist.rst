@@ -10,11 +10,17 @@ Whitelisted Product Hierarchies
         * We will then review and assign to Chris DeMattio for final approval
 
 
-====================  ================================
-Team                  Product
-====================  ================================
-Automation Framework  Scripted Parsing Analytics (SPA)
-====================  ================================
+=====================  ================================
+Team                   Product
+=====================  ================================
+Automation Framework   Scripted Parsing Analytics (SPA)
+GSCS                   Document Management
+GSCS                   Product Catalog
+GSCS                   Quote Management
+GSCS                   Raptor
+GSCS                   SF Stash
+Provisioning Services  FireKick
+=====================  ================================
 
 
 .. _`this document`: https://github.rackspace.com/QualityEngineering/QE-Tools/blob/master/data_broker/data/whitelist.rst

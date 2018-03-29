@@ -8,24 +8,23 @@ from qecommon_tools import safe_run
 def _run_reports(builder_args, additional_args):
     with open(builder_args.coverage_csv_file, 'r') as csvfile:
         for row in DictReader(csvfile):
+            product_hierarchy = row.pop('product_hierarchy')
             coverage_command = [
                 builder_args.coverage_script,
                 builder_args.default_interface_type,
-                row['product_hierarchy'],
+                product_hierarchy,
             ]
-            if 'product_dir' in row:
-                coverage_command.extend([
-                    '-p',
-                    row['product_dir']
-                ])
+            for key, value in ((k, v) for k, v in row.items() if v):
+                    coverage_command.extend(['--{}'.format(key), value])
             coverage_command.extend(additional_args)
             safe_run(coverage_command)
 
 
 def _get_parser():
     epilog = (
-        'CSV Files must contain the "product_hierarchy" value.'
-        ' "product_dir" is supported but optional. All other columns are ignored.'
+        'CSV Files must contain the "product_hierarchy" column/value.'
+        ' Any additional columns (such as "product_dir") will be passed to the coverage script'
+        ' Example: "--product_dir this/is/a/row/value"'
         ' All other args flow through to the coverage script.'
     )
     parser = argparse.ArgumentParser(
