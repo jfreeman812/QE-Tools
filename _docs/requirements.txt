@@ -10,6 +10,7 @@ Jinja2==2.10
 MarkupSafe==1.0
 opencafe
 Pygments==2.2.0
+pytest
 pytz==2017.3
 requests==2.18.4
 six==1.11.0
