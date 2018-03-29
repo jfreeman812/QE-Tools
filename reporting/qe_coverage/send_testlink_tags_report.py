@@ -64,13 +64,13 @@ class TestLinkContentHandler(ContentHandler):
         ContentHandler.__init__(self)  # super() does not work on this class. :-(
         self.leading_categories_to_strip = leading_categories_to_strip
 
-    def setDocumentLocator(self, locator):
+    def setDocumentLocator(self, locator):  # noqa: N802
         self.locator = locator
 
     def startDocument(self):  # noqa: N802
         self.categories = []
         self.testcase = None
-        self.last_testcase = "<No Test Case processed yet>"
+        self.last_testcase = '<No Test Case processed yet>'
         self.tests = TestGroup()
 
     def start_testsuite(self, attrs):
