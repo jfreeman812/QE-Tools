@@ -92,8 +92,12 @@ class TestLinkContentHandler(ContentHandler):
         # Workaround: See https://jira.rax.io/browse/QET-26 Default to manual, not automated.
         if 'automated' not in self.tags:
             self.tags.append('manual')
+        # TestLink data doesn't come from a file system with hierarchical
+        # file names, so pass in file_path as the TestLink categories path
+        # to make it easier for humans to find the test if/when an error
+        # report is generated.
         self.tests.add(name=self.testcase, categories=categories,
-                       tags=self.tags)
+                       tags=self.tags, file_path=':'.join(self.categories))
         self.last_testcase = self.testcase
         self.testcase = None
         self.tags = None  # Cannot append to none, leave poison pill in case.
