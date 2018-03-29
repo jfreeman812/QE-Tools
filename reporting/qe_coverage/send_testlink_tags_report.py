@@ -8,6 +8,7 @@ The Execution Method defaults to 'manual' unless there is an automated tag (keyw
 for the test case.
 '''
 
+from __future__ import print_function
 
 import argparse
 import json
@@ -105,7 +106,7 @@ class TestLinkContentHandler(ContentHandler):
             # so print the name of the last test case seen before the problem,
             # which helps human reader of the XML to find out where the errant keyword is.
             msg = 'Warning: Line {}: Ignoring keyword "{}" found outside of test case, after {}'
-            print msg.format(self.locator.getLineNumber(), name, self.last_testcase)
+            print(msg.format(self.locator.getLineNumber(), name, self.last_testcase))
             return
         self.tags.append(name)
 
