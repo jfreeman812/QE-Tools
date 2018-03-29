@@ -6,7 +6,7 @@ The Coverage Data Broker supports QE teams to push coverage data to the QE Cover
 Input Specifications
 --------------------
 
-The URL to POST the data is ``https://qetools.rax.io/coverage/<environment>``. Posted data should be a list of JSON dictionaries, and each entry will be validate to meet the following specifications:
+The URL to POST the data is ``https://qetools.rax.io/coverage/<environment>``. Posted data should be a list of JSON dictionaries, and each entry will be validated to meet the following specifications:
 
 Data in both environments, ``staging`` and ``production``, is validated for the below keys and contents.
 
