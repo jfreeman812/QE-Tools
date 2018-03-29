@@ -13,7 +13,16 @@ Whitelisted Product Hierarchies
 =====================  ================================
 Team                   Product
 =====================  ================================
-Automation Framework   Scripted Parsing Analytics (SPA)
+ARIC                   ARIC APIs
+Automation Framework   Cache
+Automation Framework   Events API
+Automation Framework   Process Control Engine
+Automation Framework   Server Access Module (SAM)
+Automation Framework   Script Management
+Automation Framework   Scripted Parsing and Analytics (SPA)
+Automation Framework   Timetable
+Automation Framework   Tyrant
+Automation Framework   User Profile
 GSCS                   Document Management
 GSCS                   Product Catalog
 GSCS                   Quote Management
