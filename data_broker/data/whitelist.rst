@@ -10,25 +10,26 @@ Whitelisted Product Hierarchies
         * We will then review and assign to Chris DeMattio for final approval
 
 
-====================  ================================
-Team                  Product
-====================  ================================
-ARIC                  ARIC APIs
-Automation Framework  Cache
-Automation Framework  Events API
-Automation Framework  Process Control Engine
-Automation Framework  Server Access Module (SAM)
-Automation Framework  Script Management
-Automation Framework  Scripted Parsing and Analytics (SPA)
-Automation Framework  Timetable
-Automation Framework  Tyrant
-Automation Framework  User Profile
-GSCS                  Document Management
-GSCS                  Product Catalog
-GSCS                  Quote Management
-GSCS                  Raptor
-GSCS                  SF Stash
-====================  ================================
+=====================  ================================
+Team                   Product
+=====================  ================================
+ARIC                   ARIC APIs
+Automation Framework   Cache
+Automation Framework   Events API
+Automation Framework   Process Control Engine
+Automation Framework   Server Access Module (SAM)
+Automation Framework   Script Management
+Automation Framework   Scripted Parsing and Analytics (SPA)
+Automation Framework   Timetable
+Automation Framework   Tyrant
+Automation Framework   User Profile
+GSCS                   Document Management
+GSCS                   Product Catalog
+GSCS                   Quote Management
+GSCS                   Raptor
+GSCS                   SF Stash
+Provisioning Services  FireKick
+=====================  ================================
 
 
 .. _`this document`: https://github.rackspace.com/QualityEngineering/QE-Tools/blob/master/data_broker/data/whitelist.rst
