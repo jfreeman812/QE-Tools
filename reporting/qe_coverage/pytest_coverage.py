@@ -2,7 +2,8 @@ from __future__ import print_function
 
 import pytest
 
-from qe_coverage.base import run_reports, TestGroup, TICKET_RE
+from qe_coverage.base import run_reports, TestGroup, \
+    TICKET_RE, HIERARCHY_FORMAT
 
 # Status tags list from unittest_decorators.py
 # used to verify not more than one used within tags
@@ -25,18 +26,20 @@ def pytest_addoption(parser):
     group = parser.getgroup('qe_coverage')
     group.addoption('--qe-coverage', action='store_true',
                     help='Run QE-Tools qe_coverage')
-    group.addoption('--interface-type', default='api',
-                    help='Interface type [api|gui]')
+    group.addoption('--default-interface-type', choices='gui api'.split(),
+                    help='The interface type of the product if it is not otherwise specified')
     group.addoption('--product-hierarchy',
-                    help='Product hierarchy eg. Team::Product')
+                    help='Product hierarchy, formatted {}'.format(HIERARCHY_FORMAT))
     group.addoption('--dry-run', action='store_true',
                     help='Run qe_coverage, do not report')
     group.addoption('--preserve-files', action='store_true',
-                    help='Run qe_coverage, do not remove report files')
+                    help='Preserve report files generated')
     group.addoption('--environment', default='staging',
                     help='Environment run')
     group.addoption('--no-report', action='store_true',
                     help='Run tag functions but do not compile tags')
+    group.addoption('--production-endpoint', action='store_true',
+                    help='Send coverage data to the production endpoint')
 
 
 def pytest_configure(config):
@@ -50,13 +53,14 @@ def pytest_configure(config):
     # so we're updating our object here, and will grab them with the
     # _get_global_option function
     global options
-    options['interface-type'] = config.getoption('--interface-type')
+    options['default-interface-type'] = config.getoption('--default-interface-type')
     options['product-hierarchy'] = config.getoption('--product-hierarchy')
     options['environment'] = config.getoption('--environment')
     options['qe-coverage'] = config.getoption('--qe-coverage')
     options['dry-run'] = config.getoption('--dry-run')
     options['preserve-files'] = config.getoption('--preserve-files')
     options['no-report'] = config.getoption('--no-report')
+    options['production-endpoint'] = config.getoption('--production-endpoint')
 
     # Set up our global markers as this is going to be used in
     # during the run_test
@@ -97,8 +101,6 @@ def pytest_runtest_setup(item):
     # all the tags, our functions return a tuple with skip_test boolean and
     # skip_reason string that will be used to skip the test and provide reason
     _tags = []
-    skip_test = False
-    skip_reason = ''
 
     # Iterate through tag list and pull any pytest.mark.* tags added for qe_coverage
     for marker in markers:
@@ -110,24 +112,19 @@ def pytest_runtest_setup(item):
             # get tag_list, skip_test, skip_reason from running tag
             # used to compile tags, skip is done after compilation of
             # tag lists
-            _tag_list, _skip_test, _skip_reason = marker(*tag_data.args, **tag_data.kwargs)
+            _tag_list = marker(*tag_data.args, **tag_data.kwargs)
             # add pulled tags from our tag list
             _tags.extend(_tag_list)
-            if _skip_test and not skip_test:
-                # return tells us to skip this test
-                skip_test = True
-                skip_reason = _skip_reason
 
     # item.location is (file_path, line, testclass.testname)
-    test_class = item.location[2].split('.')[0]
+    test_class = _transform_class_name_to_pretty_category(item.location[2])
     test_name = item.name
 
     # add information to global test_group object that on completion of tests
     # will run report
     global test_group
     test_group.add(name=test_name, categories=[test_class, test_name], tags=_tags)
-    if skip_test:
-        pytest.skip(skip_reason)
+    pytest.skip()
 
 
 def pytest_terminal_summary(terminalreporter, exitstatus):
@@ -141,13 +138,14 @@ def pytest_terminal_summary(terminalreporter, exitstatus):
     '''
     kwargs = {
         'dry_run': _get_global_option('dry-run') or False,
-        'preserve_files': _get_global_option('preserve-files')
+        'preserve_files': _get_global_option('preserve-files'),
+        'production-endpoint': _get_global_option('production-endpoint'),
     }
 
     global test_group
     if not _get_global_option('no-report'):
         run_reports(test_group, _get_global_option('product-hierarchy'),
-                    _get_global_option('interface-type'), **kwargs)
+                    _get_global_option('default-interface-type'), **kwargs)
 
 
 def _get_global_option(_option=None):
@@ -164,17 +162,16 @@ def _get_global_option(_option=None):
     return options.get(_option)
 
 
-def _check_and_skip_if_skip_decorator(reason, details, tag_name,
-                                      environment_affected=None):
+def _get_info_from_skip_type_decorator(reason, details, tag_name,
+                                       environment_affected=None):
     '''
     Helper method to handle similar methods
-
 
     :param reason: Reason why test should not be run
     :param details: details in why test should not be run, requires Ticket-Ids
     :param tag_name: Name of tag calling this function
     :param environment_affected: environment in which test should be skipped
-    :return: tuple of ( list([name,ticket-ids,], bool(skip_test), str(skip_message)
+    :return: list([name,ticket-ids,])
     '''
 
     # Get list of ticket IDs included in details
@@ -183,25 +180,58 @@ def _check_and_skip_if_skip_decorator(reason, details, tag_name,
     if not ticket_ids:
         raise ValueError('"{}" does not contain any Ticket IDs'.format(details))
 
-    # default values for tuple return
+    # Parse tickets for return
     _tags = [tag_name] + ticket_ids
-    skip_test = False
-    skip_message = ''
 
-    running_environment = _get_global_option('environment')
-    # will skip if either no environment specified (i.e. quarentined across environments),
-    # of if environment specified and current running environment
-    if (environment_affected is None) or (environment_affected == running_environment):
-        message = ''
-        if environment_affected is None:
-            message = '{}: {}'.format(reason, details)
-        else:
-            message = '{} (in {} environment): {}'.format(reason, environment_affected,
-                                                          details)
-        skip_test = True
-        skip_message = message
+    return _tags
 
-    return _tags, skip_test, skip_message
+
+def _transform_class_name_to_pretty_category(class_and_method_name):
+    '''
+    Pretty up class name for better display in Splunk
+
+    :param class_and_method_name: str of format "className.test_method"
+    :return: prettied string of "Class Name"
+    '''
+    class_name = class_and_method_name.split('.')[0]
+    # remove /[Tt]est/ if it is there
+    if class_name.lower().startswith('test'):
+        class_name = class_name[4:]
+
+    breakpoints = _get_breakpoints(class_name)
+    name_as_list = break_string(class_name, breakpoints)
+    list_as_string = ' '.join(name_as_list)
+    return list_as_string.strip()
+
+
+def _get_breakpoints(camel_case_string):
+    '''
+    Helper method for _transform_class_name_to_pretty_category
+
+    Creates a list of breakpoints of capital letters to split string
+
+    :param camel_case_string: str of format(TestClassName) to be split
+    :return: list of breakpoints
+    '''
+    tmp_list = [i for i, c in enumerate(camel_case_string) if c.isupper()]
+    tmp_list.append(len(camel_case_string))
+    return tmp_list
+
+
+def break_string(input_string, breakpoints):
+    '''
+    Helper method for _transform_class_name_to_pretty_category
+
+    Creates list of words split on list of indexes of capital letters
+
+    :param input_string: string of camel cased word
+    :param breakpoints: list of indexes of capital letters in word (from _get_breakpoints)
+    :return:
+    '''
+    substrings = []
+    for x in range(0, len(breakpoints) - 1):
+        substrings.append(input_string[breakpoints[x]:breakpoints[x + 1]])
+    return substrings
 
 
 def _raise_value_error_if_conflicting_status_tags(tag_list):
@@ -235,9 +265,8 @@ def only_in(*args, **kwargs):
         reason (str): reason test can only be run in specified environment.
 
     Returns:
-        tuple of (list(
+        str(reason)
     '''
-    skip = False
     reason = 'Only tested in {}'.format(args[0])
 
     # Allow reason in either args or kwargs
@@ -246,11 +275,7 @@ def only_in(*args, **kwargs):
     elif kwargs.get('reason', None) is not None:
         reason += ': {}'.format(kwargs.get('reason'))
 
-    if _get_global_option('environment') == args[0]:
-        pass
-    else:
-        skip = True
-    return reason, skip, reason
+    return reason
 
 
 def production_only(*args, **kwargs):
@@ -264,9 +289,8 @@ def production_only(*args, **kwargs):
         reason (str): Information on why test only runs in production
 
     Returns:
-        A tuple of ( list[tags from details], bool(skip reason), str(skip message from details)
+        str(reason)
     '''
-
     return only_in('production', *args, **kwargs)
 
 
@@ -305,9 +329,9 @@ def quarantined(*args, **kwargs):
         A tuple of ( list[tags from details], bool(skip reason), str(skip message from details)
     '''
     env_affected = kwargs.get('environment_affected')
-    return _check_and_skip_if_skip_decorator(reason='Quarantined', details=' '.join(list(args)),
-                                             tag_name='quarantined',
-                                             environment_affected=env_affected)
+    return _get_info_from_skip_type_decorator(reason='Quarantined', details=' '.join(list(args)),
+                                              tag_name='quarantined',
+                                              environment_affected=env_affected)
 
 
 def needs_work(*args, **kwargs):
@@ -328,8 +352,8 @@ def needs_work(*args, **kwargs):
     Returns:
         A tuple of ( list[tags from details], bool(skip reason), str(skip message from details)
     '''
-    return _check_and_skip_if_skip_decorator(reason='Needs Work', details=' '.join(args),
-                                             tag_name='needs_work')
+    return _get_info_from_skip_type_decorator(reason='Needs Work', details=' '.join(args),
+                                              tag_name='needs_work')
 
 
 def not_tested(*args, **kwargs):
@@ -349,8 +373,8 @@ def not_tested(*args, **kwargs):
     Returns:
         A tuple of ( list[tags from details], bool(skip reason), str(skip message from details)
     '''
-    return _check_and_skip_if_skip_decorator(reason='Not Tested', details=' '.join(args),
-                                             tag_name='not_tested')
+    return _get_info_from_skip_type_decorator(reason='Not Tested', details=' '.join(args),
+                                              tag_name='not_tested')
 
 
 def nyi(*args, **kwargs):
@@ -370,8 +394,8 @@ def nyi(*args, **kwargs):
     Returns:
         A tuple of ( list[tags from details], bool(skip reason), str(skip message from details)
     '''
-    return _check_and_skip_if_skip_decorator(reason='Not Yet Implemented', details=' '.join(args),
-                                             tag_name='nyi')
+    return _get_info_from_skip_type_decorator(reason='Not Yet Implemented', details=' '.join(args),
+                                              tag_name='nyi')
 
 
 def tags(*args, **kwargs):
@@ -385,4 +409,4 @@ def tags(*args, **kwargs):
         A tuple of ( list[tags from details], bool(skip reason), str(skip message from details)
     '''
     _raise_value_error_if_conflicting_status_tags(list(args))
-    return list(args), False, ''
+    return list(args)

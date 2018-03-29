@@ -17,7 +17,6 @@ echo "Anything in below section indicates test"
 echo "failure or error in test"
 echo "-------------------------------------------"
 echo -e "${RESULTS}" | grep -e "FAILED" -e "ERROR"
-echo -e "${RESULTS}" | grep "test_ok" | grep "SKIPPED"
 echo -e "${RESULTS}" | grep "test_skipped" | grep "PASSED"
 echo "==========================================="
 

@@ -7,7 +7,7 @@ Integration is completed via installing pytest functionality as a pytest plugin.
 Tagging the Data
 ----------------
 
-For Pytest-based teams, the tagging is managed through the ``pytest qe-coverage`` plugin installed from :doc:`Artifactory<../artifactory>`. Once installed, the tags can be added via ``@pytest.mark.tag`` or other relevant ``@pytest.mark.<TAG>`` tag. All necessary tagging can be done via the ``@pytest.mark.tag`` decorator by providing multiple items to the decorator. The library does provide additional decorators that are documented in :ref:`API Documentation<api-documentation>`.
+For Pytest-based teams, the tagging is managed through the ``pytest qe-coverage`` plugin installed from :doc:`Artifactory<../artifactory>`. Once installed, the tags can be added via ``@pytest.mark.tags`` or other relevant ``@pytest.mark.<TAG>`` tag. All necessary tagging can be done via the ``@pytest.mark.tags`` decorator by providing multiple items to the decorator. The library does provide additional decorators that are documented in :ref:`API Documentation<api-documentation>`.
 
 An example of using ``@pytest.mark.tags`` to document all necessary tags::
 
@@ -16,9 +16,11 @@ An example of using ``@pytest.mark.tags`` to document all necessary tags::
 Sending the Data
 ----------------
 
-For Pytest-based teams, the pytest plugin is installed with the ``qe_coverage`` package from :doc:`Artifactory<../artifactory>`. The plugin assumes that the tests are tagged using the methods described in `Tagging the Data`_. Once installed, there are multiple options within the ``qe_coverage`` section available via ``pytest --help` that can be used for extracting and sending the coverage data. The ``pytest`` command can be run as done prior to qe_coverage integration, though does require the new arguments provided from the plugin to gather and send data.
+For Pytest-based teams, the pytest plugin is installed with the ``qe_coverage`` package from :doc:`Artifactory<../artifactory>`. The plugin assumes that the tests are tagged using the methods described in `Tagging the Data`_. Once installed, there are multiple options within the ``qe_coverage`` section available via ``pytest --help`` that can be used for extracting and sending the coverage data. The ``pytest`` command can be run as done prior to ``qe_coverage`` integration, though it does require the new arguments provided from the plugin to gather and send data.
 
-The pytest options do include an optional parameter, ``--dry-run`` which allows for validating the tags in a document tree. Also the ``--preserve-files`` parameter will create coverage metrics in the expected schema, with files being stored in the users ``${TMPDIR}``. These can be reviewed for valid data prior to data being sent.
+The pytest options do include an optional parameter, ``--dry-run``, which allows for validating the tags in a document tree. Also the ``--preserve-files`` parameter will create coverage metrics in the expected schema, with the location of the created files being displayed at the end of the run. These can be reviewed for valid data prior to data being sent.
+
+When you are ready to push data to the production dashboard, you can do so with ``--production-endpoint``. This will only succeed if all Product Hierarchies you are sending are included in the :doc:`Product Hierarchy Whitelist<../../data_broker/data/whitelist>`.
 
 Reviewing the Reports
 ---------------------
