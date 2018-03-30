@@ -114,6 +114,7 @@ def pytest_runtest_setup(item):
     # will run report
     global test_group
     test_group.add(name=test_name, categories=[test_class, test_name], tags=_tags)
+    pytest.skip()
 
 
 def pytest_terminal_summary(terminalreporter, exitstatus):
