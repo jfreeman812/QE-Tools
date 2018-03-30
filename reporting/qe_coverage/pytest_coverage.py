@@ -2,14 +2,7 @@ from __future__ import print_function
 
 import pytest
 
-from qe_coverage.base import run_reports, TestGroup, \
-    TICKET_RE, HIERARCHY_FORMAT
-
-# Status tags list pulled from unittest_decorators.py
-# used to verify not more than one used within tags
-# see warning in unittest_decorators about this being pulled from
-# coverage.rst rather than set in class files.
-STATUS_TAGS = set('nyi not-tested needs-work quarantined'.split())
+from qe_coverage.base import run_reports, TestGroup, HIERARCHY_FORMAT
 
 # Global variables used in hooks
 options = {}
@@ -85,27 +78,6 @@ def pytest_runtest_setup(item):
     # get args in @pytest.mark.tags, cast to list from tuple
     _tags = list(_tags.args)
 
-    # raise an error if there's more than one status tag
-    _raise_value_error_if_conflicting_status_tags(_tags)
-
-    found_tags = []
-    # find out if there is a status tag in the tags
-    for status in STATUS_TAGS:
-        # if there's a status marker, it needs to be only followed with TICKET-IDs
-        if status in _tags:
-            #  get location of status tag
-            status_index = _tags.index(status)
-            # Prevent index out of range error if status tag is last argument
-            # because it then doesn't contain a ticket. Decrement status_index
-            # to pass status (which will fail ticket id check) for consistency
-            # in error message
-            if status_index == len(_tags) - 1:
-                status_index -= 1
-            _raise_error_if_status_tag_not_followed_with_tickets(status, _tags[status_index + 1])
-
-    # get the rest of the tags
-    found_tags += _tags
-
     # item.location is (file_path, line, testclass.testname)
     test_class = _transform_class_name_to_pretty_category(item.location[2])
     test_name = item.name
@@ -152,26 +124,6 @@ def _get_global_option(_option=None):
     '''
     global options
     return options.get(_option)
-
-
-def _raise_error_if_status_tag_not_followed_with_tickets(tag_name, expected_ticket_id):
-    '''
-    Verify a status tag is followed by ticket ids
-
-    Args:
-        tag_name (iterable of str): The name of the tag
-        expected_ticket_id (iterable of str): The list of possible ticket ids
-
-    Raises:
-        ValueError if status tag not followed by ticket ids.
-    '''
-
-    # Get list of ticket IDs included in details
-    ticket_ids = TICKET_RE.findall(expected_ticket_id)
-
-    error_message = '"{}" must be followed by Ticket ID: ID not found in: "{}"'
-    if not ticket_ids:
-        raise ValueError(error_message.format(tag_name, expected_ticket_id))
 
 
 def _transform_class_name_to_pretty_category(class_and_method_name):
@@ -229,22 +181,3 @@ def _break_string(input_string, breakpoints):
     for x in range(0, len(breakpoints) - 1):
         substrings.append(input_string[breakpoints[x]:breakpoints[x + 1]])
     return substrings
-
-
-def _raise_value_error_if_conflicting_status_tags(tag_list):
-    '''
-    Verify single status tag used.
-
-    Args:
-        tag_list (iterable of str): The list of tags.
-
-    Raises:
-        ValueError if more than one Status tag has been used.
-    '''
-
-    actual_status_tags = set(tag_list) & STATUS_TAGS
-
-    if len(actual_status_tags) > 1:
-        overlapping_tags = sorted(actual_status_tags)
-        msg = 'Conflicting Status tags, only one permitted: {}'.format(', '.join(overlapping_tags))
-        raise ValueError(msg)
