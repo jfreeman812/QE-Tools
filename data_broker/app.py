@@ -1,6 +1,8 @@
+from collections import defaultdict
 from configparser import ConfigParser
 import json
-from os import environ, path
+import lzma
+from os import environ, path, makedirs
 import time
 import uuid
 try:
@@ -34,6 +36,7 @@ SPLUNK_REPORT_SOURCE = 'rax_qe_coverage'
 SPLUNK_UI_BASE_URL = 'sage.rackspace.com:8000'
 SPLUNK_UI_SEARCH_PATH = '/en-US/app/search/search'
 SCHEMA_VERSION = 'qe_coverage_metrics_schema_v20180301'
+PROD_DATA_DIR = path.join(path.expanduser('~'), 'data_broker_files')
 
 
 TICKET_LIST = fields.List(custom_fields.TicketId(example='JIRA-1234'))
@@ -188,6 +191,19 @@ class ProductionCoverage(SplunkAPI):
             return {'Message': err_msg,
                     'Errors': list(rejected)}, 401
 
+    def _write_data_file(self):
+        if not path.exists(PROD_DATA_DIR):
+            makedirs(PROD_DATA_DIR)
+        data_by_product = defaultdict(list)
+        for entry in request.json:
+            product = entry['Product Hierarchy'].split('::')[-1].replace(' ', '_')
+            data_by_product[product].append(entry)
+        for product in data_by_product.keys():
+            file_path = path.join(
+                PROD_DATA_DIR, '{}_{}.xz'.format(product, time.strftime('%Y-%m-%d_%H-%M')))
+            with lzma.open(file_path, 'wt') as f:
+                f.write(json.dumps(data_by_product[product]))
+
     @api.response(201, 'Accepted')
     @api.response(400, 'Bad Request')
     @api.response(401, 'Unauthorized')
@@ -202,6 +218,7 @@ class ProductionCoverage(SplunkAPI):
         if whitelist_msg:
             return whitelist_msg
         args = self._prep_args()
+        self._write_data_file()
         return self._post(args, events=[_enrich_data(x) for x in request.json])
 
 
