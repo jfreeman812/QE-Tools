@@ -11,7 +11,7 @@ echo "A good run, no ERRORs or FAILures should happen below:"
 args_list="--qe-coverage --no-report "
 args_list="${args_list} -vvv --capture no"
 
-RESULTS="$(pytest ${args_list} test_decorators.py 2>&1)"
+RESULTS="$(pytest $args_list test_decorators.py 2>&1)"
 FAILURES="$(echo "${RESULTS}" | grep -e "FAIL" -e "ERROR")"
 echo "==========================================="
 echo "Anything in below section indicates test"
@@ -31,7 +31,7 @@ args_list="${args_list} --capture no"
 
 # Test for two ValueErrors, one being from multiple status tags
 # other being status tag not followed by ticket id
-BAD_RESULTS="$(pytest ${args_list} bad_decorators.py 2>&1)"
+BAD_RESULTS="$(pytest $args_list bad_decorators.py 2>&1)"
 NOT_IMPLEMENTED_RETURN=$(echo "${BAD_RESULTS}" | grep -c ": NotImplementedError")
 MULTIPLE_STATUS_RETURN=$(echo "${BAD_RESULTS}" | grep -c "prescriptive attribute Status")
 MULTIPLE_SUITE_RETURN=$(echo "${BAD_RESULTS}" | grep -c "prescriptive attribute Suite")
