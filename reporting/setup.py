@@ -47,6 +47,9 @@ setuptools.setup(name=NAME,
                  license='MIT',
                  entry_points={
                      'console_scripts': CONSOLE_SCRIPTS,
+                     'pytest11': [
+                         'pytest_coverage = qe_coverage.pytest_coverage',
+                     ],
                  },
                  install_requires=INSTALL_REQUIRES,
                  packages=setuptools.find_packages(),

@@ -12,6 +12,7 @@ This document details the tools that are designed to assist developers with crea
    unittest
    opencafe
    testlink
+   pytest
    manual
 
 .. comment:
@@ -22,4 +23,5 @@ This document details the tools that are designed to assist developers with crea
     - :doc:`Unittest<unittest>`
     - :doc:`OpenCAFE<opencafe>`
     - :doc:`TestLink<testlink>`
+    - :doc:`Pytest<pytest>`
     - :doc:`Manual<manual>`
