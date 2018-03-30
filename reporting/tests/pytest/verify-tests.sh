@@ -8,37 +8,45 @@ export PYTHONPATH=.:../../qe_coverage
 
 # First, test test_decorators.py. Should be all positive
 echo "A good run, no ERRORs or FAILures should happen below:"
-args_list="--qe-coverage --environment staging --no-report "
+args_list="--qe-coverage --no-report "
 args_list="${args_list} -vvv --capture no"
 
-RESULTS="$(pytest ${args_list} test_decorators.py)"
+RESULTS="$(pytest ${args_list} test_decorators.py 2>&1)"
+FAILURES="$(echo "${RESULTS}" | grep -e "FAIL" -e "ERROR")"
 echo "==========================================="
 echo "Anything in below section indicates test"
 echo "failure or error in test"
 echo "-------------------------------------------"
-echo -e "${RESULTS}" | grep -e "FAILED" -e "ERROR"
-echo -e "${RESULTS}" | grep "test_skipped" | grep "PASSED"
+#if [[ FAILURES ]]; then
+    echo "${FAILURES}"
+#fi
 echo "==========================================="
 
 
 
-# wrap run of bad_decorators.py, should fail with ValueError
+# wrap run of bad_decorators.py, should fail
 # exception because of test setup hook
-args_list="--qe-coverage --environment staging --no-report "
+args_list="--qe-coverage --dry-run --product-hierarchy Team::Project "
 args_list="${args_list} --capture no"
-BAD_RESULTS="$(pytest ${args_list} bad_decorators.py)"
-echo  "${BAD_RESULTS}" | grep -q "ValueError:"
-BAD_RETURN=$?
+
+# Test for two ValueErrors, one being from multiple status tags
+# other being status tag not followed by ticket id
+BAD_RESULTS="$(pytest ${args_list} bad_decorators.py 2>&1)"
+BAD_RETURN=$(echo "${BAD_RESULTS}" | grep -c ": ValueError")
 echo ""
 echo ""
 echo ""
+
+# Test for failure in TestGroup by adding more than one suite tag
+echo  "${BAD_RESULTS}" | grep -qP "test_with_conflicting_suite.*prescriptive attribute Suite.*$"
+BAD_TAG_RETURN=$?
 echo "Testing bad run"
 echo "==========================================="
-if [[ BAD_RETURN -eq 0 ]]; then
-    echo "Pytest negative test successful (received expected ValueError)"
+if [[ BAD_RETURN -eq 2  && BAD_TAG_RETURN -eq 0 ]]; then
+    echo "Pytest negative test successful"
 else
-    echo "Pytest negative test failed (did not receive expected ValueError)"
+    echo "Pytest negative test failed"
     echo "-------------------------------------------"
-    echo -e "${RESULTS}"
+    echo -e "${BAD_RESULTS}"
 fi
 echo "==========================================="
