@@ -79,7 +79,7 @@ def pytest_runtest_setup(item):
 
     # bail if there isn't a tags marker
     if _tags is None:
-        error_message = 'qe_coverage run but test "{}" does not have @pytest.mark.tags() implementation'
+        error_message = 'qe_coverage run but test "{}" not marked with have @pytest.mark.tags()'
         raise NotImplementedError(error_message.format(item.location[2]))
 
     # get args in @pytest.mark.tags, cast to list from tuple

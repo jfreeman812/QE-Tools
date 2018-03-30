@@ -20,3 +20,6 @@ class TestCaseDecoratorsThatAreBad:
     @pytest.mark.tags('smoke', 'positive', 'integration', 'nyi')
     def test_with_status_tag_requires_ticket_id(self):
         pass
+
+    def test_with_no_tags_throws_error(self):
+        pass
