@@ -79,7 +79,8 @@ def pytest_runtest_setup(item):
 
     # bail if there isn't a tags marker
     if _tags is None:
-        return
+        error_message = 'qe_coverage run but test "{}" does not have @pytest.mark.tags() implementation'
+        raise NotImplementedError(error_message.format(item.location[2]))
 
     # get args in @pytest.mark.tags, cast to list from tuple
     _tags = list(_tags.args)
@@ -94,7 +95,13 @@ def pytest_runtest_setup(item):
         if status in _tags:
             #  get location of status tag
             status_index = _tags.index(status)
-            _raise_error_if_status_tag_not_followed_with_tickets(status, _tags[status_index + 1:])
+            # Prevent index out of range error if status tag is last argument
+            # because it then doesn't contain a ticket. Decrement status_index
+            # to pass status (which will fail ticket id check) for consistency
+            # in error message
+            if status_index == len(_tags) - 1:
+                status_index -= 1
+            _raise_error_if_status_tag_not_followed_with_tickets(status, _tags[status_index + 1])
 
     # get the rest of the tags
     found_tags += _tags
@@ -146,24 +153,24 @@ def _get_global_option(_option=None):
     return options.get(_option)
 
 
-def _raise_error_if_status_tag_not_followed_with_tickets(tag_name, expected_ticket_ids):
+def _raise_error_if_status_tag_not_followed_with_tickets(tag_name, expected_ticket_id):
     '''
     Verify a status tag is followed by ticket ids
 
     Args:
         tag_name (iterable of str): The name of the tag
-        expected_ticket_ids (iterable of str): The list of possible ticket ids
+        expected_ticket_id (iterable of str): The list of possible ticket ids
 
     Raises:
         ValueError if status tag not followed by ticket ids.
     '''
 
     # Get list of ticket IDs included in details
-    ticket_ids = TICKET_RE.findall(''.join(expected_ticket_ids))
+    ticket_ids = TICKET_RE.findall(expected_ticket_id)
 
-    error_message = '"{}" must be followed by Ticket IDs: IDs not found in: "{}"'
+    error_message = '"{}" must be followed by Ticket ID: ID not found in: "{}"'
     if not ticket_ids:
-        raise ValueError(error_message.format(tag_name, expected_ticket_ids))
+        raise ValueError(error_message.format(tag_name, expected_ticket_id))
 
 
 def _transform_class_name_to_pretty_category(class_and_method_name):
