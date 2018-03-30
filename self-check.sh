@@ -27,3 +27,7 @@ for f in */self-check.sh ; do
     echo running $f...
     (cd $(dirname $f); ./self-check.sh) >> $self_check_output
 done
+
+if [ "$BUILD_CAUSE" = "GHPRBCAUSE" ]; then
+    ./_docs/gh_doc_link.py $PR_COMMENT_TOKEN
+fi
