@@ -222,7 +222,11 @@ class ProductionCoverage(SplunkAPI):
         if whitelist_msg:
             return whitelist_msg
         args = self._prep_args()
-        self._write_data_file()
+        # don't let a file storage failure throw a user-visible error
+        try:
+            self._write_data_file()
+        except BaseException:
+            pass
         return self._post(args, events=[_enrich_data(x) for x in request.json])
 
 
