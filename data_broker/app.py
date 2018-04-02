@@ -192,15 +192,19 @@ class ProductionCoverage(SplunkAPI):
                     'Errors': list(rejected)}, 401
 
     def _write_data_file(self):
-        if not path.exists(PROD_DATA_DIR):
-            makedirs(PROD_DATA_DIR)
         data_by_product = defaultdict(list)
         for entry in request.json:
-            product = entry['Product Hierarchy'].split('::')[-1].replace(' ', '_')
+            product = entry['Product Hierarchy'].split('::')[-1]
+            product = ''.join(filter(
+                lambda x: x.isalnum() or x in ('.', '_'), product.replace(' ', '_')
+            ))
             data_by_product[product].append(entry)
-        for product in data_by_product.keys():
+        for product in data_by_product:
+            product_path = path.join(PROD_DATA_DIR, product)
+            if not path.exists(product_path):
+                makedirs(product_path)
             file_path = path.join(
-                PROD_DATA_DIR, '{}_{}.xz'.format(product, time.strftime('%Y-%m-%d_%H-%M')))
+                product_path, '{}.xz'.format(time.strftime('%Y%m%d_%H%M%S')))
             with lzma.open(file_path, 'wt') as f:
                 f.write(json.dumps(data_by_product[product]))
 
