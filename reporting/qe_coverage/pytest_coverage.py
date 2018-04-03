@@ -26,8 +26,6 @@ def pytest_addoption(parser):
                     help='Run qe_coverage, do not report')
     group.addoption('--preserve-files', action='store_true',
                     help='Preserve report files generated')
-    group.addoption('--no-report', action='store_true',
-                    help='Run tag functions but do not compile tags')
     group.addoption('--production-endpoint', action='store_true',
                     help='Send coverage data to the production endpoint')
 
@@ -48,7 +46,6 @@ def pytest_configure(config):
     options['product-hierarchy'] = config.getoption('--product-hierarchy')
     options['dry-run'] = config.getoption('--dry-run')
     options['preserve-files'] = config.getoption('--preserve-files')
-    options['no-report'] = config.getoption('--no-report')
     options['production-endpoint'] = config.getoption('--production-endpoint')
 
     # Add our @pytest.mark.tags info to be displayed with `pytest --markers`
@@ -104,7 +101,7 @@ def pytest_terminal_summary(terminalreporter, exitstatus):
         'production-endpoint': _get_global_option('production-endpoint'),
     }
     global test_group
-    if not _get_global_option('no-report'):
+    if _get_global_option('qe-coverage'):
         run_reports(test_group, _get_global_option('product-hierarchy'),
                     _get_global_option('default-interface-type'), **kwargs)
 
