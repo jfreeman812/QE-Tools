@@ -22,6 +22,67 @@ STATUS_CODE_RANGES = {
 }
 
 
+def safe_json_from(response):
+    '''
+    Accepts a response object and attempts to return the JSON-decoded data.
+    On decode failure, raises an AssertionError with relevant details.
+    '''
+    # the json module in py2 doesn't contain the specific error,
+    # and instead throws a generic ValueError
+    try:
+        decode_error = json.decoder.JSONDecodeError
+    except AttributeError:
+        decode_error = ValueError
+    try:
+        data = response.json()
+    except decode_error:
+        message = format_items_as_string_tree('\nResponse Content NOT a Valid JSON:',
+                                              ['URL: {}'.format(response.url),
+                                               'Status Code: {}'.format(response.status_code),
+                                               'Response Text -{}-'.format(response.text)])
+        raise AssertionError(message)
+    return data
+
+
+def get_data_from_response(response=None, check_empty=True, first_only=True):
+    '''
+    Accepts a response object and returns a dict of the data contained within,
+    stripping out the first-layer 'data' key frequently used in returns.
+    By default, raises an error if the data is empty, but this can be disable with
+    check_empty=False if it is desired to have the empty object returned.
+    The default is also to strip the list wrapping often used even in single-length returns,
+    but this can be disabled with first_only=False.
+    '''
+    # most common response is a 'list' of only one element, so first_only=True
+    # will fix that by default, but allows a toggle to get full data if desired.
+    data = safe_json_from(response)
+    if isinstance(data, (int, str, bool)):
+        return data
+    if 'data' in data:
+        data = data['data']
+    # ARIC often returns a list of results nested in a dictionary structure:
+    # {'ResultSet':{'ResultSet':[list of things]}}.  If those keys are present we will strip them
+    # out and return only the list of data.
+    if 'ResultSet' in data:
+        data = data['ResultSet']
+        if 'ResultSet' in data:
+            data = data['ResultSet']
+    if first_only and isinstance(data, list):
+        data = data[0]
+    if check_empty:
+        assert data, 'Payload was empty: {}'.format(data)
+    return data
+
+
+def get_data_list(response):
+    '''
+    Helper around get_data_for_response that returns the full list of data
+    if the data is in a list format.
+    (rather than the default of returning the first object inside the list)
+    '''
+    return get_data_from_response(response, first_only=False)
+
+
 def _indent_items(*items):
     '''
     Adds a tab to every item in *items, if the item is a list, this function will be recursively
