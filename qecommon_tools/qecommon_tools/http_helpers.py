@@ -44,27 +44,40 @@ def safe_json_from(response):
     return data
 
 
-def get_data_from_response(response, extra_layers=None, check_empty=True, first_only=True):
+def get_data_from_response(response, dig_layers=None, check_empty=True, first_only=True):
     '''
     Accepts a response object and returns a dict of the data contained within,
     stripping out the first-layer 'data' key frequently used in returns.
-    By default, raises an error if the data is empty, but this can be disable with
-    check_empty=False if it is desired to have the empty object returned.
-    The default is also to strip the list wrapping often used even in single-length returns,
-    but this can be disabled with first_only=False.
 
-    If you want to "dig" down further beyond response['data'],
-    a list of extra keys to dig through if they exist via extra_layers.
+    Ex:
+    Sample JSON payload:
+    {"data": [{"key": "value"}, {"key": "value2"}], "other": ""}
+
+    > get_data_from_response(response, dig_layers='data')
+    # {'key': 'value'}
+
+    > get_data_from_response(response, dig_layers='data', first_only=False)
+    # [{'key': 'value'}, {'key': 'value2'}]
+
+    > get_data_from_response(response, dig_layers='other')
+    # AssertionError: Payload was empty: ''
+
+    > get_data_from_response(response, dig_layers='other', check_empty=False)
+    # ""
+
+    Args:
+        response (requests.models.Response): a Response object from a requests call
+        dig_layers (list): A list of keys to "dig" down into the response before returning
+        check_empty (bool): if True, raises an AssertionError if the payload is empty
+        first_only (bool): strip the list wrapping the data and return the first result only
     '''
     # most common response is a 'list' of only one element, so first_only=True
     # will fix that by default, but allows a toggle to get full data if desired.
     data = safe_json_from(response)
     if isinstance(data, (int, str, bool)):
         return data
-    if 'data' in data:
-        data = data['data']
-    extra_layers = extra_layers or []
-    for layer in extra_layers:
+    dig_layers = dig_layers or []
+    for layer in dig_layers:
         if layer in data:
             data = data[layer]
     if first_only and isinstance(data, list):
@@ -74,13 +87,14 @@ def get_data_from_response(response, extra_layers=None, check_empty=True, first_
     return data
 
 
-def get_data_list(response):
+def get_data_list(response, **kwargs):
     '''
     Helper around get_data_for_response that returns the full list of data
     if the data is in a list format.
     (rather than the default of returning the first object inside the list)
     '''
-    return get_data_from_response(response, first_only=False)
+    kwargs.update(first_only=False)
+    return get_data_from_response(response, **kwargs)
 
 
 def _indent_items(*items):
@@ -199,8 +213,8 @@ def validate_response_status_code(expected_status_description, response):
     '''
     if not is_status_code(expected_status_description, response.status_code):
         try:
-            response_content = json.dumps(response.json(), indent=4)
-        except ValueError:
+            response_content = json.dumps(safe_json_from(response), indent=4)
+        except AssertionError:
             response_content = response.content
 
         status_message = '{} - Actual Response Status: {}'

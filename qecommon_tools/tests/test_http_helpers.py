@@ -18,7 +18,8 @@ session.mount('mock', adapter)
 SAMPLE_DATA = {
     'key': 'value',
     'key2': ['list', 'of', 'values'],
-    'data': [{'inside_key': 'inside_value'}, {'inside_key2': 'inside_value2'}]}
+    'data': [{'inside_key': 'inside_value'}, {'inside_key2': 'inside_value2'}]
+}
 
 adapter.register_uri('GET', 'mock://test.com/ok', status_code=200)
 adapter.register_uri('GET', 'mock://test.com/client', status_code=400)
@@ -69,12 +70,12 @@ def test_valid_json(good_json):
 
 
 def test_get_data(good_json):
-    data = http_helpers.get_data_from_response(good_json)
+    data = http_helpers.get_data_from_response(good_json, dig_layers=['data'])
     assert data == SAMPLE_DATA['data'][0]
 
 
 def test_get_data_list(good_json):
-    data = http_helpers.get_data_list(good_json)
+    data = http_helpers.get_data_list(good_json, dig_layers=['data'])
     assert data == SAMPLE_DATA['data']
 
 
