@@ -1,6 +1,7 @@
 from __future__ import print_function
 import itertools as _itertools
 import os as _os
+import random
 import shutil as _shutil
 import string as _string
 import subprocess as _subprocess
@@ -113,12 +114,46 @@ def error_if(check, status=None, message=''):
         exit(status=status or check, message=message.format(check))
 
 
+def generate_random_string(prefix='', suffix='', size=8):
+    '''
+    Generate a random string of the specified size.
+    Examples:
+        > generate_random_string()
+        vng345jn
+        > generate_random_string(prefix='Lbs-', suffix='-test', size=15)
+        Lbs-js7eh9-test
+        > generate_random_string(prefix='Lbs-', size=15)
+        Lbs-js7eh98sfnk
+        > generate_random_string(suffix='-test', size=15)
+        8sdfjs7eh9-test
+    Args:
+        prefix (str): The string to prepend to the beginning of the random string. (optional)
+        suffix (str): The string to append to the end of the random string. (optional)
+        size (int): The number of characters the random string should have. (defaults to 8)
+    Returns:
+        str: A randomly generated string.
+    '''
+    possible_characters = _string.ascii_lowercase + _string.digits
+    rand_string_length = size - len(prefix) - len(suffix)
+    message = '"size" of {} too short with prefix {} and suffix {}!'
+    assert rand_string_length > 0, message.format(size, prefix, suffix)
+    rand_string = ''.join(random.choice(possible_characters) for _ in range(rand_string_length))
+    return '{}{}{}'.format(prefix, rand_string, suffix)
+
+
 def must_get_key(a_dict, key):
     '''
     Either return the value for the key, or raise an exception.
     The exception will indicate what the valid keys are.
     Inspired by Gherkin steps so that a typo in the Gherkin
     will result in a more helpful error message than the stock KeyError.
+
+    Args:
+        a_dict (dict): Dictionary with the values
+        key (str): The key whose value is desired
+
+    Returns:
+        The value found on the key
     '''
     if key not in a_dict:
         raise KeyError(
@@ -131,9 +166,13 @@ def must_get_keys(a_dict, *keys):
     '''
     Either return the value found for they keys provided, or raise an exception with a useful error
     message if any of the keys are not found.
-    :param a_dict (dct): The dictionary with the values.
-    :param keys (str): One or many keys to get the values for.
-    :return: The value found in the dictionary.
+
+    Args:
+        a_dict (dict): Dictionary with the values
+        key (str): The key or keys whose value is desired
+
+    Returns:
+        The value found on the final key
     '''
     for key in keys:
         a_dict = must_get_key(a_dict, key)

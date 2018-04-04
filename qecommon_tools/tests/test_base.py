@@ -136,11 +136,35 @@ def test_error_if_with_check(capsys, check, exit_code, message):
     assert pytest_wrapped_e.value.code == exit_code or check
 
 
+def test_random_string_length():
+    text = qecommon_tools.generate_random_string(size=8)
+    assert len(text) == 8
+
+
+def test_random_string_prefix():
+    prefix = 'test-'
+    text = qecommon_tools.generate_random_string(prefix=prefix, size=8)
+    assert len(text) == 8
+    assert text.startswith(prefix)
+
+
+def test_random_string_suffix():
+    suffix = '-test'
+    text = qecommon_tools.generate_random_string(suffix=suffix, size=8)
+    assert len(text) == 8
+    assert text.endswith(suffix)
+
+
+def test_string_size_failure():
+    with pytest.raises(AssertionError):
+        qecommon_tools.generate_random_string(
+            prefix='this-is-a-long-prefix-',
+            suffix='-this-is-a-long-suffix',
+            size=3
+        )
+
+
 KEY_TEST_DICT = {'a': 1, 1: 'a', 'key': 'value', 'nested': {'a': 5}}
-
-
-def _fake_key_name():
-    return ''.join([random.choice(string.ascii_letters) for _ in range(5)])
 
 
 def _sorted_key_names(dict_):
@@ -154,7 +178,7 @@ def test_valid_key():
 
 
 def test_invalid_key():
-    key = _fake_key_name()
+    key = qecommon_tools.generate_random_string()
     expected_msg = '{} is not one of: {}'.format(key, _sorted_key_names(KEY_TEST_DICT))
     with pytest.raises(KeyError, message=expected_msg):
         qecommon_tools.must_get_key(KEY_TEST_DICT, key)
@@ -166,7 +190,7 @@ def test_valid_keys():
 
 
 def test_invalid_keys():
-    key = _fake_key_name()
+    key = qecommon_tools.generate_random_string()
     expected_msg = '{} is not one of: {}'.format(key, _sorted_key_names(KEY_TEST_DICT['nested']))
     with pytest.raises(KeyError, message=expected_msg):
         qecommon_tools.must_get_keys(KEY_TEST_DICT, 'nested', key)
