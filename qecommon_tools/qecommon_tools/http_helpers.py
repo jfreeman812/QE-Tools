@@ -44,7 +44,7 @@ def safe_json_from(response):
     return data
 
 
-def get_data_from_response(response=None, check_empty=True, first_only=True):
+def get_data_from_response(response, extra_layers=None, check_empty=True, first_only=True):
     '''
     Accepts a response object and returns a dict of the data contained within,
     stripping out the first-layer 'data' key frequently used in returns.
@@ -52,6 +52,9 @@ def get_data_from_response(response=None, check_empty=True, first_only=True):
     check_empty=False if it is desired to have the empty object returned.
     The default is also to strip the list wrapping often used even in single-length returns,
     but this can be disabled with first_only=False.
+
+    If you want to "dig" down further beyond response['data'],
+    a list of extra keys to dig through if they exist via extra_layers.
     '''
     # most common response is a 'list' of only one element, so first_only=True
     # will fix that by default, but allows a toggle to get full data if desired.
@@ -60,13 +63,10 @@ def get_data_from_response(response=None, check_empty=True, first_only=True):
         return data
     if 'data' in data:
         data = data['data']
-    # ARIC often returns a list of results nested in a dictionary structure:
-    # {'ResultSet':{'ResultSet':[list of things]}}.  If those keys are present we will strip them
-    # out and return only the list of data.
-    if 'ResultSet' in data:
-        data = data['ResultSet']
-        if 'ResultSet' in data:
-            data = data['ResultSet']
+    extra_layers = extra_layers or []
+    for layer in extra_layers:
+        if layer in data:
+            data = data[layer]
     if first_only and isinstance(data, list):
         data = data[0]
     if check_empty:
