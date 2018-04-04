@@ -26,6 +26,12 @@ def safe_json_from(response):
     '''
     Accepts a response object and attempts to return the JSON-decoded data.
     On decode failure, raises an AssertionError with relevant details.
+
+    Args:
+        response (requests.models.Response): a Response object from a requests call
+
+    Returns:
+        the JSON-decoded data from the response
     '''
     # the json module in py2 doesn't contain the specific error,
     # and instead throws a generic ValueError
