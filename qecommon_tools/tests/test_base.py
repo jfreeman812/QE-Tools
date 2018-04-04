@@ -1,6 +1,8 @@
 from itertools import product
 import tempfile
 from os import path, mkdir
+import random
+import string
 
 import pytest
 import qecommon_tools
@@ -132,3 +134,39 @@ def test_error_if_with_check(capsys, check, exit_code, message):
     out, err = capsys.readouterr()
     assert message in err
     assert pytest_wrapped_e.value.code == exit_code or check
+
+
+KEY_TEST_DICT = {'a': 1, 1: 'a', 'key': 'value', 'nested': {'a': 5}}
+
+
+def _fake_key_name():
+    return ''.join([random.choice(string.ascii_letters) for _ in range(5)])
+
+
+def _sorted_key_names(dict_):
+    return sorted(map(str, dict_))
+
+
+def test_valid_key():
+    key = random.choice(list(KEY_TEST_DICT.keys()))
+    value = qecommon_tools.must_get_key(KEY_TEST_DICT, key)
+    assert value == KEY_TEST_DICT[key]
+
+
+def test_invalid_key():
+    key = _fake_key_name()
+    expected_msg = '{} is not one of: {}'.format(key, _sorted_key_names(KEY_TEST_DICT))
+    with pytest.raises(KeyError, message=expected_msg):
+        qecommon_tools.must_get_key(KEY_TEST_DICT, key)
+
+
+def test_valid_keys():
+    value = qecommon_tools.must_get_keys(KEY_TEST_DICT, 'nested', 'a')
+    assert value == KEY_TEST_DICT['nested']['a']
+
+
+def test_invalid_keys():
+    key = _fake_key_name()
+    expected_msg = '{} is not one of: {}'.format(key, _sorted_key_names(KEY_TEST_DICT['nested']))
+    with pytest.raises(KeyError, message=expected_msg):
+        qecommon_tools.must_get_keys(KEY_TEST_DICT, 'nested', key)

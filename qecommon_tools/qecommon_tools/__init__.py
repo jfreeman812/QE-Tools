@@ -111,3 +111,30 @@ def error_if(check, status=None, message=''):
     '''
     if check:
         exit(status=status or check, message=message.format(check))
+
+
+def must_get_key(a_dict, key):
+    '''
+    Either return the value for the key, or raise an exception.
+    The exception will indicate what the valid keys are.
+    Inspired by Gherkin steps so that a typo in the Gherkin
+    will result in a more helpful error message than the stock KeyError.
+    '''
+    if key not in a_dict:
+        raise KeyError(
+            '{} is not one of: {}'.format(key, ', '.join(sorted(map(str, a_dict))))
+        )
+    return a_dict[key]
+
+
+def must_get_keys(a_dict, *keys):
+    '''
+    Either return the value found for they keys provided, or raise an exception with a useful error
+    message if any of the keys are not found.
+    :param a_dict (dct): The dictionary with the values.
+    :param keys (str): One or many keys to get the values for.
+    :return: The value found in the dictionary.
+    '''
+    for key in keys:
+        a_dict = must_get_key(a_dict, key)
+    return a_dict
