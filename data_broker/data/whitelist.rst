@@ -31,6 +31,7 @@ GSCS                   SF Stash
 Provisioning Services  FireKick
 Oracle EBS             FMW (Calabrio)
 Oracle EBS             FMW (Common)
+ServiceNow             ServiceNow
 =====================  ================================
 
 
