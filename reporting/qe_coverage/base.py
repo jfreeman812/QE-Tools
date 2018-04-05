@@ -40,8 +40,8 @@ TICKET_RE = re.compile('([A-Z][A-Z]+-?[0-9]+)')
 COVERAGE_URL_TEMPLATE = 'https://qetools.rax.io/coverage/{}'
 COVERAGE_STAGING_URL = COVERAGE_URL_TEMPLATE.format('staging')
 COVERAGE_PRODUCTION_URL = COVERAGE_URL_TEMPLATE.format('production')
-POSSIBLE_OVERRIDE_KEYS = ["tags"]
-OVERRIDE_CSV_VALUES_SEPARATOR = "/"
+POSSIBLE_OVERRIDE_KEYS = ['tags']
+OVERRIDE_CSV_VALUES_SEPARATOR = '/'
 
 ####################################################################################################
 # Globals
@@ -153,28 +153,28 @@ class TestGroup(object):
     override_file_path = attr.ib(default=None)
 
     def __attrs_post_init__(self):
-        """Assign an override data object if an override file is present."""
+        '''Assign an override data object if an override file is present.'''
         if self.override_file_path:
-            with open(self.override_file_path, "r") as override_file:
+            with open(self.override_file_path, 'r') as override_file:
                 override_csv = csv.DictReader(override_file)
-                self.override_data = {row["name"]: row for row in override_csv}
+                self.override_data = {row['name']: row for row in override_csv}
 
     def add(self, name, categories=None, tags=None, parent_tags=None,
             file_path=''):
-        """
+        '''
         Add a new test to the test group.
 
         If an override file is associated with this test group, then any
         matching data from the override file will replace the data provided
         to this method.
-        """
+        '''
 
         test_coverage_kwargs = {
-            "name": name,
-            "categories": categories,
-            "tags": tags,
-            "parent_tags": parent_tags or [],
-            "file_path": file_path
+            'name': name,
+            'categories': categories,
+            'tags': tags,
+            'parent_tags': parent_tags or [],
+            'file_path': file_path
         }
 
         if self.override_file_path and name in self.override_data:
@@ -191,8 +191,8 @@ class TestGroup(object):
         return len(self.errors)
 
     def _override_test_data(self, test_coverage_kwargs):
-        """Replace current test coverage data with data from an override file."""
-        data = self.override_data[test_coverage_kwargs["name"]]
+        '''Replace current test coverage data with data from an override file.'''
+        data = self.override_data[test_coverage_kwargs['name']]
 
         for key in POSSIBLE_OVERRIDE_KEYS:
             if key in data:
