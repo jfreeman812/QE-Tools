@@ -6,6 +6,7 @@ multiline-quotes = single
 # Ignore Details:
 #
 # Errors we plan to ignore permanently:
+#   - D300 Use """triple double quotes"""
 #   - D401 First line should be in imperative mood
 #   - D413 Missing blank line after last section
 #
@@ -17,7 +18,6 @@ multiline-quotes = single
 #   - D205 1 blank line required between summary line and description - (34 current errors)
 #   - D208 Docstring is over-indented - (1 current error)
 #   - D209 Multi-line docstring closing quotes should be on a separate line - (1 current error)
-#   - D300 Use """triple double quotes"""
 #   - D301 Use r""" if any backslashes in a docstring - (2 current errors)
 #   - D400 First line should end with a period - (60 current errors)
 #   - D403 First word of the first line should be properly capitalized - (3 current errors)
