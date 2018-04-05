@@ -194,7 +194,7 @@ def must_get_keys(a_dict, *keys):
 
     Args:
         a_dict (dict): Dictionary with the values
-        key (str): The key or keys whose value is desired
+        keys (str): The key or keys whose value is desired
 
     Returns:
         The value found on the final key
