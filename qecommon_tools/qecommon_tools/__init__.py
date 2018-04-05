@@ -114,6 +114,22 @@ def error_if(check, status=None, message=''):
         exit(status=status or check, message=message.format(check))
 
 
+def dict_strip_value(dict_, value=None):
+    '''
+    Return a new dict based on stripping out any key with the given value.
+    NOTE: The default value 'None' is chosen because it is a common case.
+    Unlike other functions, value 'None' is literally the value None.
+
+    Args:
+        dict_ (dict): A dictionary to strip values from.
+        value: Any value that should be stripped from the dictionary.
+
+    Returns:
+        dict: A new dictionary without the offending keys or values.
+    '''
+    return {k: v for k, v in dict_.items() if v != value}
+
+
 def generate_random_string(prefix='', suffix='', size=8):
     '''
     Generate a random string of the specified size.

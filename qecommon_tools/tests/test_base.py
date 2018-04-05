@@ -1,5 +1,6 @@
 from itertools import product
 import tempfile
+from uuid import uuid4
 from os import path, mkdir
 import random
 import string
@@ -47,6 +48,23 @@ def test_display_name_without_name_file(temp_dir, package_name_and_expected):
 def test_display_name_with_name_file(temp_dir_with_name_file, package_name):
     display_name = qecommon_tools.display_name(temp_dir_with_name_file, package_name)
     assert display_name == TEST_MESSAGE
+
+
+DICT_STRIP_VALUES = ['', None, 'None', 1234, []]
+DIST_STRIP_CASES = [({uuid4(): x for x in DICT_STRIP_VALUES}, y) for y in DICT_STRIP_VALUES]
+
+
+@pytest.mark.parametrize('dict_to_strip,value_to_strip', DIST_STRIP_CASES)
+def test_dict_strip_valid_values_remain(dict_to_strip, value_to_strip):
+    stripped_dictionary = qecommon_tools.dict_strip_value(dict_to_strip, value=value_to_strip)
+    for valid_value in [x for x in DICT_STRIP_VALUES if x != value_to_strip]:
+        assert valid_value in stripped_dictionary.values()
+
+
+@pytest.mark.parametrize('dict_to_strip,value_to_strip', DIST_STRIP_CASES)
+def test_dict_strip_stripped_values_are_gone(dict_to_strip, value_to_strip):
+    stripped_dictionary = qecommon_tools.dict_strip_value(dict_to_strip, value=value_to_strip)
+    assert value_to_strip not in stripped_dictionary.values()
 
 
 PADDED_LIST_CASES = list(product([0, 5, 15], [None, 'TEST']))
