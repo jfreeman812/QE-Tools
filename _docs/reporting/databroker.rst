@@ -50,4 +50,10 @@ Data posted to ``production`` is also validated to ensure each entry has a Produ
 Output Specifications
 ---------------------
 
-In addition to the input data, the output will also include the data-collector specific formatting and a unique ``upload_id`` key that helps identify the set of data uploaded when searching, and tags the data with a unix timestamp.
+In addition to the input data, the output will also include:
+
+- a ``host`` key with the current coverage metrics schema (currently ``qe_coverage_metrics_schema_v20180301``)
+- an ``index`` key corresponding to the correct Splunk index (``rax_temp_60`` for staging, ``rax_qe_coverage`` for production)
+- a ``source`` key corresponding to the Splunk source expected (``rax_qe_coverage``)
+- a unique ``upload_id`` key that helps identify the set of data uploaded when searching
+- an accurate unix timestamp corresponding to the time of upload
