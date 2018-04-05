@@ -183,7 +183,7 @@ def must_get_key(a_dict, key):
 
 def must_get_keys(a_dict, *keys):
     '''
-    Either return the value found for they keys provided, or raise an exception with a useful error
+    Either return the value found for the keys provided, or raise an exception with a useful error
     message if any of the keys are not found.
 
     Args:
