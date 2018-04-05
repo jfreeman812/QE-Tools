@@ -117,6 +117,7 @@ def error_if(check, status=None, message=''):
 def generate_random_string(prefix='', suffix='', size=8):
     '''
     Generate a random string of the specified size.
+
     Examples:
         > generate_random_string()
         vng345jn
@@ -126,10 +127,12 @@ def generate_random_string(prefix='', suffix='', size=8):
         Lbs-js7eh98sfnk
         > generate_random_string(suffix='-test', size=15)
         8sdfjs7eh9-test
+
     Args:
         prefix (str): The string to prepend to the beginning of the random string. (optional)
         suffix (str): The string to append to the end of the random string. (optional)
         size (int): The number of characters the random string should have. (defaults to 8)
+
     Returns:
         str: A randomly generated string.
     '''
