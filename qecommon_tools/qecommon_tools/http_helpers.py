@@ -56,9 +56,11 @@ def get_data_from_response(response, dig_layers=None, check_empty=True, first_on
 
     Examples:
         Sample JSON payload::
+
             {"data": [{"key": "value"}, {"key": "value2"}], "other": ""}
 
         Examples usages::
+
             > get_data_from_response(response, dig_layers='data')
             # {'key': 'value'}
 
