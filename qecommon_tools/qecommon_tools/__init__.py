@@ -151,6 +151,9 @@ def generate_random_string(prefix='', suffix='', size=8):
 
     Returns:
         str: A randomly generated string.
+
+    Raises:
+        AssertionError: if the specified length is incompatible with prefix/suffix length
     '''
     possible_characters = _string.ascii_lowercase + _string.digits
     rand_string_length = size - len(prefix) - len(suffix)
@@ -163,6 +166,7 @@ def generate_random_string(prefix='', suffix='', size=8):
 def must_get_key(a_dict, key):
     '''
     Either return the value for the key, or raise an exception.
+
     The exception will indicate what the valid keys are.
     Inspired by Gherkin steps so that a typo in the Gherkin
     will result in a more helpful error message than the stock KeyError.
@@ -173,6 +177,9 @@ def must_get_key(a_dict, key):
 
     Returns:
         The value found on the key
+
+    Raises:
+        KeyError: if the given key is not present in the dictionary.
     '''
     if key not in a_dict:
         raise KeyError(
@@ -183,8 +190,7 @@ def must_get_key(a_dict, key):
 
 def must_get_keys(a_dict, *keys):
     '''
-    Either return the value found for the keys provided, or raise an exception with a useful error
-    message if any of the keys are not found.
+    Either return the value found for the keys provided, or raise an exception.
 
     Args:
         a_dict (dict): Dictionary with the values
@@ -192,6 +198,9 @@ def must_get_keys(a_dict, *keys):
 
     Returns:
         The value found on the final key
+
+    Raises:
+        KeyError: if any of the given keys are not present in the dictionary.
     '''
     for key in keys:
         a_dict = must_get_key(a_dict, key)
