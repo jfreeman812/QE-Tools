@@ -9,7 +9,7 @@ Tagging and tracking the attributes for the coverage report are outside the scop
 Sending the Data
 ----------------
 
-To send data separate from the provided tools, a data broker has been created that allows data easily to be sent to the reporting tool. The data broker provides Swagger documentation at https://qetools.rax.io/coverage/doc/ and the data can be posted to https://qetools.rax.io/coverage/``environment``/.
+To send data separate from the provided tools, a data broker has been created that allows data easily to be sent to the reporting tool. The :doc:`Data Broker Documentation<databroker>` details the input and output specifications/contract. `Swagger documentation <https://qetools.rax.io/coverage/doc>`_ is also available. The data can be posted to ``https://qetools.rax.io/coverage/<environment>/``.
 
 ``environment`` may be either ``staging`` or ``production``:
 

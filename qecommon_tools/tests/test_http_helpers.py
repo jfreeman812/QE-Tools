@@ -1,3 +1,5 @@
+import json
+
 import pytest
 from qecommon_tools import http_helpers
 import requests
@@ -13,9 +15,22 @@ session = requests.Session()
 adapter = requests_mock.Adapter()
 session.mount('mock', adapter)
 
+SAMPLE_DATA = {
+    'key': 'value',
+    'key2': ['list', 'of', 'values'],
+    'data': [{'inside_key': 'inside_value'}, {'inside_key2': 'inside_value2'}]
+}
+
 adapter.register_uri('GET', 'mock://test.com/ok', status_code=200)
 adapter.register_uri('GET', 'mock://test.com/client', status_code=400)
 adapter.register_uri('GET', 'mock://test.com/server', status_code=500)
+adapter.register_uri('GET', 'mock://test.com/good_json', status_code=200, json=SAMPLE_DATA)
+adapter.register_uri(
+    'GET',
+    'mock://test.com/bad_json',
+    status_code=200,
+    text=json.dumps(SAMPLE_DATA).replace('}', ')')
+)
 
 
 @pytest.fixture
@@ -31,6 +46,37 @@ def client_err():
 @pytest.fixture
 def server_err():
     return session.get('mock://test.com/server')
+
+
+@pytest.fixture
+def good_json():
+    return session.get('mock://test.com/good_json')
+
+
+@pytest.fixture
+def bad_json():
+    return session.get('mock://test.com/bad_json')
+
+
+# data from response helpers testing
+def test_invalid_json(bad_json):
+    with pytest.raises(AssertionError):
+        http_helpers.safe_json_from(bad_json)
+
+
+def test_valid_json(good_json):
+    data = http_helpers.safe_json_from(good_json)
+    assert data == SAMPLE_DATA
+
+
+def test_get_data(good_json):
+    data = http_helpers.get_data_from_response(good_json, dig_layers=['data'])
+    assert data == SAMPLE_DATA['data'][0]
+
+
+def test_get_data_list(good_json):
+    data = http_helpers.get_data_list(good_json, dig_layers=['data'])
+    assert data == SAMPLE_DATA['data']
 
 
 # format_items_as_string_tree testing
@@ -90,7 +136,7 @@ def test_client_err_mismatch(client_err, expected_description):
 
 
 @pytest.mark.parametrize('expected_description', OK_DESC + CLIENT_ERR_DESC)
-def server_client_err_mismatch(server_err, expected_description):
+def test_server_client_err_mismatch(server_err, expected_description):
     _code_mismatch_expected(server_err, expected_description)
 
 

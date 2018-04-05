@@ -2,6 +2,8 @@ from itertools import product
 import tempfile
 from uuid import uuid4
 from os import path, mkdir
+import random
+import string
 
 import pytest
 import qecommon_tools
@@ -150,3 +152,63 @@ def test_error_if_with_check(capsys, check, exit_code, message):
     out, err = capsys.readouterr()
     assert message in err
     assert pytest_wrapped_e.value.code == exit_code or check
+
+
+def test_random_string_length():
+    text = qecommon_tools.generate_random_string(size=8)
+    assert len(text) == 8
+
+
+def test_random_string_prefix():
+    prefix = 'test-'
+    text = qecommon_tools.generate_random_string(prefix=prefix, size=8)
+    assert len(text) == 8
+    assert text.startswith(prefix)
+
+
+def test_random_string_suffix():
+    suffix = '-test'
+    text = qecommon_tools.generate_random_string(suffix=suffix, size=8)
+    assert len(text) == 8
+    assert text.endswith(suffix)
+
+
+def test_string_size_failure():
+    with pytest.raises(AssertionError):
+        qecommon_tools.generate_random_string(
+            prefix='this-is-a-long-prefix-',
+            suffix='-this-is-a-long-suffix',
+            size=3
+        )
+
+
+KEY_TEST_DICT = {'a': 1, 1: 'a', 'key': 'value', 'nested': {'a': 5}}
+
+
+def _sorted_key_names(dict_):
+    return sorted(map(str, dict_))
+
+
+def test_valid_key():
+    key = random.choice(list(KEY_TEST_DICT.keys()))
+    value = qecommon_tools.must_get_key(KEY_TEST_DICT, key)
+    assert value == KEY_TEST_DICT[key]
+
+
+def test_invalid_key():
+    key = qecommon_tools.generate_random_string()
+    expected_msg = '{} is not one of: {}'.format(key, _sorted_key_names(KEY_TEST_DICT))
+    with pytest.raises(KeyError, message=expected_msg):
+        qecommon_tools.must_get_key(KEY_TEST_DICT, key)
+
+
+def test_valid_keys():
+    value = qecommon_tools.must_get_keys(KEY_TEST_DICT, 'nested', 'a')
+    assert value == KEY_TEST_DICT['nested']['a']
+
+
+def test_invalid_keys():
+    key = qecommon_tools.generate_random_string()
+    expected_msg = '{} is not one of: {}'.format(key, _sorted_key_names(KEY_TEST_DICT['nested']))
+    with pytest.raises(KeyError, message=expected_msg):
+        qecommon_tools.must_get_keys(KEY_TEST_DICT, 'nested', key)

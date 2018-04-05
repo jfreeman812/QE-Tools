@@ -1,6 +1,7 @@
 from __future__ import print_function
 import itertools as _itertools
 import os as _os
+import random
 import shutil as _shutil
 import string as _string
 import subprocess as _subprocess
@@ -127,3 +128,80 @@ def dict_strip_value(dict_, value=None):
         dict: A new dictionary without the offending keys or values.
     '''
     return {k: v for k, v in dict_.items() if v != value}
+
+
+def generate_random_string(prefix='', suffix='', size=8):
+    '''
+    Generate a random string of the specified size.
+
+    Examples:
+        > generate_random_string()
+        vng345jn
+        > generate_random_string(prefix='Lbs-', suffix='-test', size=15)
+        Lbs-js7eh9-test
+        > generate_random_string(prefix='Lbs-', size=15)
+        Lbs-js7eh98sfnk
+        > generate_random_string(suffix='-test', size=15)
+        8sdfjs7eh9-test
+
+    Args:
+        prefix (str): The string to prepend to the beginning of the random string. (optional)
+        suffix (str): The string to append to the end of the random string. (optional)
+        size (int): The number of characters the random string should have. (defaults to 8)
+
+    Returns:
+        str: A randomly generated string.
+
+    Raises:
+        AssertionError: if the specified length is incompatible with prefix/suffix length
+    '''
+    possible_characters = _string.ascii_lowercase + _string.digits
+    rand_string_length = size - len(prefix) - len(suffix)
+    message = '"size" of {} too short with prefix {} and suffix {}!'
+    assert rand_string_length > 0, message.format(size, prefix, suffix)
+    rand_string = ''.join(random.choice(possible_characters) for _ in range(rand_string_length))
+    return '{}{}{}'.format(prefix, rand_string, suffix)
+
+
+def must_get_key(a_dict, key):
+    '''
+    Either return the value for the key, or raise an exception.
+
+    The exception will indicate what the valid keys are.
+    Inspired by Gherkin steps so that a typo in the Gherkin
+    will result in a more helpful error message than the stock KeyError.
+
+    Args:
+        a_dict (dict): Dictionary with the values
+        key (str): The key whose value is desired
+
+    Returns:
+        The value found on the key
+
+    Raises:
+        KeyError: if the given key is not present in the dictionary.
+    '''
+    if key not in a_dict:
+        raise KeyError(
+            '{} is not one of: {}'.format(key, ', '.join(sorted(map(str, a_dict))))
+        )
+    return a_dict[key]
+
+
+def must_get_keys(a_dict, *keys):
+    '''
+    Either return the value found for the keys provided, or raise an exception.
+
+    Args:
+        a_dict (dict): Dictionary with the values
+        keys (str): The key or keys whose value is desired
+
+    Returns:
+        The value found on the final key
+
+    Raises:
+        KeyError: if any of the given keys are not present in the dictionary.
+    '''
+    for key in keys:
+        a_dict = must_get_key(a_dict, key)
+    return a_dict
