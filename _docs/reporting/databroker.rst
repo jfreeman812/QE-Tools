@@ -56,4 +56,4 @@ In addition to the input data, the output will also include:
 - an ``index`` key corresponding to the correct Splunk index (``rax_temp_60`` for staging, ``rax_qe_coverage`` for production)
 - a ``source`` key corresponding to the Splunk source expected (``rax_qe_coverage``)
 - a unique ``upload_id`` key that helps identify the set of data uploaded when searching
-- an accurate unix timestamp corresponding to the time of upload
+- a ``_time`` key with an accurate unix timestamp corresponding to the time of upload
