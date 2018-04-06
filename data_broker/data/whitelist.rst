@@ -13,7 +13,7 @@ Whitelisted Product Hierarchies
 =====================  ================================
 Team                   Product
 =====================  ================================
-ARIC                   ARIC
+ARIC                   ARIC UI
 ARIC                   ARIC APIs
 ARIC                   Reboot Manager
 ARIC                   Suppression Manager
