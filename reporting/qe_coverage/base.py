@@ -148,21 +148,21 @@ class TestGroup(object):
     # Pre-defined Constants
     tests = attr.ib(default=attr.Factory(list), init=False)
     errors = attr.ib(default=attr.Factory(list), init=False)
-    override_file_path = attr.ib(default=None)
+    data_injection_file_path = attr.ib(default=None)
 
     def __attrs_post_init__(self):
-        '''Assign an override data object if an override file is present.'''
-        if self.override_file_path:
-            self.override_data = {}
-            with open(self.override_file_path, 'r') as override_file:
-                override_csv = csv.reader(override_file)
-                for row in override_csv:
+        '''Assign an injection object if a data injection file is present.'''
+        if self.data_injection_file_path:
+            self.injection_data = {}
+            with open(self.data_injection_file_path, 'r') as data_injection_file:
+                data_injection_csv = csv.reader(data_injection_file)
+                for row in data_injection_csv:
                     # CSV format of: class_name, test_method_name, tag1, tag2, etc.
                     class_name = row[0]
                     test_method_name = row[1]
                     tags = row[2:]
                     identifier = self._get_test_identifier(class_name, test_method_name)
-                    self.override_data[identifier] = {
+                    self.injection_data[identifier] = {
                         "tags": tags
                     }
 
@@ -175,8 +175,8 @@ class TestGroup(object):
         '''
         Add a new test to the test group.
 
-        If an override file is associated with this test group, then any
-        matching data from the override file will replace the data provided
+        If a data injection file is associated with this test group, then any
+        matching data from the data injection file will replace the data provided
         to this method.
         '''
         test_coverage_kwargs = {
@@ -187,8 +187,8 @@ class TestGroup(object):
             'file_path': file_path
         }
 
-        if self.override_file_path and name in self.override_data:
-            test_coverage_kwargs = self._override_test_data(test_coverage_kwargs)
+        if self.data_injection_file_path and name in self.injection_data:
+            test_coverage_kwargs = self._inject_test_coverage_data(test_coverage_kwargs)
 
         test = TestCoverage(**test_coverage_kwargs)
         test.build()
@@ -200,13 +200,13 @@ class TestGroup(object):
             print('\n'.join(self.errors), file=sys.stderr)
         return len(self.errors)
 
-    def _override_test_data(self, test_coverage_kwargs):
-        '''Replace current test coverage data with data from an override file.'''
+    def _inject_test_coverage_data(self, test_coverage_kwargs):
+        '''Replace current test coverage data with data from a data injection file.'''
         test_method_name = test_coverage_kwargs['name']
         class_name = test_coverage_kwargs['categories'][0]
         identifier = self._get_test_identifier(class_name, test_method_name)
 
-        for key, value in self.override_data[identifier].items():
+        for key, value in self.injection_data[identifier].items():
             test_coverage_kwargs[key] += value
 
         return test_coverage_kwargs
@@ -434,6 +434,6 @@ def update_parser(parser):
                         help='write reports without validating data')
     parser.add_argument('--production-endpoint', action='store_true',
                         help='Send coverage data to the production endpoint')
-    parser.add_argument('--override-file-path', type=str, default='',
-                        help='A file containing data override information')
+    parser.add_argument('--data-injection-file-path', type=str, default='',
+                        help='A file containing data to inject into the coverage data')
     return parser

@@ -82,14 +82,14 @@ def _parse_provenance(provenance, default_interface_type, leading_categories_to_
 
 
 def coverage_json_to_test_group(coverage_file_name, default_interface_type,
-                                leading_categories_to_strip, override_file_path):
+                                leading_categories_to_strip, data_injection_file_path):
     '''
     Returns a TestGroup containing all the test data from the coverage file.
 
     Where any test data doesn't contain interface information,
     use default_interface_type.
     '''
-    tests = TestGroup(override_file_path=override_file_path)
+    tests = TestGroup(data_injection_file_path=data_injection_file_path)
     with open(coverage_file_name) as json_lines:
         for line in json_lines.readlines():
             test_data = json.loads(line)
@@ -104,7 +104,7 @@ def coverage_json_to_test_group(coverage_file_name, default_interface_type,
 def run_unittest_reports(coverage_json_file, *args, **kwargs):
     test_group = coverage_json_to_test_group(coverage_json_file, args[0],
                                              kwargs.get('leading_categories_to_strip'),
-                                             kwargs.get('override_file_path'))
+                                             kwargs.get('data_injection_file_path'))
     run_reports(test_group, *args, **kwargs)
 
 
