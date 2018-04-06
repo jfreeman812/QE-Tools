@@ -47,8 +47,13 @@ TC_PREFIX = 'tc:'
 TC_PREFIX_LEN = len(TC_PREFIX)
 
 
+def neuter_unicode(thing):
+    return thing and thing.encode('ascii', 'xmlcharrefreplace')
+
+
 def test_case_name_sanitize(name):
     '''Cleanup formatting of test names.'''
+    name = neuter_unicode(name)
     if name.lower().startswith(TC_PREFIX):
         name = name[TC_PREFIX_LEN:]
     return name.strip()
@@ -74,7 +79,7 @@ class TestLinkContentHandler(ContentHandler):
         self.tests = TestGroup()
 
     def start_testsuite(self, attrs):
-        suite_name = attrs.get('name')
+        suite_name = neuter_unicode(attrs.get('name'))
         self.categories.append(suite_name)
 
     def end_testsuite(self):
@@ -103,7 +108,7 @@ class TestLinkContentHandler(ContentHandler):
         self.tags = None  # Cannot append to none, leave poison pill in case.
 
     def start_keyword(self, attrs):
-        name = attrs.get('name')
+        name = neuter_unicode(attrs.get('name'))
         if not self.testcase:
             # NOTE: Experiments with the GSCS QE TestLink data shows that the
             # locator line-number by itself isn't accurate for reasons still TBD,
