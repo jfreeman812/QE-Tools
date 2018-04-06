@@ -13,8 +13,13 @@ Whitelisted Product Hierarchies
 =====================  ================================
 Team                   Product
 =====================  ================================
+ARIC                   ARIC UI
 ARIC                   ARIC APIs
+ARIC                   Reboot Manager
+ARIC                   Suppression Manager
+ARIC                   Variable Builder
 Automation Framework   Cache
+Automation Framework   Event Viewer
 Automation Framework   Events API
 Automation Framework   Process Control Engine
 Automation Framework   Server Access Module (SAM)
