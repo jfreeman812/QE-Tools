@@ -40,8 +40,6 @@ TICKET_RE = re.compile('([A-Z][A-Z]+-?[0-9]+)')
 COVERAGE_URL_TEMPLATE = 'https://qetools.rax.io/coverage/{}'
 COVERAGE_STAGING_URL = COVERAGE_URL_TEMPLATE.format('staging')
 COVERAGE_PRODUCTION_URL = COVERAGE_URL_TEMPLATE.format('production')
-POSSIBLE_OVERRIDE_KEYS = ['tags']
-OVERRIDE_CSV_VALUES_SEPARATOR = '/'
 
 ####################################################################################################
 # Globals
@@ -155,9 +153,22 @@ class TestGroup(object):
     def __attrs_post_init__(self):
         '''Assign an override data object if an override file is present.'''
         if self.override_file_path:
+            self.override_data = {}
             with open(self.override_file_path, 'r') as override_file:
-                override_csv = csv.DictReader(override_file)
-                self.override_data = {row['name']: row for row in override_csv}
+                override_csv = csv.reader(override_file)
+                for row in override_csv:
+                    # CSV format of: class_name, test_method_name, tag1, tag2, etc.
+                    class_name = row[0]
+                    test_method_name = row[1]
+                    tags = row[2:]
+                    identifier = self._get_test_identifier(class_name, test_method_name)
+                    self.override_data[identifier] = {
+                        "tags": tags
+                    }
+
+    def _get_test_identifier(self, class_name, test_method_name):
+        '''Get a unique test identifier based on the class name and test method name.'''
+        return '{}.{}'.format(class_name, test_method_name)
 
     def add(self, name, categories=None, tags=None, parent_tags=None,
             file_path=''):
@@ -168,7 +179,6 @@ class TestGroup(object):
         matching data from the override file will replace the data provided
         to this method.
         '''
-
         test_coverage_kwargs = {
             'name': name,
             'categories': categories,
@@ -192,12 +202,12 @@ class TestGroup(object):
 
     def _override_test_data(self, test_coverage_kwargs):
         '''Replace current test coverage data with data from an override file.'''
-        data = self.override_data[test_coverage_kwargs['name']]
+        test_method_name = test_coverage_kwargs['name']
+        class_name = test_coverage_kwargs['categories'][0]
+        identifier = self._get_test_identifier(class_name, test_method_name)
 
-        for key in POSSIBLE_OVERRIDE_KEYS:
-            if key in data:
-                data[key] = data[key].split(OVERRIDE_CSV_VALUES_SEPARATOR)
-                test_coverage_kwargs[key] = data[key]
+        for key, value in self.override_data[identifier].items():
+            test_coverage_kwargs[key] += value
 
         return test_coverage_kwargs
 
