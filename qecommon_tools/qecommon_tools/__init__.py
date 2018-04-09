@@ -31,6 +31,10 @@ def display_name(path, package_name=''):
     return _string.capwords(raw_name.replace('_', ' '))
 
 
+def format_if(format_str, content):
+    return format_str.format(content) if content else ''
+
+
 def padded_list(iterable, size, padding=None):
     '''
     Genereate a fixed-length list from an iterable, padding as needed.
