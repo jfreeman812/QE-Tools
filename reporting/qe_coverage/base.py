@@ -163,7 +163,7 @@ class TestGroup(object):
                     tags = row[2:]
                     identifier = self._get_test_identifier(class_name, test_method_name)
                     self.injection_data[identifier] = {
-                        "tags": tags
+                        'tags': tags
                     }
 
     def _get_test_identifier(self, class_name, test_method_name):
