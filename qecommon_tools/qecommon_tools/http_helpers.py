@@ -219,31 +219,75 @@ def create_error_message(summary_line, request, response_content, additional_inf
     )
 
 
-def validate_response_status_code(expected_status_description, response):
+def check_response_status_code(expected_status_description, response, call_description=None):
+    '''
+    Checks that a response's status code matches an expected status code.
+
+    Args:
+        expected_status_description (str, int): The expected HTTP response status reason or code.
+        response (Response): The python requests library response to validate.
+        call_description (str): additional details about the call placed (optional)
+
+    Returns:
+        str: Empty string if response status code matches, or a detailed error message otherwise
+    '''
+    if is_status_code(expected_status_description, response.status_code):
+        return ''
+    try:
+        response_content = json.dumps(safe_json_from(response), indent=4)
+    except AssertionError:
+        response_content = response.content
+
+    status_message = '{} - Actual Response Status: {}'
+    additional_info = {
+        'Expected Status': status_message.format(
+            expected_status_description, response.status_code
+        ),
+        'Reason': response.reason
+    }
+    if call_description:
+        additional_info.update({'Call Description': call_description})
+    err_msg = create_error_message(
+        summary_line='The response status does not match the expected status.',
+        request=response.request, response_content=response_content,
+        additional_info=additional_info
+    )
+    return err_msg
+
+
+def validate_response_status_code(expected_status_description, response, **kwargs):
     '''
     Assert that a response's status code matches an expected status code.
 
     Args:
         expected_status_description (str, int): The expected HTTP response status reason or code.
         response (Response): The python requests library response to validate.
+        kwargs: additional keyword args to be passed on to check_response_status_code.
 
     Raises:
         AssertionError: if the response status validation fails
     '''
-    if not is_status_code(expected_status_description, response.status_code):
-        try:
-            response_content = json.dumps(safe_json_from(response), indent=4)
-        except AssertionError:
-            response_content = response.content
-
-        status_message = '{} - Actual Response Status: {}'
-        err_msg = create_error_message(
-            summary_line='The response status does not match the expected status.',
-            request=response.request, response_content=response_content,
-            additional_info={
-                'Expected Status': status_message.format(expected_status_description,
-                                                         response.status_code),
-                'Reason': response.reason
-            }
-        )
+    err_msg = check_response_status_code(expected_status_description, response, **kwargs)
+    if err_msg:
         raise AssertionError(err_msg)
+
+
+def response_if_status_check(call_description, response, target_status='a successful response'):
+    '''
+    Validates a response matches the expected status code before returning.
+
+    Args:
+        call_description (str): Text description of the call placed (e.g. "get schedule list")
+        response (requests.Response): the response object to validate.
+        target_status (str, int): The expected HTTP response status reason or code.
+
+    Returns:
+        requests.Response: if the response status validation succeeds
+
+    Raises:
+        AssertionError: if the response status validation fails
+    '''
+    validate_response_status_code(
+        target_status, response, call_description='Call to "{}" failed'.format(call_description)
+    )
+    return response
