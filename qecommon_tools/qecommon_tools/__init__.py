@@ -32,6 +32,20 @@ def display_name(path, package_name=''):
 
 
 def format_if(format_str, content):
+    '''
+    Return a message string with formatted value if any content value is present.
+
+    Useful for error-checking scenarios where you want a prepared error message
+    if failures are present (passed in via content), or no message if no failures.
+
+    Args:
+        format_str (str): A message string with a single format brace to be filled
+        content (str): A value to be filled into the format_str if present
+
+    Returns:
+        str: either the format_str with content included if content present,
+             or an empty string if no content.
+    '''
     return format_str.format(content) if content else ''
 
 
