@@ -98,7 +98,7 @@ def pytest_terminal_summary(terminalreporter, exitstatus):
     kwargs = {
         'dry_run': _get_global_option('dry-run') or False,
         'preserve_files': _get_global_option('preserve-files'),
-        'production-endpoint': _get_global_option('production-endpoint'),
+        'production_endpoint': _get_global_option('production-endpoint'),
     }
     global test_group
     if _get_global_option('qe-coverage'):
