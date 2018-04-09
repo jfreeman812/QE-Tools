@@ -1,6 +1,8 @@
+from collections import defaultdict
 from configparser import ConfigParser
 import json
-from os import environ, path
+import lzma
+from os import environ, path, makedirs
 import time
 import uuid
 try:
@@ -26,7 +28,7 @@ ns = api.namespace('coverage', description='Data Broker Endpoint')
 whitelist = Whitelist()
 
 
-SPLUNK_COLLECTOR_HOSTNAME = 'httpc.secops.rackspace.com'
+SPLUNK_COLLECTOR_HOSTNAME = 'splunk-dfw1-hf-uf-01.secops.rackspace.com'
 SPLUNK_COLLECTOR_URL = 'https://{}:8088/services/collector'.format(SPLUNK_COLLECTOR_HOSTNAME)
 SPLUNK_STAGING_INDEX = 'rax_temp_60'
 SPLUNK_PRODUCTION_INDEX = 'rax_qe_coverage'
@@ -34,6 +36,7 @@ SPLUNK_REPORT_SOURCE = 'rax_qe_coverage'
 SPLUNK_UI_BASE_URL = 'sage.rackspace.com:8000'
 SPLUNK_UI_SEARCH_PATH = '/en-US/app/search/search'
 SCHEMA_VERSION = 'qe_coverage_metrics_schema_v20180301'
+PROD_DATA_DIR = path.join(path.expanduser('~'), 'data_broker_files')
 
 
 TICKET_LIST = fields.List(custom_fields.TicketId(example='JIRA-1234'))
@@ -188,6 +191,23 @@ class ProductionCoverage(SplunkAPI):
             return {'Message': err_msg,
                     'Errors': list(rejected)}, 401
 
+    def _write_data_file(self):
+        data_by_product = defaultdict(list)
+        for entry in request.json:
+            product = entry['Product Hierarchy'].split('::')[-1]
+            product = ''.join(filter(
+                lambda x: x.isalnum() or x in ('.', '_'), product.replace(' ', '_')
+            ))
+            data_by_product[product].append(entry)
+        for product in data_by_product:
+            product_path = path.join(PROD_DATA_DIR, product)
+            if not path.exists(product_path):
+                makedirs(product_path)
+            file_path = path.join(
+                product_path, '{}.xz'.format(time.strftime('%Y%m%d_%H%M%S')))
+            with lzma.open(file_path, 'wt') as f:
+                f.write(json.dumps(data_by_product[product]))
+
     @api.response(201, 'Accepted')
     @api.response(400, 'Bad Request')
     @api.response(401, 'Unauthorized')
@@ -202,6 +222,11 @@ class ProductionCoverage(SplunkAPI):
         if whitelist_msg:
             return whitelist_msg
         args = self._prep_args()
+        # don't let a file storage failure throw a user-visible error
+        try:
+            self._write_data_file()
+        except BaseException:
+            pass
         return self._post(args, events=[_enrich_data(x) for x in request.json])
 
 

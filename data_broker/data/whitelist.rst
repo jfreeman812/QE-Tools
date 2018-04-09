@@ -13,8 +13,13 @@ Whitelisted Product Hierarchies
 =====================  ================================
 Team                   Product
 =====================  ================================
+ARIC                   ARIC UI
 ARIC                   ARIC APIs
+ARIC                   Reboot Manager
+ARIC                   Suppression Manager
+ARIC                   Variable Builder
 Automation Framework   Cache
+Automation Framework   Event Viewer
 Automation Framework   Events API
 Automation Framework   Process Control Engine
 Automation Framework   Server Access Module (SAM)
@@ -23,6 +28,7 @@ Automation Framework   Scripted Parsing and Analytics (SPA)
 Automation Framework   Timetable
 Automation Framework   Tyrant
 Automation Framework   User Profile
+Global Billing         ACT API
 GSCS                   Document Management
 GSCS                   Product Catalog
 GSCS                   Quote Management
@@ -31,6 +37,7 @@ GSCS                   SF Stash
 Provisioning Services  FireKick
 Oracle EBS             FMW (Calabrio)
 Oracle EBS             FMW (Common)
+VMware                 vSPOT
 =====================  ================================
 
 

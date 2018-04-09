@@ -1,6 +1,9 @@
 from itertools import product
 import tempfile
+from uuid import uuid4
 from os import path, mkdir
+import random
+import string
 
 import pytest
 import qecommon_tools
@@ -45,6 +48,23 @@ def test_display_name_without_name_file(temp_dir, package_name_and_expected):
 def test_display_name_with_name_file(temp_dir_with_name_file, package_name):
     display_name = qecommon_tools.display_name(temp_dir_with_name_file, package_name)
     assert display_name == TEST_MESSAGE
+
+
+DICT_STRIP_VALUES = ['', None, 'None', 1234, []]
+DIST_STRIP_CASES = [({uuid4(): x for x in DICT_STRIP_VALUES}, y) for y in DICT_STRIP_VALUES]
+
+
+@pytest.mark.parametrize('dict_to_strip,value_to_strip', DIST_STRIP_CASES)
+def test_dict_strip_valid_values_remain(dict_to_strip, value_to_strip):
+    stripped_dictionary = qecommon_tools.dict_strip_value(dict_to_strip, value=value_to_strip)
+    for valid_value in [x for x in DICT_STRIP_VALUES if x != value_to_strip]:
+        assert valid_value in stripped_dictionary.values()
+
+
+@pytest.mark.parametrize('dict_to_strip,value_to_strip', DIST_STRIP_CASES)
+def test_dict_strip_stripped_values_are_gone(dict_to_strip, value_to_strip):
+    stripped_dictionary = qecommon_tools.dict_strip_value(dict_to_strip, value=value_to_strip)
+    assert value_to_strip not in stripped_dictionary.values()
 
 
 PADDED_LIST_CASES = list(product([0, 5, 15], [None, 'TEST']))
@@ -132,3 +152,76 @@ def test_error_if_with_check(capsys, check, exit_code, message):
     out, err = capsys.readouterr()
     assert message in err
     assert pytest_wrapped_e.value.code == exit_code or check
+
+
+def test_random_string_length():
+    text = qecommon_tools.generate_random_string(size=8)
+    assert len(text) == 8
+
+
+def test_random_string_prefix():
+    prefix = 'test-'
+    text = qecommon_tools.generate_random_string(prefix=prefix, size=8)
+    assert len(text) == 8
+    assert text.startswith(prefix)
+
+
+def test_random_string_suffix():
+    suffix = '-test'
+    text = qecommon_tools.generate_random_string(suffix=suffix, size=8)
+    assert len(text) == 8
+    assert text.endswith(suffix)
+
+
+def test_string_size_failure():
+    with pytest.raises(AssertionError):
+        qecommon_tools.generate_random_string(
+            prefix='this-is-a-long-prefix-',
+            suffix='-this-is-a-long-suffix',
+            size=3
+        )
+
+
+KEY_TEST_DICT = {'a': 1, 1: 'a', 'key': 'value', 'nested': {'a': 5}}
+
+
+def _sorted_key_names(dict_):
+    return sorted(map(str, dict_))
+
+
+def test_valid_key():
+    key = random.choice(list(KEY_TEST_DICT.keys()))
+    value = qecommon_tools.must_get_key(KEY_TEST_DICT, key)
+    assert value == KEY_TEST_DICT[key]
+
+
+def test_invalid_key():
+    key = qecommon_tools.generate_random_string()
+    expected_msg = '{} is not one of: {}'.format(key, _sorted_key_names(KEY_TEST_DICT))
+    with pytest.raises(KeyError, message=expected_msg):
+        qecommon_tools.must_get_key(KEY_TEST_DICT, key)
+
+
+def test_valid_keys():
+    value = qecommon_tools.must_get_keys(KEY_TEST_DICT, 'nested', 'a')
+    assert value == KEY_TEST_DICT['nested']['a']
+
+
+def test_invalid_keys():
+    key = qecommon_tools.generate_random_string()
+    expected_msg = '{} is not one of: {}'.format(key, _sorted_key_names(KEY_TEST_DICT['nested']))
+    with pytest.raises(KeyError, message=expected_msg):
+        qecommon_tools.must_get_keys(KEY_TEST_DICT, 'nested', key)
+
+
+FORMAT_STR = 'Test format string: {}'
+
+
+def test_format_if_with_content():
+    value = 'test value'
+    assert qecommon_tools.format_if(FORMAT_STR, value) == FORMAT_STR.format(value)
+
+
+def test_format_if_no_content():
+    value = None
+    assert qecommon_tools.format_if(FORMAT_STR, value) == ''

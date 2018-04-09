@@ -2,3 +2,26 @@
 max-line-length = 100
 inline-quotes = single
 multiline-quotes = single
+
+# Ignore Details:
+#
+# Errors we plan to ignore permanently:
+#   - D300 Use """triple double quotes"""
+#   - D401 First line should be in imperative mood
+#   - D413 Missing blank line after last section
+#
+# Errors to remove individually as they are fixed:
+#   - D100-D107 Various missing docstrings - (377 current errors)
+#   - D200 One-line docstring should fit on one line with quotes - (10 current errors)
+#   - D202 No blank lines allowed after function docstring - (14 current errors)
+#   - D204 1 blank line required after class docstring - (2 current errors)
+#   - D205 1 blank line required between summary line and description - (34 current errors)
+#   - D208 Docstring is over-indented - (1 current error)
+#   - D209 Multi-line docstring closing quotes should be on a separate line - (1 current error)
+#   - D301 Use r""" if any backslashes in a docstring - (2 current errors)
+#   - D400 First line should end with a period - (60 current errors)
+#   - D403 First word of the first line should be properly capitalized - (3 current errors)
+#
+#   - F401 unused imports - (41 current errors) (not sure why this isn't already causing a failure)
+
+ignore = D100,D101,D102,D103,D104,D105,D106,D107,D200,D202,D204,D205,D208,D209,D300,D301,D400,D401,D403,D413,F401
