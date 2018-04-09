@@ -187,7 +187,7 @@ class TestGroup(object):
             'file_path': file_path
         }
 
-        if self.data_injection_file_path and name in self.injection_data:
+        if self.data_injection_file_path:
             test_coverage_kwargs = self._inject_test_coverage_data(test_coverage_kwargs)
 
         test = TestCoverage(**test_coverage_kwargs)
@@ -203,11 +203,12 @@ class TestGroup(object):
     def _inject_test_coverage_data(self, test_coverage_kwargs):
         '''Replace current test coverage data with data from a data injection file.'''
         test_method_name = test_coverage_kwargs['name']
-        class_name = test_coverage_kwargs['categories'][0]
+        class_name = test_coverage_kwargs['categories'][-1]
         identifier = self._get_test_identifier(class_name, test_method_name)
 
-        for key, value in self.injection_data[identifier].items():
-            test_coverage_kwargs[key] += value
+        if identifier in self.injection_data:
+            for key, value in self.injection_data[identifier].items():
+                test_coverage_kwargs[key] += value
 
         return test_coverage_kwargs
 
