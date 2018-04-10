@@ -90,6 +90,10 @@ def coverage_json_to_test_group(coverage_file_name, default_interface_type,
 
     Where any test data doesn't contain interface information,
     use default_interface_type.
+
+    If an injection file is provided, injection data will be gathered from the
+    file. The data will be appended to a test's coverage data before it is added
+    to the test group.
     '''
     tests = TestGroup()
     injection_data = {}

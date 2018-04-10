@@ -77,3 +77,16 @@ Tips and Need-To-Knows
         def tearDown(self):
             super(ExampleCafeTestFixture, self).tearDown()
 
+CSV Data Injection
+------------------
+
+It is also possible to append to existing test tag data by providing information in a CSV file. This should be used
+when tagging individual test methods and/or individual datasets is not specific enough. In order to use this
+feature, you must use the ``--data-injection-file-path`` flag, followed by a path to your CSV file.
+
+The format for the CSV file is as follows::
+
+    TestClassName,test_method_name,additional_tag_1,additional_tag_2,and,so,on
+
+Any additional tags provided in the CSV file will be appended to the specific test and reflected in the generated
+coverage data.
