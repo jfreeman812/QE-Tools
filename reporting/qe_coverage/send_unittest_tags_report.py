@@ -124,9 +124,9 @@ def coverage_json_to_test_group(coverage_file_name, default_interface_type,
             test_identifier = _get_test_identifier(test_class_name, test_method_name)
 
             test_coverage_kwargs = {
-                "name": test_method_name,
-                "categories": categories,
-                "tags": test_data['tags']
+                'name': test_method_name,
+                'categories': categories,
+                'tags': test_data['tags']
             }
 
             if test_identifier in injection_data:
