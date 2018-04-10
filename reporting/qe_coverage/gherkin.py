@@ -7,13 +7,17 @@ from tempfile import mkdtemp
 import attr
 import behave.parser
 
-from qe_coverage.base import TestGroup, run_reports, update_parser
+from qe_coverage.base import TestGroup, run_reports, update_parser, coverage_tables
 from qecommon_tools import cleanup_and_exit, display_name
 
 
 # Any display name in nuisance_category_names will be omitted from the categories. 'features' is
 # ignored as it is a special name required in cucumber and meaningless for reporting.
 NUISANCE_CATEGORY_NAMES = ['features']
+all_tags = [
+    t.tag for table in [coverage_tables[tab] for tab in coverage_tables.tables[1:]]
+    for t in table if t.tag != ''
+]
 
 
 @attr.s
@@ -51,6 +55,16 @@ class ParseProject(object):
             return False
         return not any(map(lambda x: fnmatch.fnmatch(check_path, x), self.exclude_patterns))
 
+    def _normalize_tag(self, tag):
+        if tag not in all_tags:
+            for expected_tag in all_tags:
+                if tag.startswith('{}-'.format(expected_tag)):
+                    return expected_tag
+        return tag
+
+    def _normalize_tags(self, tags):
+        return list(map(self._normalize_tag, tags))
+
     def build_coverage(self):
         '''
         Returns a list of TestCoverage objects created by walking a product base directory for any
@@ -68,7 +82,8 @@ class ParseProject(object):
                     if not categories or test.feature.name != categories[-1]:
                         # Only add the feature name if it doesn't match the last category
                         categories.append(test.feature.name)
-                    tests.add(name=test.name, categories=categories, tags=test.tags,
+                    tests.add(name=test.name, categories=categories,
+                              tags=self._normalize_tags(test.tags),
                               parent_tags=test.feature.tags, file_path=file_path)
         return tests
 
