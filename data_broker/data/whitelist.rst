@@ -34,7 +34,6 @@ GSCS                            Product Catalog
 GSCS                            Quote Management
 GSCS                            Raptor
 GSCS                            SF Stash
-Provisioning Services           FireKick
 Oracle EBS                      FMW (Calabrio)
 Oracle EBS                      FMW (Common)
 Provisioning Services           FireKick
