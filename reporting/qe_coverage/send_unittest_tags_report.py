@@ -31,14 +31,11 @@ due to tooling limitations. Fixing this is captured in Jira QGTM-671.
 
 
 import argparse
-import fnmatch
+import csv
 import json
-import os
 import re
-import sys
 
 from qe_coverage.base import TestGroup, update_parser, run_reports
-from qecommon_tools import display_name
 
 
 # Map from a directory name (in the categories hierarchy)
@@ -81,6 +78,11 @@ def _parse_provenance(provenance, default_interface_type, leading_categories_to_
     return (categories, interface or default_interface_type)
 
 
+def _get_test_identifier(test_class_name, test_method_name):
+    '''Get a unique test identifier based on the class name and test method name.'''
+    return '{}.{}'.format(test_class_name, test_method_name)
+
+
 def coverage_json_to_test_group(coverage_file_name, default_interface_type,
                                 leading_categories_to_strip, data_injection_file_path):
     '''
@@ -89,14 +91,45 @@ def coverage_json_to_test_group(coverage_file_name, default_interface_type,
     Where any test data doesn't contain interface information,
     use default_interface_type.
     '''
-    tests = TestGroup(data_injection_file_path=data_injection_file_path)
+    tests = TestGroup()
+    injection_data = {}
+
+    if data_injection_file_path:
+        with open(data_injection_file_path, 'r') as data_injection_file:
+            data_injection_csv = csv.reader(data_injection_file)
+            for row in data_injection_csv:
+                # CSV format of: class_name, test_method_name, tag1, tag2, etc.
+                class_name = row[0]
+                test_method_name = row[1]
+                tags = row[2:]
+                identifier = _get_test_identifier(class_name, test_method_name)
+                injection_data[identifier] = {
+                    'tags': tags
+                }
+
     with open(coverage_file_name) as json_lines:
         for line in json_lines.readlines():
             test_data = json.loads(line)
             categories, interface = _parse_provenance(test_data['provenance'],
                                                       default_interface_type,
                                                       leading_categories_to_strip)
-            tests.add(name=test_data['test'], categories=categories, tags=test_data['tags'])
+
+            # The class name is the last category as parsed from the provenance
+            test_method_name = test_data['test']
+            test_class_name = categories[-1]
+            test_identifier = _get_test_identifier(test_class_name, test_method_name)
+
+            test_coverage_kwargs = {
+                "name": test_method_name,
+                "categories": categories,
+                "tags": test_data['tags']
+            }
+
+            if test_identifier in injection_data:
+                for key, value in injection_data[test_identifier].items():
+                    test_coverage_kwargs[key] += value
+
+            tests.add(**test_coverage_kwargs)
 
     return tests
 

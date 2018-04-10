@@ -30,6 +30,8 @@ def main():
     description = 'Collect and publish {} coverage report'
     parser = argparse.ArgumentParser(description=description.format(_method),
                                      epilog=epilog)
+    parser.add_argument('--data-injection-file-path', type=str, default='',
+                        help='A file containing data to inject into the coverage data')
     parser = update_parser(parser)
     parser.add_argument('command', nargs='+',
                         help='{} command and parameters for running the tests'.format(_method))

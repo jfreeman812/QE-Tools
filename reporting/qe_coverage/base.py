@@ -166,10 +166,6 @@ class TestGroup(object):
                         'tags': tags
                     }
 
-    def _get_test_identifier(self, class_name, test_method_name):
-        '''Get a unique test identifier based on the class name and test method name.'''
-        return '{}.{}'.format(class_name, test_method_name)
-
     def add(self, name, categories=None, tags=None, parent_tags=None,
             file_path=''):
         '''
