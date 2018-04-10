@@ -148,45 +148,11 @@ class TestGroup(object):
     # Pre-defined Constants
     tests = attr.ib(default=attr.Factory(list), init=False)
     errors = attr.ib(default=attr.Factory(list), init=False)
-    data_injection_file_path = attr.ib(default=None)
-
-    def __attrs_post_init__(self):
-        '''Assign an injection object if a data injection file is present.'''
-        if self.data_injection_file_path:
-            self.injection_data = {}
-            with open(self.data_injection_file_path, 'r') as data_injection_file:
-                data_injection_csv = csv.reader(data_injection_file)
-                for row in data_injection_csv:
-                    # CSV format of: class_name, test_method_name, tag1, tag2, etc.
-                    class_name = row[0]
-                    test_method_name = row[1]
-                    tags = row[2:]
-                    identifier = self._get_test_identifier(class_name, test_method_name)
-                    self.injection_data[identifier] = {
-                        'tags': tags
-                    }
 
     def add(self, name, categories=None, tags=None, parent_tags=None,
             file_path=''):
-        '''
-        Add a new test to the test group.
-
-        If a data injection file is associated with this test group, then any
-        matching data from the data injection file will replace the data provided
-        to this method.
-        '''
-        test_coverage_kwargs = {
-            'name': name,
-            'categories': categories,
-            'tags': tags,
-            'parent_tags': parent_tags or [],
-            'file_path': file_path
-        }
-
-        if self.data_injection_file_path:
-            test_coverage_kwargs = self._inject_test_coverage_data(test_coverage_kwargs)
-
-        test = TestCoverage(**test_coverage_kwargs)
+        test = TestCoverage(name=name, categories=categories, tags=tags,
+                            parent_tags=parent_tags or [], file_path=file_path)
         test.build()
         self.tests.append(test)
         self.errors.extend(test.errors)
@@ -195,18 +161,6 @@ class TestGroup(object):
         if self.errors:
             print('\n'.join(self.errors), file=sys.stderr)
         return len(self.errors)
-
-    def _inject_test_coverage_data(self, test_coverage_kwargs):
-        '''Replace current test coverage data with data from a data injection file.'''
-        test_method_name = test_coverage_kwargs['name']
-        class_name = test_coverage_kwargs['categories'][-1]
-        identifier = self._get_test_identifier(class_name, test_method_name)
-
-        if identifier in self.injection_data:
-            for key, value in self.injection_data[identifier].items():
-                test_coverage_kwargs[key] += value
-
-        return test_coverage_kwargs
 
 ####################################################################################################
 # Report Generation
@@ -431,6 +385,4 @@ def update_parser(parser):
                         help='write reports without validating data')
     parser.add_argument('--production-endpoint', action='store_true',
                         help='Send coverage data to the production endpoint')
-    parser.add_argument('--data-injection-file-path', type=str, default='',
-                        help='A file containing data to inject into the coverage data')
     return parser
