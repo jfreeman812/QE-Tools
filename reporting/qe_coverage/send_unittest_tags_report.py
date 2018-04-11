@@ -83,19 +83,8 @@ def _get_test_identifier(test_class_name, test_method_name):
     return '{}.{}'.format(test_class_name, test_method_name)
 
 
-def coverage_json_to_test_group(coverage_file_name, default_interface_type,
-                                leading_categories_to_strip, data_injection_file_path):
-    '''
-    Returns a TestGroup containing all the test data from the coverage file.
-
-    Where any test data doesn't contain interface information,
-    use default_interface_type.
-
-    If an injection file is provided, injection data will be gathered from the
-    file. The data will be appended to a test's coverage data before it is added
-    to the test group.
-    '''
-    tests = TestGroup()
+def _get_injection_data(data_injection_file_path):
+    '''Get injection data from a data injection file.'''
     injection_data = {}
 
     if data_injection_file_path:
@@ -110,6 +99,22 @@ def coverage_json_to_test_group(coverage_file_name, default_interface_type,
                 injection_data[identifier] = {
                     'tags': tags
                 }
+
+    return injection_data
+
+
+def coverage_json_to_test_group(coverage_file_name, default_interface_type,
+                                leading_categories_to_strip, injection_data):
+    '''
+    Returns a TestGroup containing all the test data from the coverage file.
+
+    Where any test data doesn't contain interface information,
+    use default_interface_type.
+
+    Any injection data provided will be appended to a test's coverage data
+    before it is added to the TestGroup.
+    '''
+    tests = TestGroup()
 
     with open(coverage_file_name) as json_lines:
         for line in json_lines.readlines():
@@ -139,9 +144,10 @@ def coverage_json_to_test_group(coverage_file_name, default_interface_type,
 
 
 def run_unittest_reports(coverage_json_file, *args, **kwargs):
+    injection_data = _get_injection_data(kwargs.get('data_injection_file_path'))
     test_group = coverage_json_to_test_group(coverage_json_file, args[0],
                                              kwargs.get('leading_categories_to_strip'),
-                                             kwargs.get('data_injection_file_path'))
+                                             injection_data)
     run_reports(test_group, *args, **kwargs)
 
 
