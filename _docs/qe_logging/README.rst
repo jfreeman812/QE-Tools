@@ -27,3 +27,11 @@ by test environment.
 
 The default ``log_directory`` of 'logs' can be overridden if desired to have the logs placed in an
 alternate location.
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+.. automodule:: qe_logging
+    :members:
+    :undoc-members:
+    :show-inheritance:
