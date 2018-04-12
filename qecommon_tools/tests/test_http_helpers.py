@@ -191,6 +191,16 @@ def test_create_error_msg_without_additional_info(expected_error_msg_without_add
 
 
 @pytest.mark.parametrize('expected_description', ALL_ERRORS)
+def test_check_response_code(ok_response, expected_description):
+    assert http_helpers.check_response_status_code(expected_description, ok_response)
+
+
+@pytest.mark.parametrize('expected_description', OK_DESC)
+def test_check_response_code_match(ok_response, expected_description):
+    assert not http_helpers.check_response_status_code(expected_description, ok_response)
+
+
+@pytest.mark.parametrize('expected_description', ALL_ERRORS)
 def test_validate_response_code(ok_response, expected_description):
     with pytest.raises(AssertionError):
         http_helpers.validate_response_status_code(expected_description, ok_response)
@@ -199,3 +209,19 @@ def test_validate_response_code(ok_response, expected_description):
 @pytest.mark.parametrize('expected_description', OK_DESC)
 def test_validate_response_code_match(ok_response, expected_description):
     http_helpers.validate_response_status_code(expected_description, ok_response)
+
+
+@pytest.mark.parametrize('expected_description', ALL_ERRORS)
+def test_response_if_status_code_mismatch(ok_response, expected_description):
+    with pytest.raises(AssertionError):
+        http_helpers.response_if_status_check(
+            'place_test_call', ok_response, target_status=expected_description
+        )
+
+
+@pytest.mark.parametrize('expected_description', OK_DESC)
+def test_response_if_status_code_match(ok_response, expected_description):
+    checked_response = http_helpers.response_if_status_check(
+        'place_test_call', ok_response, target_status=expected_description
+    )
+    assert checked_response == ok_response
