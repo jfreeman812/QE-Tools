@@ -1,4 +1,4 @@
-Qe Logging
+QE Logging
 ==========
 
 A collection of logging related helpers to provide, standard logging for QE.
