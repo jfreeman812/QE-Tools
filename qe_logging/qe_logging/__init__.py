@@ -43,6 +43,7 @@ def setup_logging(log_name_prefix, *historical_log_dir_layers, log_directory=DEF
     if not any(isinstance(x, logging.FileHandler) for x in root_log.handlers):
         ts_dir = str(datetime.now()).replace(' ', '_').replace(':', '_')
         log_dir = os.path.join(*[log_directory, *historical_log_dir_layers, ts_dir])
+        formatter = logging.Formatter('{asctime}:{levelname:8}:{name:25}:{message}', style='{')
         for dir_ in (log_dir, log_directory):
             if not os.path.exists(dir_):
                 os.makedirs(dir_)
@@ -54,6 +55,5 @@ def setup_logging(log_name_prefix, *historical_log_dir_layers, log_directory=DEF
                 mode='w',
                 encoding='UTF-8'
             )
-            formatter = logging.Formatter('{asctime}:{levelname:8}:{name:25}:{message}', style='{')
             log_handler.setFormatter(formatter)
             root_log.addHandler(log_handler)
