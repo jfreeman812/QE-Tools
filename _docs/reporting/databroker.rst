@@ -42,6 +42,12 @@ These optional keys may be provided to link a test to related work tickets.
 - pending (list of tickets related to a pending tag)
 - not yet implemented (list of tickets related to a not-yet-implemented tag)
 
+Unique Identifier
+~~~~~~~~~~~~~~~~~
+
+A ``test_id`` key is used as a unique identifier for each test to ensure only the latest data is shown in the dashboard.
+If ``test_id`` is not provided in the upload payload, the value defaults to "{last category}.{test name}".
+
 Production-Specific Validation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -52,7 +58,7 @@ Output Specifications
 
 In addition to the input data, the output will also include:
 
-- a ``host`` key with the current coverage metrics schema (currently ``qe_coverage_metrics_schema_v20180301``)
+- a ``host`` key with the current coverage metrics schema (currently ``qe_coverage_metrics_schema_v20180413``)
 - an ``index`` key corresponding to the correct Splunk index (``rax_temp_60`` for staging, ``rax_qe_coverage`` for production)
 - a ``source`` key corresponding to the Splunk source expected (``rax_qe_coverage``)
 - a unique ``upload_id`` key that helps identify the set of data uploaded when searching
