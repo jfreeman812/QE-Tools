@@ -35,7 +35,7 @@ SPLUNK_PRODUCTION_INDEX = 'rax_qe_coverage'
 SPLUNK_REPORT_SOURCE = 'rax_qe_coverage'
 SPLUNK_UI_BASE_URL = 'sage.rackspace.com:8000'
 SPLUNK_UI_SEARCH_PATH = '/en-US/app/search/search'
-SCHEMA_VERSION = 'qe_coverage_metrics_schema_v20180301'
+SCHEMA_VERSION = 'qe_coverage_metrics_schema_v20180413'
 PROD_DATA_DIR = path.join(path.expanduser('~'), 'data_broker_files')
 
 
