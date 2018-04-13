@@ -1,3 +1,3 @@
 . ../path-setup.sh
 
-tox
+detox

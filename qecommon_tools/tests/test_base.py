@@ -212,3 +212,16 @@ def test_invalid_keys():
     expected_msg = '{} is not one of: {}'.format(key, _sorted_key_names(KEY_TEST_DICT['nested']))
     with pytest.raises(KeyError, message=expected_msg):
         qecommon_tools.must_get_keys(KEY_TEST_DICT, 'nested', key)
+
+
+FORMAT_STR = 'Test format string: {}'
+
+
+def test_format_if_with_content():
+    value = 'test value'
+    assert qecommon_tools.format_if(FORMAT_STR, value) == FORMAT_STR.format(value)
+
+
+def test_format_if_no_content():
+    value = None
+    assert qecommon_tools.format_if(FORMAT_STR, value) == ''
