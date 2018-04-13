@@ -46,7 +46,8 @@ PH_FIELD = custom_fields.ProductHierarchy(example='RBA::ARIC',
 
 
 coverage_entry = api.model('Coverage Entry', {
-    'Categories': fields.List(fields.String, example=['Variable Builder'], required=True),
+    'Categories': fields.List(fields.String, example=['Variable Builder'],
+                              min_items=1, required=True),
     'Execution Method': custom_fields.ExecutionMethod(example='automated', required=True),
     'Interface Type': custom_fields.InterfaceType(example='gui', required=True),
     'Polarity': custom_fields.Polarity(example='positive', required=True),
