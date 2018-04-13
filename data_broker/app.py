@@ -55,7 +55,8 @@ coverage_entry = api.model('Coverage Entry', {
     'Product Hierarchy': PH_FIELD,
     'Status': custom_fields.Status(example='operational', required=True),
     'Suite': custom_fields.Suite(example='smoke', required=True),
-    'Test Name': fields.String(example='Edit and upate a created Variable', required=True),
+    'Test Name': fields.String(example='Edit and update a created Variable', required=True),
+    'test_id': fields.String(example='Variable Builder.Edit and update a create Variable'),
     'Tickets': TICKET_LIST,
     'quarantined': TICKET_LIST,
     'needs work': TICKET_LIST,
@@ -98,6 +99,11 @@ class SplunkAPI(Resource):
 
     def _prep_event(self, upload_id, common_data, event):
         event.update(upload_id=upload_id)
+        if not event.get('test_id'):
+            event['test_id'] = '{}.{}'.format(
+                event['Categories'][-1],
+                event['Test Name']
+            )
         event = {'event': event}
         event.update(common_data)
         return event
