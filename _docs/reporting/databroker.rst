@@ -46,7 +46,7 @@ Unique Identifier
 ~~~~~~~~~~~~~~~~~
 
 A ``test_id`` key is used as a unique identifier for each test to ensure only the latest data is shown in the dashboard.
-If ``test_id`` is not provided in the upload payload, the value defaults to "{last category}.{test name}".
+If ``test_id`` is not provided in the upload payload, the value defaults to ``{last category}.{test name}``.
 
 Production-Specific Validation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
