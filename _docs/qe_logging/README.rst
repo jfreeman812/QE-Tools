@@ -28,6 +28,8 @@ by test environment.
 The default ``log_directory`` of 'logs' can be overridden if desired to have the logs placed in an
 alternate location.
 
+The default ``formatter`` can be overridden if desired by passing in an logging.Formatter instance.
+
 API Documentation
 ~~~~~~~~~~~~~~~~~
 

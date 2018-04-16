@@ -6,7 +6,8 @@ from datetime import datetime
 DEFAULT_LOG_DIRECTORY = 'logs'
 
 
-def setup_logging(log_name_prefix, *historical_log_dir_layers, log_directory=DEFAULT_LOG_DIRECTORY):
+def setup_logging(log_name_prefix, *historical_log_dir_layers, log_directory=DEFAULT_LOG_DIRECTORY,
+                  formatter=None):
     '''
     Will setup logging file handlers with a standard format for QE logging.
 
@@ -18,6 +19,8 @@ def setup_logging(log_name_prefix, *historical_log_dir_layers, log_directory=DEF
         *historical_log_dir_layers (str):   Additional directory layers if desired for the
             historical log directories and files.
         log_directory: (str) - The directory for the logs.
+        formatter (logging.Formatter): A logging formatter to use in the file handlers, if not
+            provided will default to the standard QE logging formatter.
 
     Examples:
         >>> setup_logging('QE_LOGS', log_directory='logs_dir')
@@ -43,7 +46,8 @@ def setup_logging(log_name_prefix, *historical_log_dir_layers, log_directory=DEF
     if not any(isinstance(x, logging.FileHandler) for x in root_log.handlers):
         ts_dir = str(datetime.now()).replace(' ', '_').replace(':', '_')
         log_dir = os.path.join(*[log_directory, *historical_log_dir_layers, ts_dir])
-        formatter = logging.Formatter('{asctime}:{levelname:8}:{name:25}:{message}', style='{')
+        if not formatter:
+            formatter = logging.Formatter('{asctime}:{levelname:8}:{name:25}:{message}', style='{')
         for dir_ in (log_dir, log_directory):
             if not os.path.exists(dir_):
                 os.makedirs(dir_)
