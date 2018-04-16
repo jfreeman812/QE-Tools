@@ -57,7 +57,7 @@ coverage_entry = api.model('Coverage Entry', {
     'Status': custom_fields.Status(example='operational', required=True),
     'Suite': custom_fields.Suite(example='smoke', required=True),
     'Test Name': fields.String(example='Edit and update a created Variable', required=True),
-    'test_id': fields.String(example='Variable Builder.Edit and update a create Variable'),
+    'test_id': fields.String(example='Variable Builder.Edit and update a created Variable'),
     'Tickets': TICKET_LIST,
     'quarantined': TICKET_LIST,
     'needs work': TICKET_LIST,
