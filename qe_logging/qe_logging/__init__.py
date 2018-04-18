@@ -6,7 +6,7 @@ from datetime import datetime
 DEFAULT_LOG_DIRECTORY = 'logs'
 
 
-def setup_logging(log_name_prefix, *historical_log_dir_layers, log_directory=DEFAULT_LOG_DIRECTORY,
+def setup_logging(log_name_prefix, *historical_log_dir_layers, base_log_path=DEFAULT_LOG_DIRECTORY,
                   formatter=None):
     '''
     Will setup logging file handlers with a standard format for QE logging.
@@ -18,12 +18,12 @@ def setup_logging(log_name_prefix, *historical_log_dir_layers, log_directory=DEF
         log_name_prefix (str): The prefix for the log file name, prepended to .master.log.
         *historical_log_dir_layers (str):   Additional directory layers if desired for the
             historical log directories and files.
-        log_directory: (str) - The directory for the logs.
+        base_log_path: (str) - The directory for the logs.
         formatter (logging.Formatter): A logging formatter to use in the file handlers, if not
             provided will default to the standard QE logging formatter.
 
     Examples:
-        >>> setup_logging('QE_LOGS', log_directory='logs_dir')
+        >>> setup_logging('QE_LOGS', base_log_path='logs_dir')
         >>> import logging
         >>> logging.getLogger('Bubba Logger').critical('Urgent Message!')
         Writes files:
@@ -32,7 +32,7 @@ def setup_logging(log_name_prefix, *historical_log_dir_layers, log_directory=DEF
         logs_dir/YYYY-MM-DD_HH_MM_SS.FFFFFF/QE_LOGS.master.log
             YYYY-MM-DD HH:MM:SS,FFF:CRITICAL:Bubba Logger             :Urgent Message!
 
-        >>> setup_logging('QET', 'some_layer', 'another_layer', log_directory='logs_dir')
+        >>> setup_logging('QET', 'some_layer', 'another_layer', base_log_path='logs_dir')
         >>> import logging
         >>> logging.getLogger('SOME LOGGER').critical('LOOK AT ME')
         Writes files:
@@ -45,10 +45,10 @@ def setup_logging(log_name_prefix, *historical_log_dir_layers, log_directory=DEF
     # If a FileHandler logger has not been added, create it now
     if not any(isinstance(x, logging.FileHandler) for x in root_log.handlers):
         ts_dir = str(datetime.now()).replace(' ', '_').replace(':', '_')
-        log_dir = os.path.join(*[log_directory, *historical_log_dir_layers, ts_dir])
+        log_dir = os.path.join(*[base_log_path, *historical_log_dir_layers, ts_dir])
         if not formatter:
             formatter = logging.Formatter('{asctime}:{levelname:8}:{name:25}:{message}', style='{')
-        for dir_ in (log_dir, log_directory):
+        for dir_ in (log_dir, base_log_path):
             if not os.path.exists(dir_):
                 os.makedirs(dir_)
             # Set up handler with encoding and msg formatter in log directory
