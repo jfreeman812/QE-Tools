@@ -13,7 +13,7 @@ from qecommon_tools import cleanup_and_exit, display_name
 
 # Any display name in nuisance_category_names will be omitted from the categories. 'features' is
 # ignored as it is a special name required in cucumber and meaningless for reporting.
-NUISANCE_CATEGORY_NAMES = ['features']
+NUISANCE_CATEGORY_NAMES = ['features', '.']
 all_tags = [
     t.tag for table in [coverage_tables[tab] for tab in coverage_tables.tables[1:]]
     for t in table if t.tag != ''

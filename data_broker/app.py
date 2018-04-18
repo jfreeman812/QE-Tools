@@ -35,7 +35,7 @@ SPLUNK_PRODUCTION_INDEX = 'rax_qe_coverage'
 SPLUNK_REPORT_SOURCE = 'rax_qe_coverage'
 SPLUNK_UI_BASE_URL = 'sage.rackspace.com:8000'
 SPLUNK_UI_SEARCH_PATH = '/en-US/app/search/search'
-SCHEMA_VERSION = 'qe_coverage_metrics_schema_v20180301'
+SCHEMA_VERSION = 'qe_coverage_metrics_schema_v20180413'
 PROD_DATA_DIR = path.join(path.expanduser('~'), 'data_broker_files')
 
 
@@ -46,7 +46,8 @@ PH_FIELD = custom_fields.ProductHierarchy(example='RBA::ARIC',
 
 
 coverage_entry = api.model('Coverage Entry', {
-    'Categories': fields.List(fields.String, example=['Variable Builder'], required=True),
+    'Categories': fields.List(fields.String, example=['Variable Builder'],
+                              min_items=1, required=True),
     'Execution Method': custom_fields.ExecutionMethod(example='automated', required=True),
     'Interface Type': custom_fields.InterfaceType(example='gui', required=True),
     'Polarity': custom_fields.Polarity(example='positive', required=True),
@@ -55,7 +56,8 @@ coverage_entry = api.model('Coverage Entry', {
     'Product Hierarchy': PH_FIELD,
     'Status': custom_fields.Status(example='operational', required=True),
     'Suite': custom_fields.Suite(example='smoke', required=True),
-    'Test Name': fields.String(example='Edit and upate a created Variable', required=True),
+    'Test Name': fields.String(example='Edit and update a created Variable', required=True),
+    'test_id': fields.String(example='Variable Builder.Edit and update a created Variable'),
     'Tickets': TICKET_LIST,
     'quarantined': TICKET_LIST,
     'needs work': TICKET_LIST,
@@ -98,6 +100,11 @@ class SplunkAPI(Resource):
 
     def _prep_event(self, upload_id, common_data, event):
         event.update(upload_id=upload_id)
+        if not event.get('test_id'):
+            event['test_id'] = '{}.{}'.format(
+                event['Categories'][-1],
+                event['Test Name']
+            )
         event = {'event': event}
         event.update(common_data)
         return event
