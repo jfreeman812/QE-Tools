@@ -4,6 +4,7 @@ import os
 import logging
 import shutil
 from tempfile import mkdtemp
+from uuid import uuid4
 
 import pytest
 import qe_logging
@@ -11,9 +12,7 @@ import qe_logging
 
 LOG_MESSAGES = ['TEST LOG MESSAGE', 'ANOTHER IMPORTANT MESSAGE']
 FILE_NAMES_TO_TEST = ['qe', '1234']
-LOG_DIRS_TO_TEST = [
-    mkdtemp(), 'logs_test', mkdtemp(dir=os.getcwd()), qe_logging.DEFAULT_LOG_DIRECTORY
-]
+LOG_DIRS_TO_TEST = [mkdtemp(), mkdtemp(dir=os.getcwd()), str(uuid4())]
 DIR_LAYERS_TO_TEST = [[], ['abc'], ['def', 'ghij', 'zzzzz']]
 
 
