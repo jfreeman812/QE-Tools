@@ -47,7 +47,7 @@ def setup_logging(log_name_prefix, *historical_log_dir_layers, **kwargs):
     root_log = logging.getLogger('')
     # If a FileHandler logger has not been added, create it now
     if not any(isinstance(x, logging.FileHandler) for x in root_log.handlers):
-        ts_dir = str(datetime.now()).replace(' ', '_').replace(':', '_')
+        ts_dir = '{:%Y%m%d_%H%M%S}'.format(datetime.now())
         ts_log_path = os.path.join(*((base_log_path,) + historical_log_dir_layers + (ts_dir,)))
         for dir_ in (ts_log_path, base_log_path):
             if not os.path.exists(dir_):
