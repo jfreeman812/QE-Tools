@@ -11,6 +11,10 @@ CONSOLE_SCRIPTS = [
 INSTALL_REQUIRES = [
 ]
 
+TESTS_REQUIRE = [
+    'pytest'
+]
+
 EXTRAS_REQUIRE = {}
 
 here = os.path.abspath(os.path.dirname(__file__))
