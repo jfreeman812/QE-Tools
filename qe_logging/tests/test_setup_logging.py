@@ -26,7 +26,7 @@ def log_dir(request):
 
 def teardown_function():
     # Handlers must be cleared or they will cause interference with other tests.
-    logging.getLogger('').handlers.clear()
+    del logging.getLogger('').handlers[:]
 
 
 def _find_first_match_with_prefix(dir_with_file, file_prefix):

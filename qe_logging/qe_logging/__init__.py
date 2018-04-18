@@ -4,10 +4,10 @@ from datetime import datetime
 
 
 DEFAULT_LOG_DIRECTORY = 'logs'
+DEFAULT_FORMATTER_STRING = '%(asctime)s:%(levelname)-8s:%(name)-25s:%(message)s'
 
 
-def setup_logging(log_name_prefix, *historical_log_dir_layers, base_log_path=DEFAULT_LOG_DIRECTORY,
-                  formatter=None):
+def setup_logging(log_name_prefix, *historical_log_dir_layers, **kwargs):
     '''
     Will setup logging file handlers with a standard format for QE logging.
 
@@ -18,9 +18,8 @@ def setup_logging(log_name_prefix, *historical_log_dir_layers, base_log_path=DEF
         log_name_prefix (str): The prefix for the log file name, prepended to .master.log.
         *historical_log_dir_layers (str):   Additional directory layers if desired for the
             historical log directories and files.
-        base_log_path: (str) - The directory for the logs.
-        formatter (logging.Formatter): A logging formatter to use in the file handlers, if not
-            provided will default to the standard QE logging formatter.
+        **kwargs:  Additional keyword arguments, valid options are ``base_log_path`` and
+            ``formatter``.
 
     Examples:
         >>> setup_logging('QE_LOGS', base_log_path='logs_dir')
@@ -41,13 +40,15 @@ def setup_logging(log_name_prefix, *historical_log_dir_layers, base_log_path=DEF
         logs_dir/some_layer/another_layer/YYYY-MM-DD_HH_MM_SS.FFFFFF/QE_LOGS.master.log
             YYYY-MM-DD HH:MM:SS,FFF:CRITICAL:SOME LOGGER              :LOOK AT ME
     '''
+    # The following two kwargs can be moved into the function call once python 2 support is ended.
+    base_log_path = kwargs.get('base_log_path', DEFAULT_LOG_DIRECTORY)
+    formatter = kwargs.get('formatter', logging.Formatter(DEFAULT_FORMATTER_STRING))
+
     root_log = logging.getLogger('')
     # If a FileHandler logger has not been added, create it now
     if not any(isinstance(x, logging.FileHandler) for x in root_log.handlers):
         ts_dir = str(datetime.now()).replace(' ', '_').replace(':', '_')
-        log_dir = os.path.join(*[base_log_path, *historical_log_dir_layers, ts_dir])
-        if not formatter:
-            formatter = logging.Formatter('{asctime}:{levelname:8}:{name:25}:{message}', style='{')
+        log_dir = os.path.join(*((base_log_path,) + historical_log_dir_layers + (ts_dir,)))
         for dir_ in (log_dir, base_log_path):
             if not os.path.exists(dir_):
                 os.makedirs(dir_)
