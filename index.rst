@@ -36,7 +36,7 @@ Library Name                                              Description
 :doc:`qe_jira<_docs/qe_jira/README>`                      Quickly creates a JIRA on a QE board for testing of a JIRA from a dev board
 :doc:`qecommon_tools<docs/qecommon_tools>`                A library for helper functions across QE-Tools designed for larger consumption
 :doc:`qe_coverage<_docs/reporting/qe_coverage>`           A collection of tools for QE-related reporting
-:doc:`qe_logging<_docs/qe_logging/README>`                A collection of logging related helpers to provide, standard logging for QE.
+:doc:`qe_logging<_docs/qe_logging/README>`                A collection of logging-related helpers to provide standard logging for QE.
 :doc:`github_tools<_docs/github_tools/README>`            A collection of tools around Git and GitHub to make developers' lives easier.
 :doc:`sphinx-gherkindoc<_docs/sphinx-gherkindoc/README>`  A tool to convert Gherkin into Sphinx documentation
 :doc:`tableread<_docs/tableread/README>`                  A library for converting reStructredText tables into Python objects
