@@ -48,8 +48,8 @@ def setup_logging(log_name_prefix, *historical_log_dir_layers, **kwargs):
     # If a FileHandler logger has not been added, create it now
     if not any(isinstance(x, logging.FileHandler) for x in root_log.handlers):
         ts_dir = str(datetime.now()).replace(' ', '_').replace(':', '_')
-        log_dir = os.path.join(*((base_log_path,) + historical_log_dir_layers + (ts_dir,)))
-        for dir_ in (log_dir, base_log_path):
+        ts_log_path = os.path.join(*((base_log_path,) + historical_log_dir_layers + (ts_dir,)))
+        for dir_ in (ts_log_path, base_log_path):
             if not os.path.exists(dir_):
                 os.makedirs(dir_)
             # Set up handler with encoding and msg formatter in log directory
