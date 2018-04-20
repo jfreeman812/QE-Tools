@@ -223,3 +223,16 @@ def must_get_keys(a_dict, *keys):
     for key in keys:
         a_dict = must_get_key(a_dict, key)
     return a_dict
+
+
+def var_from_env(var_name):
+    '''
+    Get an environment variable and raise an error if it is not set or has an empty value.
+
+    Raises:
+        ValueError: if the variable name is not set or has an empty value.
+    '''
+    envvar = _os.environ.get(var_name)
+    if not envvar:
+        raise ValueError('"{}" variable not found!'.format(var_name))
+    return envvar
