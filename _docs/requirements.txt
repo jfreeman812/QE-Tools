@@ -21,3 +21,4 @@ urllib3==1.22
 -e qecommon_tools
 -e tableread
 -e reporting
+-e qe_logging
