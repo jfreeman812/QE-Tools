@@ -32,7 +32,8 @@ def main(file_paths=None):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser('DataBroker Data Rewind')
-    help_msg = 'Paths to files to rewind through the broker. By default, all files will be run.'
+    help_msg = ('Paths to files to rewind through the broker. '
+                'By default, all files in {} will be read.'.format(PROD_DATA_DIR))
     parser.add_argument('files', nargs='*', help=help_msg)
     args = parser.parse_args()
     main(args.files)
