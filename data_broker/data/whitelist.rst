@@ -37,6 +37,7 @@ GSCS                            SF Stash
 Oracle EBS                      FMW (Calabrio)
 Oracle EBS                      FMW (Common)
 Provisioning Services           FireKick
+Provisioning Services           Torq API
 Rapid Provisioning Integration  BPI
 Rapid Provisioning Integration  NIS
 Rapid Provisioning Integration  Newton
