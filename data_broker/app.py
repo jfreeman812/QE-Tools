@@ -1,4 +1,4 @@
-from collections import defaultdict
+from collections import defaultdict, Counter
 from configparser import ConfigParser
 import json
 import lzma
@@ -109,6 +109,10 @@ class SplunkAPI(Resource):
         event.update(common_data)
         return event
 
+    def _check_for_duplicates(self, events):
+        test_ids = [x['event']['test_id'] for x in events]
+        return {name: count for name, count in Counter(test_ids).items() if count > 1}
+
     def _post(self, args, events=None):
         events = events or args.get('events', [])
         if not events:
@@ -122,6 +126,10 @@ class SplunkAPI(Resource):
         }
         upload_id = str(uuid.uuid4())
         events = [self._prep_event(upload_id, common_data, x) for x in events]
+        duplicates = self._check_for_duplicates(events)
+        if duplicates:
+            return {'error': 'The attached test_ids exist more than once!',
+                    'duplicate_ids': duplicates}, 400
         response = requests.post(SPLUNK_COLLECTOR_URL, data='\n'.join(map(json.dumps, events)),
                                  headers={'Authorization': self._get_token(args['index'])},
                                  verify=False)
