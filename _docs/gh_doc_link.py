@@ -1,17 +1,62 @@
 #! /usr/bin/env python
 
-from github_tools import GHPRSession, ghprb_info, get_github_commenter_parser
-from qecommon_tools import var_from_env
+import argparse
+import os
+try:
+    from urllib.parse import urljoin
+except ImportError:
+    from urlparse import urljoin
+
+import requests
 
 DOC_PATH = 'HTML_Report'
 
 
+class GHSession(requests.Session):
+    base_url = None
+
+    def __init__(self, token, domain, repo, pull_id):
+        super(GHSession, self).__init__()
+        self.headers.update({'Authorization': 'token {}'.format(token)})
+        self.base_url = self._base_url(domain, repo, pull_id)
+
+    def _base_url(self, domain, repo, pull_id):
+        # In repos without an active Issues section,
+        # the Issue ID and PR ID *should* match,
+        # but we will always positively grab the issue link from the PR
+        # to prevent mis-commenting
+        pull_data = self.get(
+            'https://{}/api/v3/repos/{}/pulls/{}'.format(domain, repo, pull_id)
+        ).json()
+        # ensure a single trailing slash to support proper urljoin
+        return pull_data.get('issue_url').rstrip('/') + '/'
+
+    def request(self, method, url, *args, **kwargs):
+        url = urljoin(self.base_url, url)
+        response = super(GHSession, self).request(method, url, *args, **kwargs)
+        response.raise_for_status()
+        return response
+
+    def post_comment(self, comment_body):
+        return self.post('comments', json={'body': comment_body})
+
+
+def var_from_env(var_name):
+    envvar = os.environ.get(var_name)
+    if not envvar:
+        raise ValueError('"{}" variable not found!'.format(var_name))
+    return envvar
+
+
 def main():
-    parser = get_github_commenter_parser('Docs link PR Commenter')
+    parser = argparse.ArgumentParser('Docs link PR Commenter')
+    parser.add_argument('token', help='GitHub Personal Access Token for commenting user')
     args = parser.parse_args()
-    gh = GHPRSession(args.token, ghprb_info.domain, ghprb_info.repository,
-                     ghprb_info.pull_request_id)
     report_url = var_from_env('BUILD_URL') + '{}/'.format(DOC_PATH)
+    repo = var_from_env('ghprbGhRepository')
+    pull_id = var_from_env('ghprbPullId')
+    domain = var_from_env('ghprbPullLink').strip('https://').split('/')[0]
+    gh = GHSession(args.token, domain, repo, pull_id)
     gh.post_comment('Docs Link: {}'.format(report_url))
 
 
