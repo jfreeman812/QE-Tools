@@ -8,6 +8,10 @@ import os
 import re
 import shutil
 import smtplib
+try:
+    from urllib.parse import urljoin
+except ImportError:
+    from urlparse import urljoin
 
 import github3
 import github3.users
@@ -129,6 +133,63 @@ def install_hooks():
     # (Optionally) Update any git repositories found in the provided path(s)
     for update_dir in args.update_paths:
         _update_hooks(update_dir, args.force, source_hooks)
+
+
+class GHPRSession(requests.Session):
+    '''A GitHub session for managing a Pull Request.'''
+
+    base_url = None
+
+    def __init__(self, token, domain, repo, pull_id):
+        super(GHPRSession, self).__init__()
+        self.headers.update({'Authorization': 'token {}'.format(token)})
+        self.base_url = self._base_url(domain, repo, pull_id)
+
+    def _base_url(self, domain, repo, pull_id):
+        # In repos without an active Issues section,
+        # the Issue ID and PR ID *should* match,
+        # but we will always positively grab the issue link from the PR
+        # to prevent mis-commenting
+        pull_data = self.get(
+            'https://{}/api/v3/repos/{}/pulls/{}'.format(domain, repo, pull_id)
+        ).json()
+        # ensure a single trailing slash to support proper urljoin
+        return pull_data.get('issue_url').rstrip('/') + '/'
+
+    def request(self, method, url, *args, **kwargs):
+        url = urljoin(self.base_url, url)
+        response = super(GHPRSession, self).request(method, url, *args, **kwargs)
+        response.raise_for_status()
+        return response
+
+    def post_comment(self, comment_body):
+        return self.post('comments', json={'body': comment_body})
+
+
+class _GitHubPRBInfo(object):
+    '''A class for getting GitHub Pull Request Builder related Jenkins env variables.'''
+
+    @property
+    def repository(self):
+        return qecommon_tools.var_from_env('ghprbGhRepository')
+
+    @property
+    def pull_request_id(self):
+        return qecommon_tools.var_from_env('ghprbPullId')
+
+    @property
+    def domain(self):
+        return qecommon_tools.var_from_env('ghprbPullLink').strip('https://').split('/')[0]
+
+
+ghprb_info = _GitHubPRBInfo()
+'''_GitHubPRBInfo: An object that dynamically gets GHPRB Plugin related Jenkins env variables.'''
+
+
+def get_github_commenter_parser(name='GitHub Pull Request Commenter'):
+    parser = argparse.ArgumentParser(name)
+    parser.add_argument('token', help='GitHub Personal Access Token for commenting user')
+    return parser
 
 
 if __name__ == '__main__':
