@@ -137,7 +137,7 @@ class SplunkAPI(Resource):
             response.raise_for_status()
             return {'message': 'data posted successfully!',
                     'url': self._display_url(index=args['index'], upload_id=upload_id)}, 201
-        except requests.exceptions.HTTPError as e:
+        except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError) as e:
             return {'message': 'data failed to post!',
                     'error': str(e),
                     'response_text': str(response.content)}, 500
