@@ -37,6 +37,7 @@ SPLUNK_UI_BASE_URL = 'sage.rackspace.com:8000'
 SPLUNK_UI_SEARCH_PATH = '/en-US/app/search/search'
 SCHEMA_VERSION = 'qe_coverage_metrics_schema_v20180413'
 PROD_DATA_DIR = path.join(path.expanduser('~'), 'data_broker_files')
+MAX_CHUNK_SIZE = 1000
 
 
 TICKET_LIST = fields.List(custom_fields.TicketId(example='JIRA-1234'))
@@ -130,17 +131,19 @@ class SplunkAPI(Resource):
         if duplicates:
             return {'error': 'The attached test_ids exist more than once!',
                     'duplicate_ids': duplicates}, 400
-        response = requests.post(SPLUNK_COLLECTOR_URL, data='\n'.join(map(json.dumps, events)),
-                                 headers={'Authorization': self._get_token(args['index'])},
-                                 verify=False)
-        try:
-            response.raise_for_status()
-            return {'message': 'data posted successfully!',
-                    'url': self._display_url(index=args['index'], upload_id=upload_id)}, 201
-        except requests.exceptions.HTTPError as e:
-            return {'message': 'data failed to post!',
-                    'error': str(e),
-                    'response_text': str(response.content)}, 500
+        for subset in (events[i:i + MAX_CHUNK_SIZE] for i in range(0, len(events), MAX_CHUNK_SIZE)):
+            response = requests.post(
+                SPLUNK_COLLECTOR_URL, data='\n'.join(map(json.dumps, subset)),
+                headers={'Authorization': self._get_token(args['index'])}, verify=False
+            )
+            try:
+                response.raise_for_status()
+            except requests.exceptions.HTTPError as e:
+                return {'message': 'data failed to post!',
+                        'error': str(e),
+                        'response_text': str(response.content)}, 500
+        return {'message': 'data posted successfully!',
+                'url': self._display_url(index=args['index'], upload_id=upload_id)}, 201
 
     def _validate_payload(self):
         field_name_alternates = {'Product Hierarchy': 'Product'}
