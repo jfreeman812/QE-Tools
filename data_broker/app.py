@@ -237,11 +237,13 @@ class ProductionCoverage(SplunkAPI):
         if whitelist_msg:
             return whitelist_msg
         args = self._prep_args()
-        # don't let a file storage failure throw a user-visible error
-        try:
-            self._write_data_file()
-        except BaseException:
-            pass
+        # on a "rewind" call, do not write a second copy of the data
+        if not request.args.get('is_rewind', False):
+            # don't let a file storage failure throw a user-visible error
+            try:
+                self._write_data_file()
+            except BaseException:
+                pass
         return self._post(args, events=[_enrich_data(x) for x in request.json])
 
 
