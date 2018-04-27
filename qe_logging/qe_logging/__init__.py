@@ -22,8 +22,9 @@ def setup_logging(log_name_prefix, *historical_log_dir_layers, **kwargs):
             ``formatter``.
 
     Examples:
-        >>> setup_logging('QE_LOGS', base_log_path='logs_dir')
         >>> import logging
+        >>> from qe_logging import setup_logging
+        >>> setup_logging('QE_LOGS', base_log_path='logs_dir')
         >>> logging.getLogger('Bubba Logger').critical('Urgent Message!')
         Writes files:
         logs_dir/QE_LOGS.master.log
@@ -31,8 +32,9 @@ def setup_logging(log_name_prefix, *historical_log_dir_layers, **kwargs):
         logs_dir/YYYY-MM-DD_HH_MM_SS.FFFFFF/QE_LOGS.master.log
             YYYY-MM-DD HH:MM:SS,FFF:CRITICAL:Bubba Logger             :Urgent Message!
 
-        >>> setup_logging('QET', 'some_layer', 'another_layer', base_log_path='logs_dir')
         >>> import logging
+        >>> from qe_logging import setup_logging
+        >>> setup_logging('QET', 'some_layer', 'another_layer', base_log_path='logs_dir')
         >>> logging.getLogger('SOME LOGGER').critical('LOOK AT ME')
         Writes files:
         logs_dir/QET.master.log
