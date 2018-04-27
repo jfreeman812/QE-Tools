@@ -29,5 +29,8 @@ for f in */self-check.sh ; do
 done
 
 if [ "$BUILD_CAUSE" = "GHPRBCAUSE" ]; then
+    echo "running Docs Link PR Commenter..."
     ./_docs/gh_doc_link.py $PR_COMMENT_TOKEN
+    echo "running Data Broker Schema Change Warner..."
+    python ./data_broker/schema_change_pr_comment.py $PR_COMMENT_TOKEN
 fi
