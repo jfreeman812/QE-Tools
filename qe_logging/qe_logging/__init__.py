@@ -35,9 +35,9 @@ def setup_logging(log_name_prefix, *historical_log_dir_layers, **kwargs):
         >>> import logging
         >>> logging.getLogger('SOME LOGGER').critical('LOOK AT ME')
         Writes files:
-        logs_dir/QE_LOGS.master.log
+        logs_dir/QET.master.log
             YYYY-MM-DD HH:MM:SS,FFF:CRITICAL:SOME LOGGER              :LOOK AT ME
-        logs_dir/some_layer/another_layer/YYYY-MM-DD_HH_MM_SS.FFFFFF/QE_LOGS.master.log
+        logs_dir/some_layer/another_layer/YYYY-MM-DD_HH_MM_SS.FFFFFF/QET.master.log
             YYYY-MM-DD HH:MM:SS,FFF:CRITICAL:SOME LOGGER              :LOOK AT ME
     '''
     # The following two kwargs can be moved into the function call once python 2 support is ended.
