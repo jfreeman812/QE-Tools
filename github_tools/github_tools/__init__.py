@@ -195,7 +195,7 @@ class GHPRSession(requests.Session):
         # Assumes your git is checked out to the latest PR commit
         diff_command = ('git diff --diff-filter=ACMRT {} HEAD {}'
                         ''.format(latest_base_branch_commit, files))
-        diff = str(subprocess.check_output(diff_command.split()))
+        diff = subprocess.check_output(diff_command.split()).decode()
 
         # Replace the escaped newlines so the return string format is as expected.
         diff = diff.replace('\\n', '\n')
