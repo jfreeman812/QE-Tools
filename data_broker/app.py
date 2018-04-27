@@ -28,7 +28,7 @@ ns = api.namespace('coverage', description='Data Broker Endpoint')
 whitelist = Whitelist()
 
 
-SPLUNK_COLLECTOR_HOSTNAME = 'splunk-dfw1-hf-uf-01.secops.rackspace.com'
+SPLUNK_COLLECTOR_HOSTNAME = 'hec.dfw1.splunk.rackspace.com'
 SPLUNK_COLLECTOR_URL = 'https://{}:8088/services/collector'.format(SPLUNK_COLLECTOR_HOSTNAME)
 SPLUNK_STAGING_INDEX = 'rax_temp_60'
 SPLUNK_PRODUCTION_INDEX = 'rax_qe_coverage'
