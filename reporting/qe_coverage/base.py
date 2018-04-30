@@ -164,7 +164,7 @@ class TestGroup(object):
                                         for test in self.tests]).items()
             if count > 1
         }
-        message = 'These test names appeared more than once: {}'
+        message = 'These test IDs appeared more than once: {}'
         if duplicates:
             self.errors.append(message.format(duplicates))
 
