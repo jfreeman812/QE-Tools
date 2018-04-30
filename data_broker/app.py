@@ -1,4 +1,4 @@
-from collections import defaultdict
+from collections import defaultdict, Counter
 from configparser import ConfigParser
 import json
 import lzma
@@ -14,6 +14,7 @@ from flask import Flask, request
 from flask_restplus import Api, Resource, reqparse, fields
 import requests
 
+from __schema_version__ import SCHEMA_VERSION
 import custom_fields
 from whitelist import Whitelist
 
@@ -28,14 +29,13 @@ ns = api.namespace('coverage', description='Data Broker Endpoint')
 whitelist = Whitelist()
 
 
-SPLUNK_COLLECTOR_HOSTNAME = 'splunk-dfw1-hf-uf-01.secops.rackspace.com'
+SPLUNK_COLLECTOR_HOSTNAME = 'hec.dfw1.splunk.rackspace.com'
 SPLUNK_COLLECTOR_URL = 'https://{}:8088/services/collector'.format(SPLUNK_COLLECTOR_HOSTNAME)
 SPLUNK_STAGING_INDEX = 'rax_temp_60'
 SPLUNK_PRODUCTION_INDEX = 'rax_qe_coverage'
 SPLUNK_REPORT_SOURCE = 'rax_qe_coverage'
 SPLUNK_UI_BASE_URL = 'sage.rackspace.com:8000'
 SPLUNK_UI_SEARCH_PATH = '/en-US/app/search/search'
-SCHEMA_VERSION = 'qe_coverage_metrics_schema_v20180413'
 PROD_DATA_DIR = path.join(path.expanduser('~'), 'data_broker_files')
 
 
@@ -109,6 +109,10 @@ class SplunkAPI(Resource):
         event.update(common_data)
         return event
 
+    def _check_for_duplicates(self, events):
+        test_ids = [x['event']['test_id'] for x in events]
+        return {name: count for name, count in Counter(test_ids).items() if count > 1}
+
     def _post(self, args, events=None):
         events = events or args.get('events', [])
         if not events:
@@ -122,6 +126,10 @@ class SplunkAPI(Resource):
         }
         upload_id = str(uuid.uuid4())
         events = [self._prep_event(upload_id, common_data, x) for x in events]
+        duplicates = self._check_for_duplicates(events)
+        if duplicates:
+            return {'error': 'The attached test_ids exist more than once!',
+                    'duplicate_ids': duplicates}, 400
         response = requests.post(SPLUNK_COLLECTOR_URL, data='\n'.join(map(json.dumps, events)),
                                  headers={'Authorization': self._get_token(args['index'])},
                                  verify=False)
@@ -129,7 +137,7 @@ class SplunkAPI(Resource):
             response.raise_for_status()
             return {'message': 'data posted successfully!',
                     'url': self._display_url(index=args['index'], upload_id=upload_id)}, 201
-        except requests.exceptions.HTTPError as e:
+        except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError) as e:
             return {'message': 'data failed to post!',
                     'error': str(e),
                     'response_text': str(response.content)}, 500
@@ -229,11 +237,13 @@ class ProductionCoverage(SplunkAPI):
         if whitelist_msg:
             return whitelist_msg
         args = self._prep_args()
-        # don't let a file storage failure throw a user-visible error
-        try:
-            self._write_data_file()
-        except BaseException:
-            pass
+        # on a "rewind" call, do not write a second copy of the data
+        if not request.args.get('is_rewind', False):
+            # don't let a file storage failure throw a user-visible error
+            try:
+                self._write_data_file()
+            except BaseException:
+                pass
         return self._post(args, events=[_enrich_data(x) for x in request.json])
 
 

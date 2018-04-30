@@ -8,10 +8,16 @@ import os
 import re
 import shutil
 import smtplib
+import subprocess
+try:
+    from urllib.parse import urljoin
+except ImportError:
+    from urlparse import urljoin
 
 import github3
 import github3.users
 import qecommon_tools
+from qecommon_tools import http_helpers
 import requests
 
 
@@ -129,6 +135,103 @@ def install_hooks():
     # (Optionally) Update any git repositories found in the provided path(s)
     for update_dir in args.update_paths:
         _update_hooks(update_dir, args.force, source_hooks)
+
+
+class GHPRSession(requests.Session):
+    '''A GitHub session for managing a Pull Request.'''
+
+    base_url = None
+
+    def __init__(self, token, domain, repo, pull_id):
+        super(GHPRSession, self).__init__()
+        self.headers.update({'Authorization': 'token {}'.format(token)})
+        self._domain = domain
+        self._repo = repo
+        self._pull_id = pull_id
+        self.base_url = self._base_url(domain, repo, pull_id)
+
+    def _base_url(self, domain, repo, pull_id):
+        # In repos without an active Issues section,
+        # the Issue ID and PR ID *should* match,
+        # but we will always positively grab the issue link from the PR
+        # to prevent mis-commenting
+        pull_data = self.get(
+            'https://{}/api/v3/repos/{}/pulls/{}'.format(domain, repo, pull_id)
+        ).json()
+        # ensure a single trailing slash to support proper urljoin
+        return pull_data.get('issue_url').rstrip('/') + '/'
+
+    def request(self, method, url, *args, **kwargs):
+        url = urljoin(self.base_url, url)
+        response = super(GHPRSession, self).request(method, url, *args, **kwargs)
+        response.raise_for_status()
+        return response
+
+    def post_comment(self, comment_body):
+        return self.post('comments', json={'body': comment_body})
+
+    def get_diff(self, base_branch='master', files='', only_changed_lines=False):
+        '''
+        Get the diff of the PR.
+
+        Args:
+            base_branch (str): The branch against which the PR is based.
+            files (Union[str, list]): The specific files for which to get the diff.
+            only_changed_lines (bool): Whether or not to return only the lines
+                that were actually changed, omitting other diff related information.
+
+        Returns:
+            str: The diff of the PR.
+        '''
+        # Get the latest commit to the base branch
+        response = self.get('https://{}/api/v3/repos/{}/branches/{}'
+                            ''.format(self._domain, self._repo, base_branch))
+        http_helpers.validate_response_status_code(200, response)
+        latest_base_branch_commit = response.json()['commit']['sha']
+
+        # Get the requested diff for the PR
+        if isinstance(files, list):
+            files = ' '.join(files)
+        # Assumes your git is checked out to the latest PR commit
+        diff_command = ('git diff --diff-filter=ACMRT {} HEAD {}'
+                        ''.format(latest_base_branch_commit, files))
+        diff = subprocess.check_output(diff_command.split()).decode()
+
+        # Replace the escaped newlines so the return string format is as expected.
+        diff = diff.replace('\\n', '\n')
+
+        if only_changed_lines:
+            # All lines that are actually changed start with a '+' or a '-'
+            # File changes start with '+++' or '---'
+            diff = '\n'.join([line for line in diff.split('\n') if line[0] in ['+', '-']])
+
+        return diff
+
+
+class _GitHubPRBInfo(object):
+    '''A class for getting GitHub Pull Request Builder related Jenkins env variables.'''
+
+    @property
+    def repository(self):
+        return qecommon_tools.var_from_env('ghprbGhRepository')
+
+    @property
+    def pull_request_id(self):
+        return qecommon_tools.var_from_env('ghprbPullId')
+
+    @property
+    def domain(self):
+        return qecommon_tools.var_from_env('ghprbPullLink').strip('https://').split('/')[0]
+
+
+ghprb_info = _GitHubPRBInfo()
+'''_GitHubPRBInfo: An object that dynamically gets GHPRB Plugin related Jenkins env variables.'''
+
+
+def get_github_commenter_parser(name='GitHub Pull Request Commenter'):
+    parser = argparse.ArgumentParser(name)
+    parser.add_argument('token', help='GitHub Personal Access Token for commenting user')
+    return parser
 
 
 if __name__ == '__main__':
