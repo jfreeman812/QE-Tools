@@ -48,7 +48,7 @@ def _get_file_contents(*paths):
 
 @pytest.mark.parametrize('log_name_prefix', FILE_NAMES_TO_TEST)
 def test_log_directory_is_created(log_dir, log_name_prefix):
-    qe_logging.setup_logging(log_name_prefix, base_log_path=log_dir)
+    qe_logging.setup_logging(log_name_prefix, base_log_dir=log_dir)
 
     msg = 'Setup Logging Failed to create base directory {}'.format(log_dir)
     assert os.path.exists(log_dir), msg
@@ -56,7 +56,7 @@ def test_log_directory_is_created(log_dir, log_name_prefix):
 
 @pytest.mark.parametrize('log_layers', DIR_LAYERS_TO_TEST)
 def test_optional_dir_layers_are_created(log_dir, log_layers):
-    qe_logging.setup_logging('', *log_layers, base_log_path=log_dir)
+    qe_logging.setup_logging('', *log_layers, base_log_dir=log_dir)
 
     dir_layers = os.path.join(log_dir, *log_layers)
     msg = 'Setup Logging Failed to create optional directory layers {}'.format(dir_layers)
@@ -65,7 +65,7 @@ def test_optional_dir_layers_are_created(log_dir, log_layers):
 
 @pytest.mark.parametrize('log_layers', DIR_LAYERS_TO_TEST)
 def test_historical_dir_layers_are_created(log_dir, log_layers):
-    qe_logging.setup_logging('', *log_layers, base_log_path=log_dir)
+    qe_logging.setup_logging('', *log_layers, base_log_dir=log_dir)
 
     historical_dir = _get_historical_dir(log_dir, *log_layers)
     assert historical_dir, 'Setup Logging Failed to create historical Directory'
@@ -76,7 +76,7 @@ def test_historical_dir_layers_are_created(log_dir, log_layers):
     product(LOG_MESSAGES, FILE_NAMES_TO_TEST, DIR_LAYERS_TO_TEST)
 )
 def test_log_files_contain_data(log_dir, message, log_name_prefix, log_layers):
-    qe_logging.setup_logging(log_name_prefix, *log_layers, base_log_path=log_dir)
+    qe_logging.setup_logging(log_name_prefix, *log_layers, base_log_dir=log_dir)
     logging.critical(message)
     log_file_name = _find_first_match_with_prefix(log_dir, log_name_prefix)
 
