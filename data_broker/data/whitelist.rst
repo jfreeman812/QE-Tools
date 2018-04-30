@@ -40,6 +40,7 @@ Provisioning Services           FireKick
 Rapid Provisioning Integration  BPI
 Rapid Provisioning Integration  NIS
 Rapid Provisioning Integration  Newton
+Salesforce                      Salesforce
 VMware                          vSPOT
 ==============================  ================================
 
