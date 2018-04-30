@@ -15,6 +15,7 @@ from flask import Flask, request
 from flask_restplus import Api, Resource, reqparse, fields
 import requests
 
+from __schema_version__ import SCHEMA_VERSION
 import custom_fields
 from whitelist import Whitelist
 
@@ -29,14 +30,13 @@ ns = api.namespace('coverage', description='Data Broker Endpoint')
 whitelist = Whitelist()
 
 
-SPLUNK_COLLECTOR_HOSTNAME = 'splunk-dfw1-hf-uf-01.secops.rackspace.com'
+SPLUNK_COLLECTOR_HOSTNAME = 'hec.dfw1.splunk.rackspace.com'
 SPLUNK_COLLECTOR_URL = 'https://{}:8088/services/collector'.format(SPLUNK_COLLECTOR_HOSTNAME)
 SPLUNK_STAGING_INDEX = 'rax_temp_60'
 SPLUNK_PRODUCTION_INDEX = 'rax_qe_coverage'
 SPLUNK_REPORT_SOURCE = 'rax_qe_coverage'
 SPLUNK_UI_BASE_URL = 'sage.rackspace.com:8000'
 SPLUNK_UI_SEARCH_PATH = '/en-US/app/search/search'
-SCHEMA_VERSION = 'qe_coverage_metrics_schema_v20180413'
 PROD_DATA_DIR = path.join(path.expanduser('~'), 'data_broker_files')
 MAX_UPLOAD_BYTES = (2**20) * .92
 
@@ -251,11 +251,13 @@ class ProductionCoverage(SplunkAPI):
         if whitelist_msg:
             return whitelist_msg
         args = self._prep_args()
-        # don't let a file storage failure throw a user-visible error
-        try:
-            self._write_data_file()
-        except BaseException:
-            pass
+        # on a "rewind" call, do not write a second copy of the data
+        if not request.args.get('is_rewind', False):
+            # don't let a file storage failure throw a user-visible error
+            try:
+                self._write_data_file()
+            except BaseException:
+                pass
         return self._post(args, events=[_enrich_data(x) for x in request.json])
 
 
