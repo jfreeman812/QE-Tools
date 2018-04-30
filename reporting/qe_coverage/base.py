@@ -157,14 +157,11 @@ class TestGroup(object):
         self.tests.append(test)
         self.errors.extend(test.errors)
 
-    def _test_id(self, test):
-        category = test.categories[0] if len(test.categories) == 1 else test.categories[1]
-        return '{}.{}'.format(category, test.name)
-
     def _check_duplicates(self):
         duplicates = {
             name: count
-            for name, count in Counter([self._test_id(test) for test in self.tests]).items()
+            for name, count in Counter(['{}.{}'.format(test.categories[-1], test.name)
+                                        for test in self.tests]).items()
             if count > 1
         }
         message = 'These test names appeared more than once: {}'
