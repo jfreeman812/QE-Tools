@@ -3,6 +3,7 @@ from configparser import ConfigParser
 import json
 import lzma
 from os import environ, path, makedirs
+import sys
 import time
 import uuid
 try:
@@ -37,7 +38,7 @@ SPLUNK_UI_BASE_URL = 'sage.rackspace.com:8000'
 SPLUNK_UI_SEARCH_PATH = '/en-US/app/search/search'
 SCHEMA_VERSION = 'qe_coverage_metrics_schema_v20180413'
 PROD_DATA_DIR = path.join(path.expanduser('~'), 'data_broker_files')
-MAX_CHUNK_SIZE = 1000
+MAX_UPLOAD_BYTES = (2**20) * .92
 
 
 TICKET_LIST = fields.List(custom_fields.TicketId(example='JIRA-1234'))
@@ -114,6 +115,16 @@ class SplunkAPI(Resource):
         test_ids = [x['event']['test_id'] for x in events]
         return {name: count for name, count in Counter(test_ids).items() if count > 1}
 
+    def _chunk_events(self, events):
+        data = []
+        for event in events:
+            if sys.getsizeof(data) + sys.getsizeof(event) < MAX_UPLOAD_BYTES:
+                data.append(event)
+            else:
+                yield data
+                data = [event]
+        yield data
+
     def _post(self, args, events=None):
         events = events or args.get('events', [])
         if not events:
@@ -131,7 +142,7 @@ class SplunkAPI(Resource):
         if duplicates:
             return {'error': 'The attached test_ids exist more than once!',
                     'duplicate_ids': duplicates}, 400
-        for subset in (events[i:i + MAX_CHUNK_SIZE] for i in range(0, len(events), MAX_CHUNK_SIZE)):
+        for subset in self._chunk_events(events):
             response = requests.post(
                 SPLUNK_COLLECTOR_URL, data='\n'.join(map(json.dumps, subset)),
                 headers={'Authorization': self._get_token(args['index'])}, verify=False
