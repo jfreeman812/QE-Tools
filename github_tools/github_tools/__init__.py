@@ -8,6 +8,7 @@ import os
 import re
 import shutil
 import smtplib
+import subprocess
 try:
     from urllib.parse import urljoin
 except ImportError:
@@ -16,6 +17,7 @@ except ImportError:
 import github3
 import github3.users
 import qecommon_tools
+from qecommon_tools import http_helpers
 import requests
 
 
@@ -143,6 +145,9 @@ class GHPRSession(requests.Session):
     def __init__(self, token, domain, repo, pull_id):
         super(GHPRSession, self).__init__()
         self.headers.update({'Authorization': 'token {}'.format(token)})
+        self._domain = domain
+        self._repo = repo
+        self._pull_id = pull_id
         self.base_url = self._base_url(domain, repo, pull_id)
 
     def _base_url(self, domain, repo, pull_id):
@@ -164,6 +169,43 @@ class GHPRSession(requests.Session):
 
     def post_comment(self, comment_body):
         return self.post('comments', json={'body': comment_body})
+
+    def get_diff(self, base_branch='master', files='', only_changed_lines=False):
+        '''
+        Get the diff of the PR.
+
+        Args:
+            base_branch (str): The branch against which the PR is based.
+            files (Union[str, list]): The specific files for which to get the diff.
+            only_changed_lines (bool): Whether or not to return only the lines
+                that were actually changed, omitting other diff related information.
+
+        Returns:
+            str: The diff of the PR.
+        '''
+        # Get the latest commit to the base branch
+        response = self.get('https://{}/api/v3/repos/{}/branches/{}'
+                            ''.format(self._domain, self._repo, base_branch))
+        http_helpers.validate_response_status_code(200, response)
+        latest_base_branch_commit = response.json()['commit']['sha']
+
+        # Get the requested diff for the PR
+        if isinstance(files, list):
+            files = ' '.join(files)
+        # Assumes your git is checked out to the latest PR commit
+        diff_command = ('git diff --diff-filter=ACMRT {} HEAD {}'
+                        ''.format(latest_base_branch_commit, files))
+        diff = subprocess.check_output(diff_command.split()).decode()
+
+        # Replace the escaped newlines so the return string format is as expected.
+        diff = diff.replace('\\n', '\n')
+
+        if only_changed_lines:
+            # All lines that are actually changed start with a '+' or a '-'
+            # File changes start with '+++' or '---'
+            diff = '\n'.join([line for line in diff.split('\n') if line[0] in ['+', '-']])
+
+        return diff
 
 
 class _GitHubPRBInfo(object):
