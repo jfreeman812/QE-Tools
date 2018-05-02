@@ -41,6 +41,7 @@ Provisioning Services           Torq API
 Rapid Provisioning Integration  BPI
 Rapid Provisioning Integration  NIS
 Rapid Provisioning Integration  Newton
+Salesforce                      Salesforce
 ServiceNow                      ServiceNow
 VMware                          vSPOT
 ==============================  ================================
