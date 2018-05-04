@@ -225,3 +225,26 @@ def test_format_if_with_content():
 def test_format_if_no_content():
     value = None
     assert qecommon_tools.format_if(FORMAT_STR, value) == ''
+
+
+FALSEY_VALUES = [None, '', [], {}, False, 0]
+SINGLE_ITEM_VALUES = [1, 11111, '1', 'ABCDEFG', [[]], {'A': 1, 'B': 2}, True]
+ITERABLE_VALUES = [[1, 2, 3], list('abcde'), [[1], [2], [3]], map(lambda x: x, [1, 2, 3]), {1, 2}]
+
+
+@pytest.mark.parametrize('falsey_items', FALSEY_VALUES)
+def test_list_from_empty_values(falsey_items):
+    assert qecommon_tools.list_from(falsey_items) == []
+
+
+@pytest.mark.parametrize('single_items', SINGLE_ITEM_VALUES)
+def test_list_from_single_items(single_items):
+    assert len(qecommon_tools.list_from(single_items)) == 1
+
+
+@pytest.mark.parametrize('iterable_items', ITERABLE_VALUES)
+def test_list_from_iterable(iterable_items):
+    results = qecommon_tools.list_from(iterable_items)
+    assert len(results) > 1
+    for item in iterable_items:
+        assert item in results

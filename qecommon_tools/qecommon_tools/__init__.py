@@ -1,4 +1,5 @@
 from __future__ import print_function
+from collections import Iterable
 import itertools as _itertools
 import os as _os
 import random
@@ -62,6 +63,37 @@ def padded_list(iterable, size, padding=None):
         list: The iterable parameter converted to a list, up to size, padded as needed.
     '''
     return list(_itertools.islice(_itertools.chain(iterable, _itertools.repeat(padding)), size))
+
+
+def list_from(item):
+    '''
+    Generate a list from a single item or an iterable.
+
+    Any item that is "false-y", will result in an empty list. Strings and dictionaries will be
+    treated as single items, and not iterable.
+
+    Args:
+        item: A single item or an iterable.
+
+    Examples:
+        >>> list_from(None)
+        []
+        >>> list_from('abcd')
+        ['abcd']
+        >>> list_from(1234)
+        [1234]
+        >>> list_from({'abcd': 1234})
+        [{'abcd': 1234}]
+        >>> list_from(['abcd', 1234])
+        ['abcd', 1234]
+        >>> list_from({'abcd', 1234})
+        ['abcd', 1234]
+    '''
+    if not item:
+        return []
+    if isinstance(item, (str, dict)) or not isinstance(item, Iterable):
+        return [item]
+    return list(item)
 
 
 def cleanup_and_exit(dir_name=None, status=0, message=None):
