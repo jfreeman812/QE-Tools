@@ -29,8 +29,10 @@ def main():
         except BaseException:
             print('Environment setup failed; aborting self-checks')
             sys.exit(1)
-    subprocess.call(['sphinx-apidoc', '--output-dir', 'docs', '--no-toc', '--force',
-                     'qecommon_tools/qecommon_tools'], cwd=BASE_DIR)
+    sphinx_apidoc_cmd = ['sphinx-apidoc', '--output-dir', 'docs', '--no-toc',
+                         '--force', '--module-first']
+    subprocess.call(sphinx_apidoc_cmd + ['qecommon_tools/qecommon_tools'], cwd=BASE_DIR)
+    subprocess.call(sphinx_apidoc_cmd + ['qe_logging/qe_logging'], cwd=BASE_DIR)
     subprocess.check_call(['sphinx-build', '-c', DOCS_DIR, '-aEW', '.', 'docs/'], cwd=BASE_DIR)
 
 

@@ -3,6 +3,7 @@ from itertools import product
 import os
 import logging
 import shutil
+import subprocess
 from tempfile import mkdtemp
 from uuid import uuid4
 
@@ -28,19 +29,6 @@ def teardown_function():
     del logging.getLogger('').handlers[:]
 
 
-def _find_first_match_with_prefix(dir_with_file, file_prefix):
-    for file_name in os.listdir(dir_with_file):
-        if file_name.startswith(file_prefix):
-            return file_name
-    return ''
-
-
-def _get_historical_dir(*dir_layers):
-    # Note as the format of the historical dir layers are subject to change, we will only check
-    # that the dir starts with the year, as this should be fairly stable.
-    return _find_first_match_with_prefix(os.path.join(*dir_layers), '{:%Y}'.format(date.today()))
-
-
 def _get_file_contents(*paths):
     with open(os.path.join(os.path.join(*paths)), 'r') as f:
         return f.read()
@@ -55,20 +43,17 @@ def test_log_directory_is_created(log_dir, log_name_prefix):
 
 
 @pytest.mark.parametrize('log_layers', DIR_LAYERS_TO_TEST)
-def test_optional_dir_layers_are_created(log_dir, log_layers):
-    qe_logging.setup_logging('', *log_layers, base_log_dir=log_dir)
+def test_log_files_are_created(log_dir, log_layers):
+    log_filenames = qe_logging.setup_logging('', *log_layers, base_log_dir=log_dir)
 
-    dir_layers = os.path.join(log_dir, *log_layers)
-    msg = 'Setup Logging Failed to create optional directory layers {}'.format(dir_layers)
-    assert os.path.exists(dir_layers), msg
+    expected_log_filename_count = 2
+    assert_msg = 'Setup Logging failed to create {} log files: {}'.format(
+        expected_log_filename_count, log_filenames)
+    assert len(log_filenames) == expected_log_filename_count, assert_msg
 
-
-@pytest.mark.parametrize('log_layers', DIR_LAYERS_TO_TEST)
-def test_historical_dir_layers_are_created(log_dir, log_layers):
-    qe_logging.setup_logging('', *log_layers, base_log_dir=log_dir)
-
-    historical_dir = _get_historical_dir(log_dir, *log_layers)
-    assert historical_dir, 'Setup Logging Failed to create historical Directory'
+    for log_filename in log_filenames:
+        existance_assert_msg = 'Setup Logging Failed to create log file {!r}'.format(log_filename)
+        assert os.path.exists(log_filename), existance_assert_msg
 
 
 @pytest.mark.parametrize(
@@ -76,15 +61,25 @@ def test_historical_dir_layers_are_created(log_dir, log_layers):
     product(LOG_MESSAGES, FILE_NAMES_TO_TEST, DIR_LAYERS_TO_TEST)
 )
 def test_log_files_contain_data(log_dir, message, log_name_prefix, log_layers):
-    qe_logging.setup_logging(log_name_prefix, *log_layers, base_log_dir=log_dir)
+    log_filenames = qe_logging.setup_logging(log_name_prefix, *log_layers, base_log_dir=log_dir)
     logging.critical(message)
-    log_file_name = _find_first_match_with_prefix(log_dir, log_name_prefix)
 
-    base_file_txt = _get_file_contents(log_dir, log_file_name)
-    msg = '{} not found in log file, actual contents {}'.format(message, base_file_txt)
-    assert message in base_file_txt, msg
+    for log_filename in log_filenames:
+        file_contents = _get_file_contents(log_filename)
+        msg = '{} not found in log file {}, actual contents {}'.format(
+            message, log_filename, file_contents)
+        assert message in file_contents, msg
 
-    dir_layers = os.path.join(log_dir, *log_layers)
-    historical_txt = _get_file_contents(dir_layers, _get_historical_dir(dir_layers), log_file_name)
-    msg = '{} not found in historical file, actual contents {}'.format(message, historical_txt)
-    assert message in historical_txt, msg
+
+def test_unconfigured_logging_generates_output():
+    output = subprocess.check_output(['qe_logging/tests/no_log_test.py'], stderr=subprocess.STDOUT)
+    assert output, 'Expected logging out with no configuration setup at all'
+
+
+def test_unconfigured_logging_can_be_suppressed():
+    new_env = os.environ.copy()
+    new_env['NO_LOG'] = 'Arbitrary_value'  # Tell test helper script to shut off it's logging.
+    output = subprocess.check_output(['qe_logging/tests/no_log_test.py'],
+                                     stderr=subprocess.STDOUT,
+                                     env=new_env)
+    assert not output, 'Unexpected output when logging suppressed'
