@@ -228,7 +228,7 @@ def test_format_if_no_content():
 
 
 FALSEY_VALUES = [None, '', [], {}, False, 0]
-SINGLE_ITEM_VALUES = [1, 11111, '1', 'ABCDEFG', [[]], {'A': 1, 'B': 2}, True]
+SINGLE_ITEM_VALUES = [1, 11111, '1', 'ABCDEFG', u'ABCDEFG', [[]], {'A': 1, 'B': 2}, True]
 ITERABLE_VALUES = [[1, 2, 3], list('abcde'), [[1], [2], [3]], map(lambda x: x, [1, 2, 3]), {1, 2}]
 
 

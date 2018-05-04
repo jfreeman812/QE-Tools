@@ -65,6 +65,13 @@ def padded_list(iterable, size, padding=None):
     return list(_itertools.islice(_itertools.chain(iterable, _itertools.repeat(padding)), size))
 
 
+def _python_2_or_3_base_str_type():
+    try:
+        return basestring
+    except NameError:
+        return str
+
+
 def list_from(item):
     '''
     Generate a list from a single item or an iterable.
@@ -91,7 +98,7 @@ def list_from(item):
     '''
     if not item:
         return []
-    if isinstance(item, (str, dict)) or not isinstance(item, Iterable):
+    if isinstance(item, (_python_2_or_3_base_str_type(), dict)) or not isinstance(item, Iterable):
         return [item]
     return list(item)
 
