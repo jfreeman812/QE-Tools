@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 from __future__ import print_function
 import argparse
-from collections import defaultdict, namedtuple
+from collections import defaultdict, namedtuple, Counter
 from contextlib import closing
 import csv
 import datetime
@@ -157,7 +157,15 @@ class TestGroup(object):
         self.tests.append(test)
         self.errors.extend(test.errors)
 
+    def _check_duplicates(self):
+        id_counts = Counter(['{}.{}'.format(test.categories[-1], test.name) for test in self.tests])
+        duplicates = {name: count for name, count in id_counts.items() if count > 1}
+        message = 'These test IDs appeared more than once: {}'
+        if duplicates:
+            self.errors.append(message.format(duplicates))
+
     def validate(self):
+        self._check_duplicates()
         if self.errors:
             print('\n'.join(self.errors), file=sys.stderr)
         return len(self.errors)
