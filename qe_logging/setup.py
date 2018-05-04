@@ -9,6 +9,7 @@ CONSOLE_SCRIPTS = [
 ]
 
 INSTALL_REQUIRES = [
+    'qecommon_tools>=1.1.6',
 ]
 
 TESTS_REQUIRE = [
