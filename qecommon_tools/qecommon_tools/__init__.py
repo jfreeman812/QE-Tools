@@ -95,6 +95,9 @@ def list_from(item):
         ['abcd', 1234]
         >>> list_from({'abcd', 1234})
         ['abcd', 1234]
+
+    Returns:
+        list: A list from the item.
     '''
     if not item:
         return []
