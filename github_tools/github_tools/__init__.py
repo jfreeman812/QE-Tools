@@ -137,6 +137,22 @@ def install_hooks():
         _update_hooks(update_dir, args.force, source_hooks)
 
 
+def is_changed_diff_line(line):
+    '''
+    Determine whether or not a give line is a changed line within a git diff string.
+
+    All lines that are actually changed start with a ``+`` or a ``-``.
+    File changes start with ``+++`` or ``---``.
+
+    Args:
+        line (str): The line to check.
+
+    Returns:
+        bool: Whether or not the line is a changed line.
+    '''
+    return line.startswith(('+', '-'))
+
+
 class GHPRSession(requests.Session):
     '''A GitHub session for managing a Pull Request.'''
 
@@ -201,9 +217,8 @@ class GHPRSession(requests.Session):
         diff = diff.replace('\\n', '\n')
 
         if only_changed_lines:
-            # All lines that are actually changed start with a '+' or a '-'
-            # File changes start with '+++' or '---'
-            diff = '\n'.join([line for line in diff.split('\n') if line[0] in ['+', '-']])
+            # Only include lines that were actually changed
+            return qecommon_tools.filter_lines(is_changed_diff_line, diff)
 
         return diff
 
