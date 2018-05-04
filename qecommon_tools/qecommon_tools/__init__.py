@@ -1,4 +1,5 @@
 from __future__ import print_function
+import ast
 from collections import Iterable
 import itertools as _itertools
 import os as _os
@@ -278,3 +279,65 @@ def var_from_env(var_name):
     if not envvar:
         raise ValueError('"{}" variable not found!'.format(var_name))
     return envvar
+
+
+def get_file_contents(*paths):
+    '''
+    Get the contents of a file as a Python string.
+
+    Args:
+        *paths: The path or paths that lead to the file whose content are to be retrieved.
+
+    Returns:
+        str: The contents of the file.
+    '''
+    with open(_os.path.join(_os.path.join(*paths)), 'r') as f:
+        return f.read()
+
+
+def get_file_docstring(file_path):
+    '''
+    Get the full docstring of a given python file.
+
+    Args:
+        file_path (str): The path to the file whose docstring should
+            be gathered and returned.
+
+    Returns:
+        str: The python file's docstring.
+    '''
+    tree = ast.parse(get_file_contents(file_path))
+    return ast.get_docstring(tree)
+
+
+def filter_lines(line_filter, lines, return_type=None):
+    '''
+    Filter the given lines based on the given filter function.
+
+    This function by default will return the same type that it is given.
+    If you'd like, you may return a different type by providing the
+    ``return_type`` parameter.
+
+    The expected values for the the ``lines`` parameter type and the
+    ``return_type`` value are ``str`` and ``list``. Any other types/values
+    may cause unexpected behavior.
+
+    Args:
+        line_filter (Callable): The callable function to be used to filter each
+            line. It should take a single string parameter and return a boolean.
+        lines (Union[str, List[str]]): Either a string with ``\n`` characters splitting
+            the lines, or a list of lines as strings.
+        return_type (type): The desired return type. If not provided, the type of the
+            ``lines`` parameter will be used.
+
+    Returns:
+        Union[str, List[str]]: The filtered lines.
+    '''
+    if return_type is None:
+        return_type = type(lines)
+
+    if isinstance(lines, _python_2_or_3_base_str_type()):
+        lines = lines.split('\n')
+
+    filtered_lines = [line for line in lines if line_filter(line)]
+    return filtered_lines if return_type is list else '\n'.join(filtered_lines)
