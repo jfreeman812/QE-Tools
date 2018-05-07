@@ -1,3 +1,5 @@
+'''Unit tests for the qecommon_tools tools.'''
+
 from itertools import product
 import tempfile
 from uuid import uuid4
@@ -248,3 +250,33 @@ def test_list_from_iterable(iterable_items):
     assert len(results) > 1
     for item in iterable_items:
         assert item in results
+
+
+def test_get_file_contents(temp_dir):
+    file_path = path.join(temp_dir, 'test.txt')
+    with open(file_path, 'w') as f:
+        f.write(TEST_MESSAGE)
+    assert qecommon_tools.get_file_contents(file_path) == TEST_MESSAGE
+
+
+def test_get_file_docstring():
+    assert qecommon_tools.get_file_docstring(__file__) == __doc__
+
+
+def _is_vowel(value):
+    return value.lower() in ['a', 'e', 'i', 'o', 'u']
+
+
+FILTER_LINES_DATA = [
+    # (input, expected_output, line_filter, output)
+    ('A\nB\nC\nD\nE', 'A\nE', _is_vowel, None),  # str -> str
+    ('A\nB\nC\nD\nE', ['A', 'E'], _is_vowel, list),  # str -> list
+    (['A', 'B', 'C', 'D', 'E'], ['A', 'E'], _is_vowel, None),  # list -> list
+    (['A', 'B', 'C', 'D', 'E'], 'A\nE', _is_vowel, str),  # list -> str
+]
+
+
+@pytest.mark.parametrize('input_,expected_output,line_filter,return_type', FILTER_LINES_DATA)
+def test_filter_lines_given_str(input_, expected_output, line_filter, return_type):
+    output = qecommon_tools.filter_lines(line_filter, input_, return_type)
+    assert output == expected_output

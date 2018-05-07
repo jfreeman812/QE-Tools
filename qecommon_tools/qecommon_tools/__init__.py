@@ -332,6 +332,19 @@ def filter_lines(line_filter, lines, return_type=None):
 
     Returns:
         Union[str, List[str]]: The filtered lines.
+
+    Examples:
+        > def is_vowel(value):
+              return value.lower() in ['a', 'e', 'i', 'o', 'u', 'sometimes y']
+        >
+        > filter_lines('A\nB\nC\nD\nE', is_vowel)
+        'A\nE'
+        > filter_lines('A\nB\nC\nD\nE', is_vowel, return_type=list)
+        ['A', 'E']
+        > filter_lines(['A', 'B', 'C', 'D', 'E'], is_vowel)
+        ['A', 'E']
+        > filter_lines(['A', 'B', 'C', 'D', 'E'], is_vowel, return_type=str)
+        'A\nE'
     '''
     if return_type is None:
         return_type = type(lines)
