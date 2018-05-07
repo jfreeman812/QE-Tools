@@ -8,8 +8,8 @@ it is, itself, programming language agnostic.
 
 None the less Gherkin has minimal syntax and rules, see https://github.com/cucumber/cucumber/wiki/Gherkin
 for details.
-    Note that while that link points to a web site for the cucumber tool (Ruby for treating
-    Gherkin as tests) the basic definition of Gherkin is testing-language agnostic.
+Note that while that link points to a web site for the cucumber tool (Ruby for treating
+Gherkin as tests) the basic definition of Gherkin is testing-language agnostic.
 
 This document describes the QE organization's recommendations and best practices to be applied
 above and beyond the bare minimum for valid Gherkin (per reference above). Familiarity with
