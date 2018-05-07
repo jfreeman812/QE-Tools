@@ -339,5 +339,5 @@ def filter_lines(line_filter, lines, return_type=None):
     if isinstance(lines, _python_2_or_3_base_str_type()):
         lines = lines.split('\n')
 
-    filtered_lines = [line for line in lines if line_filter(line)]
+    filtered_lines = list(filter(line_filter, lines))
     return filtered_lines if return_type is list else '\n'.join(filtered_lines)
