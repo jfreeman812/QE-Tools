@@ -1,15 +1,9 @@
 #! /usr/bin/env python
 
 import argparse
-import functools
 import glob
 import json
 import lzma
-import os
-import sys
-import time
-
-import requests
 
 from prod_data_dir import PROD_DATA_DIR
 
