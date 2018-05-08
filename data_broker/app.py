@@ -15,6 +15,7 @@ from flask import Flask, request
 from flask_restplus import Api, Resource, reqparse, fields
 import requests
 
+from bin.prod_data_dir import PROD_DATA_DIR
 from __schema_version__ import SCHEMA_VERSION
 import custom_fields
 from whitelist import Whitelist
@@ -37,7 +38,6 @@ SPLUNK_PRODUCTION_INDEX = 'rax_qe_coverage'
 SPLUNK_REPORT_SOURCE = 'rax_qe_coverage'
 SPLUNK_UI_BASE_URL = 'sage.rackspace.com:8000'
 SPLUNK_UI_SEARCH_PATH = '/en-US/app/search/search'
-PROD_DATA_DIR = path.join(path.expanduser('~'), 'data_broker_files')
 # The upload limit provided by Jeff Windsor with the SAAC team is 1 MiB,
 # so we set our operating limit safely inside at 92% of that.
 MAX_UPLOAD_BYTES = (2**20) * .92
