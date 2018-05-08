@@ -323,9 +323,9 @@ def filter_lines(line_filter, lines, return_type=None):
     may cause unexpected behavior.
 
     Args:
-        line_filter (Callable): The callable function to be used to filter each
-            line. It should take a single string parameter and return a boolean.
-        lines (Union[str, List[str]]): Either a string with ``\n`` characters splitting
+        line_filter (Callable): The callable function to be used to filter each line.
+            It should take a single string parameter and return a boolean.
+        lines (Union[str, List[str]]): Either a string with newline characters splitting
             the lines, or a list of lines as strings.
         return_type (type): The desired return type. If not provided, the type of the
             ``lines`` parameter will be used.
