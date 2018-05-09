@@ -16,12 +16,11 @@ EXPECTED_FOR_METHODS['GET'] = 'curl'
 URLS_TO_TEST = {method: ''.join([DEFAULT_URL, method]) for method in METHODS_TO_TEST}
 DEFAULT_HEADERS = {'Content-Type': 'application/json'}
 HEADERS_TO_TEST = [DEFAULT_HEADERS, {'Content-Type': 'application/json', 'HEADER 1': 'Value'}]
-DEFAULT_PAYLOAD_TO_TEST = {'json': {'a': '11'}}
 PAYLOADS_TO_TEST = [
     {},
     {'json': {}},
     {'json': None},
-    DEFAULT_PAYLOAD_TO_TEST,
+    {'json': {'a': '11'}},
     {'data': 'THIS IS A LINE OF TEXT\nTHIS IS ANOTHER LINE'},
 ]
 PARAMS_TO_TEST = [
