@@ -28,7 +28,7 @@ if __name__ == '__main__':
     parser.add_argument('key', help='The entry key value to check and rename.')
     parser.add_argument('from_value', help='The current string value to be renamed')
     parser.add_argument('to_value', help='The new string value to be written')
-    help_msg = ('Paths to starting directory for files to read for renaming. '
+    help_msg = ('Path to starting directory for files to read for renaming. '
                 'By default, all files in {} will be read.'.format(PROD_DATA_DIR))
     parser.add_argument('-d', '--start-dir', help=help_msg)
     args = parser.parse_args()
