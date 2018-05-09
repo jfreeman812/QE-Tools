@@ -27,10 +27,12 @@ def main():
                 '\n'
                 'You\'ve changed a sensitive file! Make sure you understand the ramifications!\n'
                 '\n'
+                '**File Changed**: `{file_changed}`'
+                '\n'
                 '```\n'
                 '{module_docstring}\n'
                 '```'
-                ''.format(module_docstring=module_docstring)
+                ''.format(file_changed=sensitive_file, module_docstring=module_docstring)
             )
 
 
