@@ -6,6 +6,7 @@ import pytest
 from qe_logging.requests_logging import RequestCurl
 
 
+# This is an arbitrary, but valid url, and is not contacted.
 DEFAULT_URL = 'https://www.httpbin.org/'
 DEFAULT_METHOD = 'POST'
 METHODS_TO_TEST = [DEFAULT_METHOD, 'GET', 'PUT', 'DELETE', 'PATCH']
