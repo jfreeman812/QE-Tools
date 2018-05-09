@@ -3,6 +3,7 @@ from itertools import product
 
 import json
 import pytest
+from qecommon_tools import format_if
 from qe_logging.requests_logging import RequestCurl
 
 
@@ -51,7 +52,7 @@ def _fmt_url(url):
 def _fmt_data(payload_data):
     json_value = payload_data.get('json')
     value = json.dumps(json_value) if json_value is not None else payload_data.get('data')
-    return " -d '{}'".format(value) if value else ''
+    return format_if(" -d '{}'", value)
 
 
 EXCLUDE_PARAMS_TO_TEST = {
