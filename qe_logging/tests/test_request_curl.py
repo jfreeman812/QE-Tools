@@ -104,11 +104,14 @@ def test_command_is_used(command_to_test):
 
 @pytest.mark.parametrize('test_param', ['command', 'method', 'headers', 'data', 'url'])
 def test_exclude_params(test_param):
+    # The GET method is not valid for testing the exclusion of a parameter, as it doesn't
+    # actually appear in the curl, so there is no way to tell if it was purposefully excluded.
+    valid_exclusion_test_methods = [x for x in METHODS_TO_TEST if x != 'GET']
     excluded_value = generate_random_string()
     data_to_test = {
         'headers': {'kwargs': {'headers': {excluded_value: excluded_value}}},
         'data': {'kwargs': {'data': {excluded_value: excluded_value}}},
-        'method': {'method': choice(METHODS_TO_TEST)},
+        'method': {'method': choice(valid_exclusion_test_methods)},
         'url': {'url': '{}{}'.format(DEFAULT_URL, excluded_value)},
         'command': {'command': excluded_value}
     }
