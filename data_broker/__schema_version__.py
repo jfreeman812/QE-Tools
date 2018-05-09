@@ -8,4 +8,4 @@ Warning:
     additional changes needed in the Splunk dashboard.
 '''
 
-SCHEMA_VERSION = 'qe_coverage_metrics_schema_v20180413!!!CHANGED!!!'
+SCHEMA_VERSION = 'qe_coverage_metrics_schema_v20180413'
