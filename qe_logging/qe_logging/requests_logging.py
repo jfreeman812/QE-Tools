@@ -10,8 +10,12 @@ try:
 except ImportError:
     # Python 2
     from funcsigs import signature as _signature
+import logging
+from types import MethodType
 
 import requests
+
+from qecommon_tools import list_from
 
 
 DEFAULT_OVERRIDE_HEADERS = {'X-Auth-Token': '$TOKEN'}
@@ -108,3 +112,67 @@ class _RequestCurl(object):
         prepared_kwargs = {x: y for x, y in kwargs.items() if x in sig.parameters}
         prepared_request.prepare(method=method, url=url, **prepared_kwargs)
         return prepared_request
+
+
+class RequestAndResponseLogger(object):
+    '''
+    A class that can be used to log request and response data from API calls.
+
+    By default the entire request curl, response stats, response headers, and response content are
+    logged.
+
+    Args:
+        log (logging.getLogger): A logger to use to record data.  If not provided defaults to
+            ``default_logger_name``.
+        request_logger (func): A function for logging request information, if provided it must
+            take the following arguments:  ``self``, ``request_kwargs``.  Defaults to
+            ``self._request_logger`` if not provided.
+        response_logger (func): A function for logging response information, if provided it must
+            take the following arguments:  ``self``, ``response``.  Defaults to
+            ``self._response_logger`` if not provided.
+        exclude_request_params (list): If supplied will be excluded from the request logging curl.
+            Note that this may make the curl invalid.
+
+    '''
+    default_logger_name = 'QE_requests_logger'
+
+    def __init__(self, log=None, request_logger=None, response_logger=None,
+                 exclude_request_params=None):
+        self.log = log or logging.getLogger(self.default_logger_name)
+        self.exclude_request_params = list_from(exclude_request_params)
+        self.response_logger = self._methodtype_or_builtin(response_logger, self._response_logger)
+        self.request_logger = self._methodtype_or_builtin(request_logger, self._request_logger)
+
+    def _methodtype_or_builtin(self, input_param, builtin):
+        return MethodType(input_param, self) if input_param else builtin
+
+    def _request_logger(self, request_kwargs):
+        kwargs = {'exclude_params': self.exclude_request_params}
+        kwargs.update(request_kwargs)
+        self.log.debug(curl_command_from(**kwargs))
+
+    def _log_response_status(self, response):
+        self.log.debug('-->Response status:  {}'.format(response.status_code))
+
+    def _log_response_headers(self, response):
+        self.log.debug('-->Response headers: {}'.format(response.headers))
+
+    def _log_response_content(self, response):
+        self.log.debug('-->Response content: {}'.format(response.content.decode('utf-8')))
+
+    def _response_logger(self, response):
+        self._log_response_status(response)
+        self._log_response_headers(response)
+        self._log_response_content(response)
+
+    def log_call(self, request_kwargs, response):
+        '''
+        Logs the request / response data.
+
+        Args:
+            request_kwargs (dict): A dictionary of keyword arguments for the API call to log.
+            response (requests.models.Response): A Response object for the API call to log.
+
+        '''
+        self.request_logger(request_kwargs)
+        self.response_logger(response)
