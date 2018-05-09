@@ -31,7 +31,7 @@ Automation Framework            User Profile
 Global Billing                  ACT API
 GSCS                            Document Management
 GSCS                            Product Catalog
-GSCS                            Quote Manager
+GSCS                            Quote Management
 GSCS                            Raptor
 GSCS                            SF Stash
 Oracle EBS                      FMW (Calabrio)
