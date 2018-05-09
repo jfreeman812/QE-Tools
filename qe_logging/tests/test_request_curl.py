@@ -1,4 +1,5 @@
 from itertools import product
+from random import choice
 
 import json
 import pytest
@@ -50,15 +51,6 @@ def _fmt_data(payload_data):
     return format_if(" -d '{}'", value)
 
 
-EXCLUDE_PARAMS_TO_TEST = {
-    'command': RequestCurl.command,
-    'method': EXPECTED_FOR_METHODS[DEFAULT_METHOD],
-    'headers': [_fmt_headers(k, v) for k, v in DEFAULT_HEADERS.items()][0],
-    'data': _fmt_data(DEFAULT_PAYLOAD_TO_TEST),
-    'url': _fmt_url(DEFAULT_URL)
-}
-
-
 @pytest.mark.parametrize('method,url_to_test', URLS_TO_TEST.items())
 def test_urls_are_correct(method, url_to_test):
     curl = _request_curl_with_defaults(method=method, url=url_to_test)
@@ -102,12 +94,25 @@ def test_skip_headers(headers_to_test):
     assert headers_to_test[key_to_skip] not in curl
 
 
-@pytest.mark.parametrize('param,excluded_data', EXCLUDE_PARAMS_TO_TEST.items())
-def test_exclude_params(param, excluded_data):
-    kwargs = {'headers': DEFAULT_HEADERS}
-    kwargs.update(DEFAULT_PAYLOAD_TO_TEST)
-    curl = _request_curl_with_defaults(kwargs=kwargs, exclude_params=[param])
-    assert excluded_data not in curl
+@pytest.mark.parametrize('test_param', ['command', 'method', 'headers', 'data', 'url'])
+def test_exclude_params(test_param):
+    excluded_value = generate_random_string()
+    data_to_test = {
+        'headers': {'kwargs': {'headers': {excluded_value: excluded_value}}},
+        'data': {'kwargs': {'data': {excluded_value: excluded_value}}},
+        'method': {'method': choice(METHODS_TO_TEST)},
+        'url': {'url': '{}{}'.format(DEFAULT_URL, excluded_value)},
+        'command': {'command': excluded_value}
+    }
+
+    kwargs = {'exclude_params': [test_param]}
+    kwargs.update(data_to_test[test_param])
+    curl = _request_curl_with_defaults(**kwargs)
+
+    # the param 'method' is its own special snowflake. It can not be set to a truly random value,
+    # and must be one of the valid test methods.
+    excluded_value = data_to_test['method'].get(test_param, excluded_value)
+    assert excluded_value not in curl
 
 
 @pytest.mark.parametrize('method,params', product(METHODS_TO_TEST, PARAMS_TO_TEST))

@@ -33,6 +33,7 @@ class RequestCurl(object):
             ``RequestCurl.default_override_headers``.
         skip_headers (list): Excludes any matching keys and values in the ``kwargs['headers]`` from
             the curl. Defaults to ``RequestCurl.default_skip_headers``.
+        command (str):  The command to execute.  Defaults to ``default_command``
 
     '''
     default_override_headers = {'X-Auth-Token': '$TOKEN'}
@@ -40,12 +41,14 @@ class RequestCurl(object):
         'Connection', 'Accept-Encoding', 'Accept', 'User-Agent', 'Content-Length'
     ]
     default_include_params = ['command', 'method', 'headers', 'data', 'url']
-    command = 'curl'
+    default_command = 'curl'
 
     def __init__(self, method=None, url=None, kwargs={}, exclude_params=[],
-                 override_headers=default_override_headers, skip_headers=default_skip_headers):
+                 override_headers=default_override_headers, skip_headers=default_skip_headers,
+                 command=default_command):
         self.override_headers = override_headers
         self.skip_headers = skip_headers
+        self.command=command
         self._request = self._prepare_request(method, url, kwargs)
         self.include_params = [x for x in self.default_include_params if x not in exclude_params]
 
