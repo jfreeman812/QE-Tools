@@ -48,7 +48,7 @@ class RequestCurl(object):
                  command=default_command):
         self.override_headers = override_headers
         self.skip_headers = skip_headers
-        self.command=command
+        self.command = command
         self._request = self._prepare_request(method, url, kwargs)
         self.include_params = [x for x in self.default_include_params if x not in exclude_params]
 

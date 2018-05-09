@@ -94,6 +94,14 @@ def test_skip_headers(headers_to_test):
     assert headers_to_test[key_to_skip] not in curl
 
 
+@pytest.mark.parametrize('command_to_test', [generate_random_string(), generate_random_string()])
+def test_command_is_used(command_to_test):
+    curl = _request_curl_with_defaults(command=command_to_test)
+
+    msg = 'curl {} did not start with {}'.format(curl, command_to_test)
+    assert curl.startswith(command_to_test), msg
+
+
 @pytest.mark.parametrize('test_param', ['command', 'method', 'headers', 'data', 'url'])
 def test_exclude_params(test_param):
     excluded_value = generate_random_string()
