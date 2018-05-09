@@ -1,3 +1,4 @@
+from copy import deepcopy
 from itertools import product
 
 import json
@@ -14,9 +15,9 @@ URLS_TO_TEST = {method: ''.join([DEFAULT_URL, method]) for method in METHODS_TO_
 DEFAULT_HEADERS = {'Content-Type': 'application/json'}
 HEADERS_TO_TEST = [DEFAULT_HEADERS, {'Content-Type': 'application/json', 'HEADER 1': 'Value'}]
 OVERRIDE_HEADER_KEY = 'override_this_key'
-OVERRIDE_HEADERS_TO_TEST = HEADERS_TO_TEST[:]
-for header_key in OVERRIDE_HEADERS_TO_TEST:
-    header_key[OVERRIDE_HEADER_KEY] = 'This value should not be found'
+OVERRIDE_HEADERS_TO_TEST = deepcopy(HEADERS_TO_TEST)
+for header_dict in OVERRIDE_HEADERS_TO_TEST:
+    header_dict[OVERRIDE_HEADER_KEY] = 'This value should not be found'
 DEFAULT_PAYLOAD_TO_TEST = {'json': {'a': '11'}}
 PAYLOADS_TO_TEST = [
     {},
