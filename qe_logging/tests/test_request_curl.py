@@ -1,9 +1,8 @@
-from copy import deepcopy
 from itertools import product
 
 import json
 import pytest
-from qecommon_tools import format_if
+from qecommon_tools import format_if, generate_random_string
 from qe_logging.requests_logging import RequestCurl
 
 
@@ -16,10 +15,6 @@ EXPECTED_FOR_METHODS['GET'] = 'curl'
 URLS_TO_TEST = {method: ''.join([DEFAULT_URL, method]) for method in METHODS_TO_TEST}
 DEFAULT_HEADERS = {'Content-Type': 'application/json'}
 HEADERS_TO_TEST = [DEFAULT_HEADERS, {'Content-Type': 'application/json', 'HEADER 1': 'Value'}]
-OVERRIDE_HEADER_KEY = 'override_this_key'
-OVERRIDE_HEADERS_TO_TEST = deepcopy(HEADERS_TO_TEST)
-for header_dict in OVERRIDE_HEADERS_TO_TEST:
-    header_dict[OVERRIDE_HEADER_KEY] = 'This value should not be found'
 DEFAULT_PAYLOAD_TO_TEST = {'json': {'a': '11'}}
 PAYLOADS_TO_TEST = [
     {},
@@ -79,26 +74,32 @@ def test_headers_are_correct(headers_to_test, method):
         assert _fmt_headers(key, value) in curl
 
 
-@pytest.mark.parametrize('headers_to_test', OVERRIDE_HEADERS_TO_TEST)
+@pytest.mark.parametrize('headers_to_test', HEADERS_TO_TEST)
 def test_override_headers(headers_to_test):
-    value_to_find = 'find_this'
+    value_to_find = generate_random_string()
+    key_to_override = generate_random_string()
+    value_to_not_find = generate_random_string()
+
+    headers_to_test[key_to_override] = value_to_not_find
     curl = _request_curl_with_defaults(
-        kwargs={'headers': headers_to_test}, override_headers={OVERRIDE_HEADER_KEY: value_to_find}
+        kwargs={'headers': headers_to_test}, override_headers={key_to_override: value_to_find}
     )
 
     assert value_to_find in curl
-    value_to_not_find = headers_to_test.get(OVERRIDE_HEADER_KEY)
     assert value_to_not_find not in curl
 
 
-@pytest.mark.parametrize('headers_to_test', OVERRIDE_HEADERS_TO_TEST)
+@pytest.mark.parametrize('headers_to_test', HEADERS_TO_TEST)
 def test_skip_headers(headers_to_test):
+    key_to_skip = generate_random_string()
+    headers_to_test[key_to_skip] = generate_random_string()
+
     curl = _request_curl_with_defaults(
-        kwargs={'headers': headers_to_test}, skip_headers=[OVERRIDE_HEADER_KEY]
+        kwargs={'headers': headers_to_test}, skip_headers=[key_to_skip]
     )
 
-    assert OVERRIDE_HEADER_KEY not in curl
-    assert headers_to_test[OVERRIDE_HEADER_KEY] not in curl
+    assert key_to_skip not in curl
+    assert headers_to_test[key_to_skip] not in curl
 
 
 @pytest.mark.parametrize('param,excluded_data', EXCLUDE_PARAMS_TO_TEST.items())
