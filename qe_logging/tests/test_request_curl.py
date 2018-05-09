@@ -4,7 +4,7 @@ from random import choice
 import json
 import pytest
 from qecommon_tools import format_if, generate_random_string
-from qe_logging.requests_logging import RequestCurl
+from qe_logging.requests_logging import curl_command_from
 
 
 # This is an arbitrary, but valid url, and is not contacted.
@@ -34,7 +34,7 @@ PARAMS_TO_TEST = [
 def _request_curl_with_defaults(**kwargs):
     kwargs['method'] = kwargs.get('method', DEFAULT_METHOD)
     kwargs['url'] = kwargs.get('url', DEFAULT_URL)
-    return str(RequestCurl(**kwargs))
+    return curl_command_from(**kwargs)
 
 
 def _fmt_headers(key, value):

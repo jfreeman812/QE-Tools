@@ -14,13 +14,16 @@ except ImportError:
 import requests
 
 
-class RequestCurl(object):
-    '''
-    Creates a curl command from the request items provided.
+DEFAULT_OVERRIDE_HEADERS = {'X-Auth-Token': '$TOKEN'}
+DEFAULT_SKIP_HEADERS = ['Connection', 'Accept-Encoding', 'Accept', 'User-Agent', 'Content-Length']
+DEFAULT_COMMAND = 'curl'
 
-    As __repr__ will return the curl string, the object can be logged to record the curl.  The
-    requests PreparedRequest model is used to be sure the values are formatted exactly as they would
-    be sent to the API.
+
+def curl_command_from(method=None, url=None, kwargs={}, exclude_params=[],
+                      override_headers=DEFAULT_OVERRIDE_HEADERS, skip_headers=DEFAULT_SKIP_HEADERS,
+                      command=DEFAULT_COMMAND):
+    '''
+    Creates a curl command string from the request items provided.
 
     Args:
         method (str): A valid requests method.
@@ -30,22 +33,30 @@ class RequestCurl(object):
             make the curl invalid.
         override_headers (dict): Any matching keys in the ``kwargs['headers]`` will have their
             values replaced with the corresponding values in ``override_headers``. Defaults to
-            ``RequestCurl.default_override_headers``.
+            ``DEFAULT_OVERRIDE_HEADERS``.
         skip_headers (list): Excludes any matching keys and values in the ``kwargs['headers]`` from
-            the curl. Defaults to ``RequestCurl.default_skip_headers``.
+            the curl. Defaults to ``DEFAULT_SKIP_HEADERS``.
         command (str):  The command to execute.  Defaults to ``default_command``
 
     '''
-    default_override_headers = {'X-Auth-Token': '$TOKEN'}
-    default_skip_headers = [
-        'Connection', 'Accept-Encoding', 'Accept', 'User-Agent', 'Content-Length'
-    ]
-    default_include_params = ['command', 'method', 'headers', 'data', 'url']
-    default_command = 'curl'
+    return str(
+        _RequestCurl(
+            method=method,
+            url=url,
+            kwargs=kwargs,
+            exclude_params=exclude_params,
+            override_headers=override_headers,
+            skip_headers=skip_headers,
+            command=command
+        )
+    )
 
-    def __init__(self, method=None, url=None, kwargs={}, exclude_params=[],
-                 override_headers=default_override_headers, skip_headers=default_skip_headers,
-                 command=default_command):
+
+class _RequestCurl(object):
+    default_include_params = ['command', 'method', 'headers', 'data', 'url']
+
+    def __init__(self, method=None, url=None, kwargs=None, exclude_params=None,
+                 override_headers=None, skip_headers=None, command=None):
         self.override_headers = override_headers
         self.skip_headers = skip_headers
         self.command = command
@@ -59,28 +70,23 @@ class RequestCurl(object):
         )
 
     def _command_string(self):
-        '''Return the command part of the curl.'''
         return self.command
 
     def _method_string(self):
-        '''Returns the method part of the curl.'''
         return {'GET': ''}.get(self._request.method, '-X {}'.format(self._request.method))
 
     def _single_header(self, key, value):
-        '''Returns a single formatted pair of headers.'''
         if key in self.skip_headers:
             return ''
         value = self.override_headers.get(key, value)
         return '-H "{}: {}"'.format(key, value)
 
     def _headers_string(self):
-        '''Returns the headers part of the curl.'''
         return ' '.join(
             filter(None, [self._single_header(k, v) for k, v in self._request.headers.items()])
         )
 
     def _data_string(self):
-        '''Returns the data part of the curl.'''
         request = self._request
         if not request.body:
             return ''
@@ -88,7 +94,6 @@ class RequestCurl(object):
         return "-d '{}'".format(body)
 
     def _url_string(self):
-        '''Returns the url part of the curl.'''
         return '"{}"'.format(self._request.url)
 
     def _prepare_request(self, method, url, kwargs):
