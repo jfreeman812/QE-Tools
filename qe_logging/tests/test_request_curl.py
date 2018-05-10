@@ -10,24 +10,45 @@ from qe_logging.requests_logging import curl_command_from
 # This is an arbitrary, but valid url, and is not contacted.
 DEFAULT_URL = 'https://www.httpbin.org/'
 DEFAULT_METHOD = 'POST'
-METHODS_TO_TEST = [DEFAULT_METHOD, 'GET', 'PUT', 'DELETE', 'PATCH']
-EXPECTED_FOR_METHODS = {m: 'curl -X {}'.format(m) for m in METHODS_TO_TEST}
-EXPECTED_FOR_METHODS['GET'] = 'curl'
-URLS_TO_TEST = {method: ''.join([DEFAULT_URL, method]) for method in METHODS_TO_TEST}
-DEFAULT_HEADERS = {'Content-Type': 'application/json'}
-HEADERS_TO_TEST = [DEFAULT_HEADERS, {'Content-Type': 'application/json', 'HEADER 1': 'Value'}]
-PAYLOADS_TO_TEST = [
-    {},
-    {'json': {}},
-    {'json': None},
-    {'json': {'a': '11'}},
-    {'data': 'THIS IS A LINE OF TEXT\nTHIS IS ANOTHER LINE'},
-]
-PARAMS_TO_TEST = [
-    {},
-    {'a': 'b'},
-    {'d': 'c'},
-]
+
+
+def _methods_to_test(exclude=''):
+    return [x for x in [DEFAULT_METHOD, 'GET', 'PUT', 'DELETE', 'PATCH'] if x != exclude]
+
+
+def _urls_to_test():
+    # Joining the url with a random string to provide unique urls.  The number of urls to test
+    # is simply an arbitrary number.
+    return [DEFAULT_URL] + [''.join([DEFAULT_URL, generate_random_string()]) for _ in range(2)]
+
+
+def _default_headers():
+    return {'Content-Type': 'application/json'}
+
+
+def _headers_to_test():
+    return [
+        _default_headers(),
+        {'Content-Type': 'application/json', 'HEADER 1': 'Value'}
+    ]
+
+
+def _payloads_to_test():
+    return [
+        {},
+        {'json': {}},
+        {'json': None},
+        {'json': {'a': '11'}},
+        {'data': 'THIS IS A LINE OF TEXT\nTHIS IS ANOTHER LINE'},
+    ]
+
+
+def _params_to_test():
+    return [
+        {},
+        {'a': 'b'},
+        {'d': 'c'},
+    ]
 
 
 def _request_curl_with_defaults(**kwargs):
@@ -50,22 +71,20 @@ def _fmt_data(payload_data):
     return format_if(" -d '{}'", value)
 
 
-@pytest.mark.parametrize('method,url_to_test', URLS_TO_TEST.items())
-def test_urls_are_correct(method, url_to_test):
-    curl = _request_curl_with_defaults(method=method, url=url_to_test)
+@pytest.mark.parametrize('url_to_test', _urls_to_test())
+def test_urls_are_correct(url_to_test):
+    curl = _request_curl_with_defaults(url=url_to_test)
     assert curl.endswith(_fmt_url(url_to_test))
 
 
-@pytest.mark.parametrize('headers_to_test,method', product(HEADERS_TO_TEST, METHODS_TO_TEST))
+@pytest.mark.parametrize('headers_to_test,method', product(_headers_to_test(), _methods_to_test()))
 def test_headers_are_correct(headers_to_test, method):
-    curl = _request_curl_with_defaults(
-        method=method, url=URLS_TO_TEST.get(method), kwargs={'headers': headers_to_test}
-    )
+    curl = _request_curl_with_defaults(method=method, kwargs={'headers': headers_to_test})
     for key, value in headers_to_test.items():
         assert _fmt_headers(key, value) in curl
 
 
-@pytest.mark.parametrize('headers_to_test', HEADERS_TO_TEST)
+@pytest.mark.parametrize('headers_to_test', _headers_to_test())
 def test_override_headers(headers_to_test):
     value_to_find = generate_random_string()
     key_to_override = generate_random_string()
@@ -80,7 +99,7 @@ def test_override_headers(headers_to_test):
     assert value_to_not_find not in curl
 
 
-@pytest.mark.parametrize('headers_to_test', HEADERS_TO_TEST)
+@pytest.mark.parametrize('headers_to_test', _headers_to_test())
 def test_skip_headers(headers_to_test):
     key_to_skip = generate_random_string()
     headers_to_test[key_to_skip] = generate_random_string()
@@ -105,7 +124,7 @@ def test_command_is_used(command_to_test):
 def test_exclude_params(test_param):
     # The GET method is not valid for testing the exclusion of a parameter, as it doesn't
     # actually appear in the curl, so there is no way to tell if it was purposefully excluded.
-    valid_exclusion_test_methods = [x for x in METHODS_TO_TEST if x != 'GET']
+    valid_exclusion_test_methods = _methods_to_test(exclude='GET')
     excluded_value = generate_random_string()
     data_to_test = {
         'headers': {'kwargs': {'headers': {excluded_value: excluded_value}}},
@@ -125,29 +144,27 @@ def test_exclude_params(test_param):
     assert excluded_value not in curl
 
 
-@pytest.mark.parametrize('method,params', product(METHODS_TO_TEST, PARAMS_TO_TEST))
-def test_params_are_set(method, params):
-    url = URLS_TO_TEST.get(method)
-    curl = _request_curl_with_defaults(
-        method=method, url=url, kwargs={'params': params}
-    )
+@pytest.mark.parametrize('url,params', product(_urls_to_test(), _params_to_test()))
+def test_params_are_set(url, params):
+    curl = _request_curl_with_defaults(url=url, kwargs={'params': params})
     for key, value in params.items():
         assert '{}={}'.format(key, value) in curl.split(url)[1]
 
 
-@pytest.mark.parametrize('method,payload', product(METHODS_TO_TEST, PAYLOADS_TO_TEST))
-def test_order_is_correct(method, payload):
-    url = URLS_TO_TEST.get(method)
-    payload['headers'] = DEFAULT_HEADERS
+@pytest.mark.parametrize(
+    'url,method,payload', product(_urls_to_test(), _methods_to_test(), _payloads_to_test())
+)
+def test_order_is_correct(url, method, payload):
+    payload['headers'] = _default_headers()
     curl = _request_curl_with_defaults(
         method=method, url=url, kwargs=payload
     )
 
-    expected = EXPECTED_FOR_METHODS.get(method)
+    expected = 'curl -X {}'.format(method) if method != 'GET' else 'curl'
     assert curl.startswith(expected), '{} did not start with {}'.format(curl, expected)
     curl = curl.replace(expected, '')
 
-    expected = ''.join([_fmt_headers(k, v) for k, v in DEFAULT_HEADERS.items()])
+    expected = ''.join([_fmt_headers(k, v) for k, v in _default_headers().items()])
     assert curl.startswith(expected), '{} did not start with {}'.format(curl, expected)
     curl = curl.replace(expected, '')
 
