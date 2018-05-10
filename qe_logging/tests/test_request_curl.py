@@ -22,14 +22,15 @@ def _urls_to_test():
     return [DEFAULT_URL] + [''.join([DEFAULT_URL, generate_random_string()]) for _ in range(2)]
 
 
-def _default_headers():
-    return {'Content-Type': 'application/json'}
-
-
 def _headers_to_test():
     return [
-        _default_headers(),
-        {'Content-Type': 'application/json', 'HEADER 1': 'Value'}
+        {'Content-Type': 'application/json'},
+        {'Content-Type': 'text/html', generate_random_string(): generate_random_string()},
+        {
+            'Content-Type': 'application/json',
+            'HEADER 1': 'Value',
+            generate_random_string(): generate_random_string()
+        }
     ]
 
 
@@ -40,6 +41,16 @@ def _payloads_to_test():
         {'json': None},
         {'json': {'a': '11'}},
         {'data': 'THIS IS A LINE OF TEXT\nTHIS IS ANOTHER LINE'},
+        {'data': '''
+         <html>
+            <head>
+                <title>Page Not Found</title>
+            </head>
+            <body>
+                <h1>Page Not Found</h1>
+            </body>
+        </html>
+        '''},
     ]
 
 
@@ -77,13 +88,6 @@ def test_urls_are_correct(url_to_test):
     assert curl.endswith(_fmt_url(url_to_test))
 
 
-@pytest.mark.parametrize('headers_to_test,method', product(_headers_to_test(), _methods_to_test()))
-def test_headers_are_correct(headers_to_test, method):
-    curl = _request_curl_with_defaults(method=method, kwargs={'headers': headers_to_test})
-    for key, value in headers_to_test.items():
-        assert _fmt_headers(key, value) in curl
-
-
 @pytest.mark.parametrize('headers_to_test', _headers_to_test())
 def test_override_headers(headers_to_test):
     value_to_find = generate_random_string()
@@ -116,7 +120,7 @@ def test_skip_headers(headers_to_test):
 def test_command_is_used(command_to_test):
     curl = _request_curl_with_defaults(command=command_to_test)
 
-    msg = 'curl {} did not start with {}'.format(curl, command_to_test)
+    msg = 'command {} did not start with {}'.format(curl, command_to_test)
     assert curl.startswith(command_to_test), msg
 
 
@@ -152,25 +156,22 @@ def test_params_are_set(url, params):
 
 
 @pytest.mark.parametrize(
-    'url,method,payload', product(_urls_to_test(), _methods_to_test(), _payloads_to_test())
+    'url,method,payload,headers',
+    product(_urls_to_test(), _methods_to_test(), _payloads_to_test(), _headers_to_test())
 )
-def test_order_is_correct(url, method, payload):
-    payload['headers'] = _default_headers()
+def test_curl_with_all_items(url, method, payload, headers):
+    payload['headers'] = headers
     curl = _request_curl_with_defaults(
         method=method, url=url, kwargs=payload
     )
 
-    expected = 'curl -X {}'.format(method) if method != 'GET' else 'curl'
-    assert curl.startswith(expected), '{} did not start with {}'.format(curl, expected)
-    curl = curl.replace(expected, '')
+    expected_curl_parts = [
+        ['curl -X {}'.format(method) if method != 'GET' else 'curl'],
+        [_fmt_headers(k, v) for k, v in headers.items()],
+        [_fmt_data(payload)],
+        [_fmt_url(url)],
+    ]
 
-    expected = ''.join([_fmt_headers(k, v) for k, v in _default_headers().items()])
-    assert curl.startswith(expected), '{} did not start with {}'.format(curl, expected)
-    curl = curl.replace(expected, '')
-
-    expected = _fmt_data(payload)
-    assert curl.startswith(expected), '{} did not start with {}'.format(curl, expected)
-    curl = curl.replace(expected, '')
-
-    expected = _fmt_url(url)
-    assert curl.startswith(expected), '{} did not start with {}'.format(curl, expected)
+    for expected_items in expected_curl_parts:
+        for expected in expected_items:
+            assert expected in curl, '{} does not contain {}'.format(curl, expected)
