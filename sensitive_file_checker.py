@@ -4,13 +4,9 @@ from github_tools import GHPRSession, ghprb_info, get_github_commenter_parser
 from qecommon_tools import get_file_docstring
 
 
-sensitive_files = [
-    'data_broker/__schema_version__.py'
-]
-
-
 def main():
     parser = get_github_commenter_parser('Docs link PR Commenter')
+    parser.add_argument('sensitive_files', nargs='+', help='The sensitive files to check.')
     args = parser.parse_args()
     repo = ghprb_info.repository
     pull_id = ghprb_info.pull_request_id
@@ -18,7 +14,7 @@ def main():
 
     gh = GHPRSession(args.token, domain, repo, pull_id)
 
-    for sensitive_file in sensitive_files:
+    for sensitive_file in args.sensitive_files:
         diff = gh.get_diff(files=sensitive_file)
         if diff:
             module_docstring = get_file_docstring(sensitive_file)
