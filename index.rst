@@ -3,6 +3,7 @@ QE-Tools
 
 A collection of tools designed for use in the larger Rackspace QE Organization.
 
+
 Libraries
 ---------
 
@@ -79,3 +80,10 @@ check-unicode.py                                     Checks a directory structur
    :caption: Contributing
 
    _docs/contributing
+
+
+.. toctree::
+   :caption: SDLC Documents
+
+   Overview <sdlcs/README>
+   Gherkin Standards <sdlcs/gherkin-standards>
