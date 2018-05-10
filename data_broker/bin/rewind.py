@@ -10,7 +10,7 @@ import time
 
 import requests
 
-from app import PROD_DATA_DIR
+from prod_data_dir import PROD_DATA_DIR
 
 FILENAME_TIMESTAMP_FORMAT = '%Y%m%d_%H%M%S'
 POST_URL = 'https://qetools.rax.io/coverage/production'
