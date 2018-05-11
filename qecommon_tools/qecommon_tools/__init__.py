@@ -10,6 +10,9 @@ import subprocess as _subprocess
 import sys as _sys
 
 
+NEW_THING = 'Woo!!! Party!!!'
+
+
 def display_name(path, package_name=''):
     '''
     Create a human-readable name for a given project.
