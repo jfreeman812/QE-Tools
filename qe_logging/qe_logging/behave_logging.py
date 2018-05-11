@@ -9,12 +9,22 @@ behave environment.py file so that you can easily call them from the
 same functions there. For consistency, and ease of use, these before/after
 functions take the same parameters as the functions in the
 environment.py file.
+
+.. note::
+    By importing this module, various behave loggers will be created and their log
+    levels set to DEBUG. This captures all logging from any 'behave' logger in our log files
+    while still permitting the behave command-line logging parameters to operate, as
+    expected, to control the level of capturing displayed on step faliure.
+    If behave's logcapture is turned off all 'behave' logger output is also displayed on the console
+    during a run, regardless of the log level set on from the command line (or config file).
 '''
 
 import logging
 
 from qe_logging import setup_logging
 
+
+logging.getLogger('behave').setLevel(logging.DEBUG)
 
 _all_debug = logging.getLogger('behave.all').debug
 _feature_debug = logging.getLogger('behave.feature').debug
