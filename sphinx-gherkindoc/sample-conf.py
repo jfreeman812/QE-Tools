@@ -1,0 +1,78 @@
+# Sample Sphinx config file for use with behave-based testing repositories.
+
+import os
+import sys
+
+import sphinx_rtd_theme
+
+# PLEASE EDIT THE FOLLOWING CONFIGURATION INFORMATION:
+
+# General information about your project.
+project = 'Your Project Name Here'
+copyright = '2018, Rackspace Quality Engineering'  # noqa
+author = 'Your Quality Engineering Team Name Here'
+
+# The version info for the project you're documenting, acts as replacement for
+# |version| and |release|, also used in various other places throughout the
+# built documents.
+#
+# The short X.Y version.
+version = ''
+
+# The full version, including alpha/beta/rc tags.
+release = ''
+
+# BELOW HERE YOU SHOULD BE ABLE TO LEAVE AS-IS.
+
+
+extensions = ['sphinx.ext.autodoc', 'sphinx.ext.napoleon', 'sphinx.ext.todo',
+              'sphinx.ext.coverage', 'sphinx.ext.ifconfig',
+              'sphinx.ext.viewcode', 'sphinx.ext.githubpages']
+
+# Add any paths that contain templates here, relative to this directory.
+templates_path = ['_templates']
+
+source_suffix = ['.rst']
+
+# The master toctree document.
+master_doc = 'index'
+
+# List of patterns, relative to source directory, that match files and
+# directories to ignore when looking for source files.
+# This patterns also effect to html_static_path and html_extra_path
+exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store',
+                    '.tox', '*/.tox', '.eggs', '*/.eggs',
+                    'README.rst']
+
+# The name of the Pygments (syntax highlighting) style to use.
+pygments_style = 'sphinx'
+
+# If true, `todo` and `todoList` produce output, else they produce nothing.
+todo_include_todos = True
+
+
+# -- Options for HTML output ----------------------------------------------
+
+# The theme to use for HTML and HTML Help pages.  See the documentation for
+# a list of builtin themes.
+#
+
+html_theme = 'sphinx_rtd_theme'
+html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
+commit_id = os.environ.get('ghprbPullId') or os.environ.get('GIT_COMMIT_ID')
+base_url = os.environ.get('ghprbPullLink')
+if not base_url:
+    owner_name = os.path.splitext(os.environ.get('GIT_ORIGIN_URL').split(':')[1])[0]
+    base_url = 'https://github.rackspace.com/{}/tree/{}'.format(owner_name, commit_id)
+html_context = {'build_id': commit_id, 'build_url': base_url}
+
+
+def setup(app):
+    app.add_stylesheet('theme_overrides.css')
+    app.add_stylesheet('jquery.dataTables.min.css')
+    app.add_javascript('jquery.dataTables.min.js')
+    app.add_javascript('dataTables_activate.js')
+
+
+# Example configuration for intersphinx: refer to the Python standard library.
+intersphinx_mapping = {'python': ('https://docs.python.org/3/', None)}
