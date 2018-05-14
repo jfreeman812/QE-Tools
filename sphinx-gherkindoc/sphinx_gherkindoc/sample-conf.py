@@ -65,8 +65,7 @@ commit_id = os.environ.get('ghprbPullId') or os.environ.get('GIT_COMMIT_ID')
 base_url = os.environ.get('ghprbPullLink')
 if not base_url:
     if 'GIT_ORIGIN_URL' not in os.environ:
-        owner_name = 'No Owner - git version information unavailable'
-        base_url = 'No URL - git reposoitory information unavailable'
+        base_url = ''  # If this is non-empty, sphinx will make it clickable.
     else:
         owner_name = os.path.splitext(os.environ.get('GIT_ORIGIN_URL').split(':')[1])[0]
         base_url = 'https://github.rackspace.com/{}/tree/{}'.format(owner_name, commit_id)
