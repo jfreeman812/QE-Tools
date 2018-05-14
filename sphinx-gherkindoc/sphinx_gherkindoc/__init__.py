@@ -12,7 +12,7 @@ import behave.parser
 import sphinx
 import sphinx.util
 
-from qecommon_tools import display_name
+from qecommon_tools import display_name, get_file_contents
 
 SOURCE_PATTERNS = ('*.feature', '*.md', '*.rst')
 SKIPPED_SET = set()
@@ -372,6 +372,35 @@ def main():
     if args.step_glossary:
         glossary_name = '{}_glossary'.format(toc_file.dest_prefix)
         write_steps_glossary(glossary_name, args)
+
+
+def config():
+    '''Emit a customized version of the sample sphinx config file'''
+    description = 'Create a default Sphinx configuration for producing nice' \
+                  ' Gherkin-based documentation'
+    parser = argparse.ArgumentParser(description=description)
+    parser.add_argument('project_name', default='Your Project Name Here',
+                        help='Name of your project')
+    parser.add_argument('author', default='Your Team Name Here',
+                        help='Directory to place all output')
+    parser.add_argument('--version', default='',
+                        help='version of your project, if any')
+    parser.add_argument('--release', default='',
+                        help='release of your project, if any')
+    args = parser.parse_args()
+
+    substitutions = {
+        '%%PROJECT%%': args.project_name,
+        '%%AUTHOR%%': args.author,
+        '%%VERSION%%': args.version,
+        '%%RELEASE%%': args.release
+    }
+    source_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
+    sample_contents = get_file_contents(source_dir, 'sample-conf.py')
+    for old_value, new_value in substitutions.items():
+        sample_contents = sample_contents.replace(old_value, new_value)
+
+    print(sample_contents)
 
 
 if __name__ == '__main__':

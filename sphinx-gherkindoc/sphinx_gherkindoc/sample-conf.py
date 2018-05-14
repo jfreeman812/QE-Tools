@@ -7,19 +7,19 @@ import sys
 # PLEASE EDIT THE FOLLOWING CONFIGURATION INFORMATION:
 
 # General information about your project.
-project = 'Your Project Name Here'
+project = '%%PROJECT%%'
 copyright = '2018, Rackspace Quality Engineering'  # noqa
-author = 'Your Quality Engineering Team Name Here'
+author = '%%AUTHOR%%'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
 # built documents.
 #
 # The short X.Y version.
-version = ''
+version = '%%VERSION%%'
 
 # The full version, including alpha/beta/rc tags.
-release = ''
+release = '%%RELEASE%%'
 
 # BELOW HERE YOU SHOULD BE ABLE TO LEAVE AS-IS.
 
