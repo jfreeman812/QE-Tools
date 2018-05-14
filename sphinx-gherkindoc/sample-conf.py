@@ -3,7 +3,6 @@
 import os
 import sys
 
-import sphinx_rtd_theme
 
 # PLEASE EDIT THE FOLLOWING CONFIGURATION INFORMATION:
 
@@ -41,8 +40,7 @@ master_doc = 'index'
 # directories to ignore when looking for source files.
 # This patterns also effect to html_static_path and html_extra_path
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store',
-                    '.tox', '*/.tox', '.eggs', '*/.eggs',
-                    'README.rst']
+                    '.tox', '*/.tox', '.eggs', '*/.eggs']
 
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = 'sphinx'
@@ -57,22 +55,19 @@ todo_include_todos = True
 # a list of builtin themes.
 #
 
+# If anyone wants to use another theme, they can change that here,
+# but we consider that expert Sphinx user territory.
+import sphinx_rtd_theme   # noqa
 html_theme = 'sphinx_rtd_theme'
 html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
+
 commit_id = os.environ.get('ghprbPullId') or os.environ.get('GIT_COMMIT_ID')
 base_url = os.environ.get('ghprbPullLink')
 if not base_url:
-    owner_name = os.path.splitext(os.environ.get('GIT_ORIGIN_URL').split(':')[1])[0]
-    base_url = 'https://github.rackspace.com/{}/tree/{}'.format(owner_name, commit_id)
+    if 'GIT_ORIGIN_URL' not in os.environ:
+        owner_name = 'No Owner - git version information unavailable'
+        base_url = 'No URL - git reposoitory information unavailable'
+    else:
+        owner_name = os.path.splitext(os.environ.get('GIT_ORIGIN_URL').split(':')[1])[0]
+        base_url = 'https://github.rackspace.com/{}/tree/{}'.format(owner_name, commit_id)
 html_context = {'build_id': commit_id, 'build_url': base_url}
-
-
-def setup(app):
-    app.add_stylesheet('theme_overrides.css')
-    app.add_stylesheet('jquery.dataTables.min.css')
-    app.add_javascript('jquery.dataTables.min.js')
-    app.add_javascript('dataTables_activate.js')
-
-
-# Example configuration for intersphinx: refer to the Python standard library.
-intersphinx_mapping = {'python': ('https://docs.python.org/3/', None)}
