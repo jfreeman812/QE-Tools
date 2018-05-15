@@ -8,11 +8,13 @@ VERSION = None
 CONSOLE_SCRIPTS = [
 ]
 
+# NOTE: Compatibility checks for other QE-Tools packages are at the
+# Major.Minor level; for third party packages, the patch level is included.
 INSTALL_REQUIRES = [
-    'qecommon_tools~=1.1.7',
-    'qe_logging~=1.1.1',
-    'qe_coverage~=1.5.5',
-    'sphinx_gherkindoc~=1.0.3',
+    'qecommon_tools~=1.1',
+    'qe_logging~=1.1',
+    'qe_coverage~=1.5',
+    'sphinx_gherkindoc~=1.0',
     'behave~=1.2.6',
     'flake8~=3.5.0',
     'flake8-builtins~=1.4.1',
