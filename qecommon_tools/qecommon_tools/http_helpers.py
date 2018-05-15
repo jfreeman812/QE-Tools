@@ -25,13 +25,15 @@ STATUS_CODE_RANGES = {
 def safe_json_from(response):
     '''
     Accepts a response object and attempts to return the JSON-decoded data.
-    On decode failure, raises an AssertionError with relevant details.
 
     Args:
         response (requests.models.Response): a Response object from a requests call
 
     Returns:
-        the JSON-decoded data from the response
+        The JSON-decoded data from the response
+
+    Raises:
+        AssertionError: if the JSON data cannot be decoded properly.
     '''
     # the json module in py2 doesn't contain the specific error,
     # and instead throws a generic ValueError
@@ -61,17 +63,14 @@ def get_data_from_response(response, dig_layers=None, check_empty=True, first_on
 
         Examples usages::
 
-            > get_data_from_response(response, dig_layers='data')
-            # {'key': 'value'}
-
-            > get_data_from_response(response, dig_layers='data', first_only=False)
-            # [{'key': 'value'}, {'key': 'value2'}]
-
-            > get_data_from_response(response, dig_layers='other')
-            # AssertionError: Payload was empty: ''
-
-            > get_data_from_response(response, dig_layers='other', check_empty=False)
-            # ""
+            >>> get_data_from_response(response, dig_layers='data')
+            {'key': 'value'}
+            >>> get_data_from_response(response, dig_layers='data', first_only=False)
+            [{'key': 'value'}, {'key': 'value2'}]
+            >>> get_data_from_response(response, dig_layers='other')
+            AssertionError: Payload was empty: ''
+            >>> get_data_from_response(response, dig_layers='other', check_empty=False)
+            ""
 
     Args:
         response (requests.models.Response): a Response object from a requests call
@@ -100,9 +99,13 @@ def get_data_from_response(response, dig_layers=None, check_empty=True, first_on
 
 def get_data_list(response, **kwargs):
     '''
+    Get the full list of data from within a response, if the data is a list.
+
     Helper around get_data_for_response that returns the full list of data
-    if the data is in a list format.
-    (rather than the default of returning the first object inside the list)
+    if the data is in a list format, rather than the default of returning
+    the first object inside the list.
+
+    For ``**kwargs`` values and more information, see :py:func:`get_data_from_response`.
     '''
     kwargs.update(first_only=False)
     return get_data_from_response(response, **kwargs)
@@ -110,11 +113,19 @@ def get_data_list(response, **kwargs):
 
 def _indent_items(*items):
     '''
-    Adds a tab to every item in *items, if the item is a list, this function will be recursively
-    called with the contents of that list, adding an additional tab stop.  Each additional nested
-    list will result in an additional tab for every item in that additional list.
-    Ex: *items = 'ex1', 'ex2', ['nested1', 'nested2', ['double1'], ['double2]], 'ex3' ->
-    ['\tex1', '\tex2', '\t\tnested1', '\t\tnested2', '\t\t\tdouble1', '\t\t\tdouble2']
+    Indent all items recursively.
+
+    Adds a tab to every item in ``*items``. If the item is a list, this function
+    will be recursively called with the contents of that list, adding an additional
+    tab stop.  Each additional nested list will result in an additional tab for every
+    item in that additional list.
+
+    Returns:
+        list: The items given, with all nested items having an added indent.
+
+    Examples:
+        >>>_indent_items('ex1', 'ex2', ['nested1', 'nested2', ['double1'], ['double2']], 'ex3')
+        ['\tex1', '\tex2', '\t\tnested1', '\t\tnested2', '\t\t\tdouble1', '\t\t\tdouble2']
     '''
     return ['\t{}'.format(s)
             for x in items for s in chain(_indent_items(*x) if isinstance(x, list) else [x])]
@@ -122,26 +133,25 @@ def _indent_items(*items):
 
 def format_items_as_string_tree(*items):
     '''
-    Formats the items provided as a string representing a "tree" format.  Any lists or nested lists
-    will be flattened, with each level of nesting of lists, getting its own level of indentation.
-    Each item once flattened with the appropriate level of indentation provided will be placed on
-    its own line.
+    Format the items provided as a string representing a "tree" format.
+
+    Any lists or nested lists will be flattened, with each level of nested lists
+    getting its own level of indentation. Each item, once flattened with the
+    appropriate level of indentation provided, will be placed on its own line.
+
+    Returns:
+        str: An indented "tree" format of the items.
 
     Example:
-
-        Sample Input::
-
-            items = 'ex1', 'ex2', ['nested1', 'nested2', ['double1'], ['double2]], 'ex3'
-
-        Sample Output::
-
-            >---ex1
-            >---ex2
-            >--->---nested1
-            >--->---nested2
-            >--->--->---double1
-            >--->--->---double2
-            >---ex3
+        >>> format_items_as_string_tree('ex1', 'ex2', ['nested1', 'nested2',
+        >>>                             ['double1'], ['double2']], 'ex3')
+            ex1
+            ex2
+                nested1
+                nested2
+                    double1
+                    double2
+            ex3
     '''
     return '\n'.join(_indent_items(*items))
 
@@ -154,7 +164,7 @@ def _status_code_from(status_description):
 
 def is_status_code(expected_status_description, actual_status_code):
     '''
-    Verifies that a given status code matches the expected result
+    Determine if a given status code matches the expected result.
 
     Args:
         expected_status_description (str, int): The result to match. Can be:
@@ -164,7 +174,10 @@ def is_status_code(expected_status_description, actual_status_code):
         actual_status_code (int): the status code from the response to be validated
 
     Returns:
-        bool: True actual matches expected, False otherwise
+        bool: Whether or not the actual status code matches the expected status description.
+
+    Raises:
+        AssertionError: if an invalid ``expected_status_description`` value is provided.
     '''
     if expected_status_description in STATUS_CODE_RANGES:
         # a range descriptor was provided
@@ -181,8 +194,9 @@ def is_status_code(expected_status_description, actual_status_code):
 def create_error_message(summary_line, request, response_content, additional_info=None):
     '''
     Create a detailed error message based on an API call.
+
     This message will include information about the request and response,
-    cutting off the response content at the set MAX_ERROR_MESSAGE_CONTENT_LENGTH.
+    cutting off the response content at the set ``MAX_ERROR_MESSAGE_CONTENT_LENGTH``.
     Additional information can be included in the message by including the
     ``additional_info`` parameter.
 
@@ -190,8 +204,9 @@ def create_error_message(summary_line, request, response_content, additional_inf
         summary_line (str): The first line of the message that describes the error.
         request (Request): The python requests library Request.
         response_content (str): The response content to be included in the response.
-        additional_info (dict): A dictionary containing additional information to be included in
-            the message. The keys and values will be separated by a ":" in the message. (optional)
+        additional_info (dict): A dictionary containing additional information to be
+            included in the message. The keys and values will be separated by a
+            ``":"`` in the message. (optional)
 
     Returns:
         str: The complete and detailed error message.
@@ -221,7 +236,7 @@ def create_error_message(summary_line, request, response_content, additional_inf
 
 def check_response_status_code(expected_status_description, response, call_description=None):
     '''
-    Checks that a response's status code matches an expected status code.
+    Checks that a response's status code matches an expected status description.
 
     Args:
         expected_status_description (str, int): The expected HTTP response status reason or code.
