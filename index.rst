@@ -26,6 +26,7 @@ Several libraries have been created that can be installed via :doc:`Artifactory<
    qecommon_tools <docs/qecommon_tools>
    qe_coverage <_docs/reporting/qe_coverage>
    qe_logging <docs/qe_logging>
+   qe_behave <_docs/qe_behave/README>
    github_tools <_docs/github_tools/README>
    sphinx-gherkindoc <_docs/sphinx-gherkindoc/README>
    tableread <_docs/tableread/README>
