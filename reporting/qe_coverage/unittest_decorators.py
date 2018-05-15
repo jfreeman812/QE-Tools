@@ -88,8 +88,9 @@ ENVIRONMENT_MATCHING_METHOD_NAME = 'current_environment_matches'
 This method must be implemented in order to utilize environment
 related decorator functionality.
 
-NOTE: This method is called when the decorators are being run,
-so it must be a @staticmethod.
+Note:
+    This method is called when the decorators are being run,
+    so it must be a ``@staticmethod``.
 '''
 
 COVERAGE_TAG_DECORATOR_TAG_LIST_NAME = '__coverage_report_tags__'
@@ -118,7 +119,7 @@ else:
 
     @wrapt.decorator
     def unless_coverage(wrapped, instance, args, kwargs):
-        '''Decorate a function (such as setUp) that shouldn't run when doing a coverage only run.'''
+        # Decorate a function (such as setUp) that shouldn't run when doing a coverage only run.
         pass
 
     # We're going to do a cheap-o jsonlines like solution here, each test
@@ -148,6 +149,14 @@ else:
         # flush 'atexit' time, it didn't work. I didn't dig deeply in to why.
         _coverage_report_file.flush()
 
+# Ensure the sphinx docs have useful documentation for `unless_coverage`
+unless_coverage.__doc__ = '''
+A decorator to be used to prevent certain methods from running when doing a coverage run.
+
+A number of a methods will always run during a test run, such as ``setUp``, ``setUpClass``,
+``tearDown``, and ``tearDownClass``. The logic in these methods is not necessary during
+a coverage run, so use ``unless_coverage`` to save time (and possibly prevent some errors).
+'''
 
 # INTERIM LIST!
 # This *must* come from coverage.rst and table read as a FF on this code.
@@ -480,7 +489,7 @@ def not_tested(details, environment_affected=None):
 
 def nyi(details):
     '''
-    Mark a test case or class as not implemented, and skip the test case.
+    Mark a test case as not implemented, and skip the test case.
 
     The ``details`` parameter should include the ID for the ticket designated
     for implementing this test.
@@ -586,16 +595,19 @@ def tags(*tags_list):
         This decorator generator must be outermost of all the decorators in this file.
 
         This decorator generator will also mutate the cafe tags so that anything other
-        than the status tag and a ticket tag will have a non-operational status tag prepended to it.
-        This is overcome a limitation in the cafe test runner that cannot use tags to exclude tests.
-        So to accomplish this, a test that is tagged with both 'nyi' and 'regression' will have its
-        cafe tags changed to be 'nyi' and 'nyi-regression' so that any test run as `-t regression`
-        will _not_ be able to select this test. This is handy, esp. in the case of quarantined tags
-        where it might be desirable to run quarantined-smoke tests on a regular basis. It seems
-        unlikely that running nyi-<anything> tests would be useful, but it would be possible.
+        than the status tag and a ticket tag will have a non-operational status tag
+        prepended to it. This is to overcome a limitation in the cafe test runner that
+        cannot use tags to exclude tests.
 
-        Any ticket tags must start with the full ID, e.g. 'JIRA-123' otherwise the non-operational
-        status tag will be prepended to it, as described above.
+        So to accomplish this, a test that is tagged with both 'nyi' and 'regression'
+        will have its cafe tags changed to be 'nyi' and 'nyi-regression' so that any
+        test run as ``-t regression`` will _not_ be able to select this test. This is handy,
+        especially in the case of quarantined tags where it might be desirable to run
+        quarantined-smoke tests on a regular basis. It seems unlikely that running
+        ``nyi-<anything>`` tests would be useful, but it would be possible.
+
+        Any ticket tags must start with the full ID, e.g. ``JIRA-123`` otherwise the
+        non-operational status tag will be prepended to it, as described above.
     '''
     tags_list = list(tags_list)  # make sure it is a re-usable iterable.
 
