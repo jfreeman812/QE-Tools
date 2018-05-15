@@ -23,7 +23,6 @@ TESTS_REQUIRE = [
 ]
 
 EXTRAS_REQUIRE = {
-    'API': ['qe_requests'],   # Place holder!
     'UI': ['selenium~=3.12'],
 }
 
