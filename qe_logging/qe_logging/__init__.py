@@ -43,8 +43,9 @@ def setup_logging(log_name_prefix, *historical_log_dir_layers, **kwargs):
     One handler will be set to write in the base log directory,
     the other in the historical log dir layers (if provided) with time stamped directories.
 
-    NOTE: For historical reasons, ``setup_logging`` will set up handlers only
-    if no root level file handlers are already defined.
+    Note:
+        For historical reasons, ``setup_logging`` will set up handlers only
+        if no root level file handlers are already defined.
 
     Args:
         log_name_prefix (str): The prefix for the log file name, prepended to .master.log.
@@ -61,7 +62,7 @@ def setup_logging(log_name_prefix, *historical_log_dir_layers, **kwargs):
             logging.Formatter instance.
 
     Returns:
-        List[str]: log-file filenames that were created, or the empty list if none created.
+        List[str]: log-file filenames that were created, or the empty list if none were created.
 
     Examples:
         >>> import logging

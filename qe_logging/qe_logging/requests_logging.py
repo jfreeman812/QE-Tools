@@ -38,6 +38,8 @@ def curl_command_from(method=None, url=None, kwargs={}, exclude_params=[],
             the curl. Defaults to ``DEFAULT_SKIP_HEADERS``.
         command (str):  The command to execute.  Defaults to ``default_command``
 
+    Returns:
+        str: the curl command
     '''
     return str(
         _RequestCurl(
