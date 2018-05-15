@@ -7,11 +7,13 @@ DESCRIPTION = 'A tool to convert Gherkin files into Sphinx documentation'
 VERSION = None
 
 CONSOLE_SCRIPTS = [
-    'sphinx-gherkindoc=sphinx_gherkindoc:main'
+    'sphinx-gherkindoc=sphinx_gherkindoc:main',
+    'sphinx-gherkinconfig=sphinx_gherkindoc:config'
 ]
 
 INSTALL_REQUIRES = [
     'Sphinx>=1.3,<1.7',
+    'sphinx_rtd_theme>=0.3.1',
     'behave>=1.2.6',
     'qecommon_tools>=1.0.0'
 ]
