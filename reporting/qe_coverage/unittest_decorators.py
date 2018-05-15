@@ -119,7 +119,7 @@ else:
 
     @wrapt.decorator
     def unless_coverage(wrapped, instance, args, kwargs):
-        # Decorate a function (such as setUp) that shouldn't run when doing a coverage only run.
+        '''Decorate a function (such as setUp) that shouldn't run when doing a coverage only run.'''
         pass
 
     # We're going to do a cheap-o jsonlines like solution here, each test
