@@ -18,14 +18,15 @@ INSTALL_REQUIRES = [
     'behave~=1.2.6',
     'flake8~=3.5.0',
     'flake8-builtins~=1.4.1',
-    'flake8-tuple~=0.2.13'
+    'flake8-tuple~=0.2.13',
 ]
 
 TESTS_REQUIRE = [
 ]
 
 EXTRAS_REQUIRE = {
-    'UI': ['selenium~=3.12'],
+    'API': ['requests~=2.18.4'],
+    'UI': ['selenium~=3.12.0'],
 }
 
 
