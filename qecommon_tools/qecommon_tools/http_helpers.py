@@ -56,22 +56,6 @@ def get_data_from_response(response, dig_layers=None, check_empty=True, first_on
     '''
     Accepts a response object and returns a dict of the data contained within.
 
-    Examples:
-        Sample JSON payload::
-
-            {"data": [{"key": "value"}, {"key": "value2"}], "other": ""}
-
-        Examples usages::
-
-            >>> get_data_from_response(response, dig_layers='data')
-            {'key': 'value'}
-            >>> get_data_from_response(response, dig_layers='data', first_only=False)
-            [{'key': 'value'}, {'key': 'value2'}]
-            >>> get_data_from_response(response, dig_layers='other')
-            AssertionError: Payload was empty: ''
-            >>> get_data_from_response(response, dig_layers='other', check_empty=False)
-            ""
-
     Args:
         response (requests.models.Response): a Response object from a requests call
         dig_layers (list): A list of keys to "dig" down into the response before returning
@@ -80,6 +64,19 @@ def get_data_from_response(response, dig_layers=None, check_empty=True, first_on
 
     Returns:
         The data payload.
+
+    Examples:
+        >>> response.json() == {"data": [{"key": "value"}, {"key": "value2"}], "other": ""}
+        True
+        >>>
+        >>> get_data_from_response(response, dig_layers=['data'])
+        {'key': 'value'}
+        >>> get_data_from_response(response, dig_layers=['data'], first_only=False)
+        [{'key': 'value'}, {'key': 'value2'}]
+        >>> get_data_from_response(response, dig_layers=['other'])
+        AssertionError: Payload was empty: ''
+        >>> get_data_from_response(response, dig_layers=['other'], check_empty=False)
+        ""
     '''
     # most common response is a 'list' of only one element, so first_only=True
     # will fix that by default, but allows a toggle to get full data if desired.

@@ -83,6 +83,9 @@ def list_from(item):
     Args:
         item: A single item or an iterable.
 
+    Returns:
+        list: A list from the item.
+
     Examples:
         >>> list_from(None)
         []
@@ -96,9 +99,6 @@ def list_from(item):
         ['abcd', 1234]
         >>> list_from({'abcd', 1234})
         ['abcd', 1234]
-
-    Returns:
-        list: A list from the item.
     '''
     if not item:
         return []
@@ -197,16 +197,6 @@ def generate_random_string(prefix='', suffix='', size=8):
     '''
     Generate a random string of the specified size.
 
-    Examples:
-        >>> generate_random_string()
-        'vng345jn'
-        >>> generate_random_string(prefix='Lbs-', suffix='-test', size=15)
-        'Lbs-js7eh9-test'
-        >>> generate_random_string(prefix='Lbs-', size=15)
-        'Lbs-js7eh98sfnk'
-        >>> generate_random_string(suffix='-test', size=15)
-        '8sdfjs7eh9-test'
-
     Args:
         prefix (str): The string to prepend to the beginning of the random string. (optional)
         suffix (str): The string to append to the end of the random string. (optional)
@@ -217,6 +207,16 @@ def generate_random_string(prefix='', suffix='', size=8):
 
     Raises:
         AssertionError: if the specified length is incompatible with prefix/suffix length
+
+    Examples:
+        >>> generate_random_string()
+        'vng345jn'
+        >>> generate_random_string(prefix='Lbs-', suffix='-test', size=15)
+        'Lbs-js7eh9-test'
+        >>> generate_random_string(prefix='Lbs-', size=15)
+        'Lbs-js7eh98sfnk'
+        >>> generate_random_string(suffix='-test', size=15)
+        '8sdfjs7eh9-test'
     '''
     possible_characters = _string.ascii_lowercase + _string.digits
     rand_string_length = size - len(prefix) - len(suffix)
