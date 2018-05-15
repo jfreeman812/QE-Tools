@@ -9,11 +9,14 @@ CONSOLE_SCRIPTS = [
 ]
 
 INSTALL_REQUIRES = [
-    'qecommon_tools>=1.1.7',
-    'qe_logging>=1.1.1',
-    'qe_coverage>=1.5.5',
-    'sphinx_gherkindoc>=1.0.1',
-    'behave>=1.2.6',
+    'qecommon_tools~=1.1.7',
+    'qe_logging~=1.1.1',
+    'qe_coverage~=1.5.5',
+    'sphinx_gherkindoc~=1.0.3',
+    'behave~=1.2.6',
+    'flake8~=3.5.0',
+    'flake8-builtins~=1.4.1',
+    'flake8-tuple~=0.2.13'
 ]
 
 TESTS_REQUIRE = [
@@ -21,7 +24,7 @@ TESTS_REQUIRE = [
 
 EXTRAS_REQUIRE = {
     'API': ['qe_requests'],   # Place holder!
-    'GUI': ['selenium>=3.12'],
+    'UI': ['selenium~=3.12'],
 }
 
 
