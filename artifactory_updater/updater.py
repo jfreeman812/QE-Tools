@@ -28,7 +28,10 @@ def _get_setup_info(container_dir, flag):
 
 def _latest_artifactory_version(package_name):
     package_url = 'https://{0}/artifactory/api/storage/{1}-pypi-local/{1}'
-    response = urlopen(package_url.format(ARTIFACTORY_DOMAIN, package_name)).read()
+    response = urlopen(package_url.format(ARTIFACTORY_DOMAIN, package_name))
+    if not 200 <= response.status <= 299:
+        return None
+    response = response.read()
     if isinstance(response, bytes):
         response = response.decode('utf-8')
     package_data = json.loads(response)
@@ -54,7 +57,7 @@ def check_and_update(container_dir, update=True):
     print('Checking {}...'.format(pkg_name))
     pkg_version = _get_setup_info(container_dir, 'version')
     artifactory_version = _latest_artifactory_version(pkg_name)
-    if parse_version(pkg_version) <= parse_version(artifactory_version):
+    if artifactory_version and parse_version(pkg_version) <= parse_version(artifactory_version):
         print('{} is up to date!'.format(pkg_name))
         return
     message = '{} needs to be updated: Current Version: {}; Latest Artifactory Version: {}'
