@@ -15,8 +15,9 @@ Notes:
     levels set to DEBUG. This captures all logging from any 'behave' logger in our log files
     while still permitting the behave command-line logging parameters to operate, as
     expected, to control the level of capturing displayed on step faliure.
-    If behave's logcapture is turned off all 'behave' logger output is also displayed on the console
-    during a run, regardless of the log level set on from the command line (or config file).
+    If behave's logcapture is turned off (``--no-logcapture``), all 'behave' logger output
+    is also displayed on the console during a run, regardless of the log level set on
+    from the command line (or config file).
 '''
 
 import logging

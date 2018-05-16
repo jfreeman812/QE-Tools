@@ -599,7 +599,7 @@ def tags(*tags_list):
         prepended to it. This is to overcome a limitation in the cafe test runner that
         cannot use tags to exclude tests.
 
-        So to accomplish this, a test that is tagged with both 'nyi' and 'regression'
+        To accomplish this, a test that is tagged with both 'nyi' and 'regression'
         will have its cafe tags changed to be 'nyi' and 'nyi-regression' so that any
         test run as ``-t regression`` will _not_ be able to select this test. This is handy,
         especially in the case of quarantined tags where it might be desirable to run
