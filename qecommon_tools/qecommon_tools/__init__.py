@@ -179,7 +179,7 @@ def dict_strip_value(dict_, value=None):
     '''
     Return a new dict based on stripping out any key with the given value.
 
-    Notes:
+    Note:
         The default value ``None`` is chosen because it is a common case.
         Unlike other functions, value ``None`` is literally the value ``None``.
 

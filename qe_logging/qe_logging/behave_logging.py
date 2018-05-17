@@ -10,7 +10,7 @@ same functions there. For consistency, and ease of use, these before/after
 functions take the same parameters as the functions in the
 environment.py file.
 
-Notes:
+Note:
     By importing this module, various behave loggers will be created and their log
     levels set to DEBUG. This captures all logging from any 'behave' logger in our log files
     while still permitting the behave command-line logging parameters to operate, as
