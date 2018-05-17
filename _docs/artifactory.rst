@@ -24,7 +24,8 @@ Adding New Packages
 -------------------
 
 For a new package to be published to Artifactory, a few additional steps must be taken.
-Ideally, these steps would be completed before the initial Pull Request is merged into master so that the first version is published automatically.
+Ideally, these steps would be completed before the initial Pull Request for ``QE-Tools`` is merged into master so that the first version is published automatically.
+If not, reach out to the ``#qe-tools`` Slack channel to have the publication Jenkins run manually.
 
     * Submit a Pull Request to https://github.rackspace.com/rsi/deploy-answers-artifactory
 
