@@ -20,17 +20,17 @@ Gherkin Feature File Coding Standard
 ------------------------------------
 
 * The maximum recommend line width is 100 characters.
-* Step keywords should be left-aligned.
+* Step keywords are left-aligned.
 * Indentation is a multiple of two spaces.
 * Blank Lines
 
-  * Scenarios should be separated by a single blank line.
-  * No blank lines between a summary line and the following description. The description should be indented two spaces from the summary line.
-  * Example tables should have a blank line before them.
+  * Scenarios are separated by a single blank line.
+  * No blank lines between a summary line and the following description. The description is indented two spaces from the summary line.
+  * Example tables have a blank line before them.
   * Backgrounds have a blank line before them.
   * Data tables follow their particular step definition with no blank lines.
-  * There should be no blank lines at the end of the file.
-  * The last line of the file should have a newline at the end (just as with code).
+  * No blank lines at the end of the file.
+  * The last line of the file will have a newline at the end (just as with code).
 
 * Comments must appear on lines by themselves.
 * All tags must conform to the tagging standard in `QE Coverage Tagging`_.
@@ -38,9 +38,9 @@ Gherkin Feature File Coding Standard
 * Meet current standards when adding new Gherkin to existing files
 
   * When adding a new scenario or step to an existing Gherkin file,
-    the new Gherkin should meet the current code standards even if this is inconsistent with the existing file.
+    the new Gherkin will meet the current code standards even if this is inconsistent with the existing file.
   * When reusing an existing Gherkin step that doesn't meet current code standards,
-    the step should be modified to also accept a new Gherkin line that does meet current code standards, and that Gherkin should be used for new code.
+    modify the step to also accept a new Gherkin line that does meet current code standards, and use that Gherkin for new code.
     It is out of scope for the PR to change other places where the outdated Gherkin is used.
 
 * Avoid the `Cucumber Anti-Patterns`_
@@ -51,7 +51,7 @@ Gherkin Feature File Coding Standard
 * Gherkin Language
 
 
-  * Avoid using the word "should" in steps.::
+  * Avoid using the word "should" in steps::
 
      # Bad
      Then the search results should include the triggered event
@@ -59,7 +59,9 @@ Gherkin Feature File Coding Standard
      # Good
      Then the search results include the triggered event
 
-  * Be specific.::
+    See https://jml.io/pages/test-docstrings.html for avoiding ``should`` and other good ideas.
+
+  * Be specific::
 
      # Bad
      When the system is ready
@@ -67,7 +69,7 @@ Gherkin Feature File Coding Standard
      # Good
      When the login screen is visible
 
-  * Write in the active voice.::
+  * Write in the active voice::
 
      # Bad
      When an event is submitted
@@ -75,7 +77,7 @@ Gherkin Feature File Coding Standard
      # Good
      When the user submits an event
 
-  * Favor the present tense.::
+  * Favor the present tense::
 
      # Bad
      Then the nested event(s) will complete before the parents
@@ -83,7 +85,7 @@ Gherkin Feature File Coding Standard
      # Good
      Then the nested event(s) complete before the parents
 
-  * Use third person over first person.::
+  * Use third person over first person::
 
      # Bad
      When I click the login button
@@ -91,7 +93,7 @@ Gherkin Feature File Coding Standard
      # Good
      When the user clicks the login button
 
-  * Do not describe the action being taken (e.g., do not say "Verify that...").::
+  * Do not describe the action being taken (e.g., do not say "Verify that...")::
 
      # Bad
      Then verify the executed event status is BAKING
@@ -101,7 +103,7 @@ Gherkin Feature File Coding Standard
 
   * It is better to have clearer steps than reused steps.
 
-  * **Then** steps should not have pronouns; they are just checking the results from a **When** step so no subject should be present.::
+  * **Then** steps will avoid pronouns; **Then** steps are just for checking the results from a **When** step, no subject is needed::
 
      # Bad
      Then the user is redirected to the login page
