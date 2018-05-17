@@ -38,10 +38,12 @@ Ideally, these steps would be completed before the initial Pull Request is merge
       * SSH onto the QE-Tools Jenkins Box (currently ``qetools.rax.io``)
       * Switch to the Jenkins user (``sudo su - jenkins``)
       * Create a backup of the PyPI RC file (``cp .pypirc .pypirc.previous``)
-      * Add a section for the library, and ensure that the ``username`` and ``password`` remain the same as all the other sections.
-        The ``repository`` value in the new section should be
-        ``https://artifacts.rackspace.net/artifactory/api/pypi/<NAME FROM deploy-answers-artifactory PULL REQUEST>``
-      * Add the new section name to the ``index-servers`` list at the top of the file.
+      * Edit the ``.pypirc`` file (``vim .pypirc``)
+
+         * Add a section for the package, and ensure that the ``username`` and ``password`` remain the same as all the other sections.
+         * The ``repository`` value in the new section should be
+           ``https://artifacts.rackspace.net/artifactory/api/pypi/<NAME FROM deploy-answers-artifactory PULL REQUEST>``
+         * Add the new section name to the ``index-servers`` list at the top of the file.
 
 .. warning::
 
