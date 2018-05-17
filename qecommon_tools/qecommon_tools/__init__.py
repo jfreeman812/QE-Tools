@@ -16,7 +16,7 @@ def display_name(path, package_name=''):
 
     Determine the display name for a project given a path and (optional) package name. If a
     display_name.txt file is found, the first line is returned. Otherwise, return a title-cased
-    string from either the base directory or package_name (if provided)
+    string from either the base directory or package_name (if provided).
 
     Args:
         path (str): Path for searching
@@ -35,7 +35,7 @@ def display_name(path, package_name=''):
 
 def format_if(format_str, content):
     '''
-    Return a message string with formatted value if any content value is present.
+    Return a message string with a formatted value if any content value is present.
 
     Useful for error-checking scenarios where you want a prepared error message
     if failures are present (passed in via content), or no message if no failures.
@@ -46,14 +46,14 @@ def format_if(format_str, content):
 
     Returns:
         str: either the format_str with content included if content present,
-             or an empty string if no content.
+        or an empty string if no content.
     '''
     return format_str.format(content) if content else ''
 
 
 def padded_list(iterable, size, padding=None):
     '''
-    Genereate a fixed-length list from an iterable, padding as needed.
+    Generate a fixed-length list from an iterable, padding as needed.
 
     Args:
         iterable (iterable): Any iterable that needs padding
@@ -83,6 +83,9 @@ def list_from(item):
     Args:
         item: A single item or an iterable.
 
+    Returns:
+        list: A list from the item.
+
     Examples:
         >>> list_from(None)
         []
@@ -96,9 +99,6 @@ def list_from(item):
         ['abcd', 1234]
         >>> list_from({'abcd', 1234})
         ['abcd', 1234]
-
-    Returns:
-        list: A list from the item.
     '''
     if not item:
         return []
@@ -125,8 +125,8 @@ def safe_run(commands, cwd=None):
     '''
     Run the given list of commands, only return if no error.
 
-    If there is an error in attempting or actually running the commands
-    error messages are printed on stdout and sys.exit will be called.
+    If there is an error in attempting or actually running the commands,
+    error messages are printed to stdout and ``sys.exit()`` will be called.
     '''
 
     try:
@@ -163,8 +163,8 @@ def error_if(check, status=None, message=''):
     Exit the program if a provided check is true.
 
     Exit the program if the check is true. If a status is provided, that code is used for the
-    exit code; otherwise the value from check is used. An optional message for standard error can
-    also be provided
+    exit code; otherwise the value from the check is used. An optional message for standard
+    error can also be provided.
 
     Args:
         check: Anything with truthiness that can determine if the program should exit or not
@@ -178,8 +178,10 @@ def error_if(check, status=None, message=''):
 def dict_strip_value(dict_, value=None):
     '''
     Return a new dict based on stripping out any key with the given value.
-    NOTE: The default value 'None' is chosen because it is a common case.
-    Unlike other functions, value 'None' is literally the value None.
+
+    Note:
+        The default value ``None`` is chosen because it is a common case.
+        Unlike other functions, value ``None`` is literally the value ``None``.
 
     Args:
         dict_ (dict): A dictionary to strip values from.
@@ -195,16 +197,6 @@ def generate_random_string(prefix='', suffix='', size=8):
     '''
     Generate a random string of the specified size.
 
-    Examples:
-        > generate_random_string()
-        vng345jn
-        > generate_random_string(prefix='Lbs-', suffix='-test', size=15)
-        Lbs-js7eh9-test
-        > generate_random_string(prefix='Lbs-', size=15)
-        Lbs-js7eh98sfnk
-        > generate_random_string(suffix='-test', size=15)
-        8sdfjs7eh9-test
-
     Args:
         prefix (str): The string to prepend to the beginning of the random string. (optional)
         suffix (str): The string to append to the end of the random string. (optional)
@@ -215,6 +207,16 @@ def generate_random_string(prefix='', suffix='', size=8):
 
     Raises:
         AssertionError: if the specified length is incompatible with prefix/suffix length
+
+    Examples:
+        >>> generate_random_string()
+        'vng345jn'
+        >>> generate_random_string(prefix='Lbs-', suffix='-test', size=15)
+        'Lbs-js7eh9-test'
+        >>> generate_random_string(prefix='Lbs-', size=15)
+        'Lbs-js7eh98sfnk'
+        >>> generate_random_string(suffix='-test', size=15)
+        '8sdfjs7eh9-test'
     '''
     possible_characters = _string.ascii_lowercase + _string.digits
     rand_string_length = size - len(prefix) - len(suffix)
@@ -272,6 +274,9 @@ def var_from_env(var_name):
     '''
     Get an environment variable and raise an error if it is not set or has an empty value.
 
+    Returns:
+        str: The value of the environment variable.
+
     Raises:
         ValueError: if the variable name is not set or has an empty value.
     '''
@@ -286,7 +291,7 @@ def get_file_contents(*paths):
     Get the contents of a file as a Python string.
 
     Args:
-        *paths: The path or paths that lead to the file whose content are to be retrieved.
+        *paths: The path or paths that lead to the file whose contents are to be retrieved.
 
     Returns:
         str: The contents of the file.
