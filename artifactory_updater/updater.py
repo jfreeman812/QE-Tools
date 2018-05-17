@@ -10,8 +10,9 @@ import subprocess
 import sys
 try:
     from urllib.request import urlopen
+    from urllib.error import HTTPError
 except ImportError:
-    from urllib2 import urlopen
+    from urllib2 import urlopen, HTTPError
 
 
 ARTIFACTORY_DOMAIN = 'artifacts.rackspace.net'
@@ -28,8 +29,9 @@ def _get_setup_info(container_dir, flag):
 
 def _latest_artifactory_version(package_name):
     package_url = 'https://{0}/artifactory/api/storage/{1}-pypi-local/{1}'
-    response = urlopen(package_url.format(ARTIFACTORY_DOMAIN, package_name))
-    if not 200 <= response.status <= 299:
+    try:
+        response = urlopen(package_url.format(ARTIFACTORY_DOMAIN, package_name))
+    except HTTPError:
         return None
     response = response.read()
     if isinstance(response, bytes):
