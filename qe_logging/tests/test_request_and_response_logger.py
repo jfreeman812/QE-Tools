@@ -20,10 +20,6 @@ from qe_logging.requests_logging import RequestAndResponseLogger
 
 
 def single_item_random_dict():
-    # This test will use single item dictionaries for headers / json data.  This will make verifying
-    # that these objects end up in the log file much easier.  It does not seem necessary to test
-    # more complex headers / json, as the code this is written to test does not mutate these
-    # objects.
     return {generate_random_string(): generate_random_string()}
 
 
@@ -31,6 +27,11 @@ session = requests.Session()
 adapter = requests_mock.Adapter()
 session.mount('mock', adapter)
 
+
+# NOTE:  This test will use single item dictionaries for headers / json data.  This will make
+# verifying that these objects end up in the log file much easier.  It does not seem necessary to
+# test more complex headers / json, as the code this is written to test does not mutate these
+# objects.
 adapter.register_uri(
     'GET',
     'mock://test.com/ok',
