@@ -13,7 +13,9 @@ INSTALL_REQUIRES = [
 ]
 
 TESTS_REQUIRE = [
-    'pytest'
+    'pytest',
+    'requests>=2.10',
+    'requests-mock>=1.3',
 ]
 
 EXTRAS_REQUIRE = {}
