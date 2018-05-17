@@ -1,7 +1,6 @@
 from copy import deepcopy
 from itertools import product
 import logging
-import os
 from tempfile import mkdtemp
 
 import pytest
