@@ -132,7 +132,6 @@ class RequestAndResponseLogger(object):
             ``self._response_logger`` if not provided.
         exclude_request_params (list): If supplied will be excluded from the request logging curl.
             Note that this may make the curl invalid.
-
     '''
     default_logger_name = 'QE_requests_logger'
 
@@ -172,7 +171,6 @@ class RequestAndResponseLogger(object):
         Args:
             request_kwargs (dict): A dictionary of keyword arguments for the API call to log.
             response (requests.models.Response): A Response object for the API call to log.
-
         '''
         self.request_logger(request_kwargs)
         self.response_logger(response)
