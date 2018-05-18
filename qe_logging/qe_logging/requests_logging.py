@@ -122,7 +122,7 @@ class RequestAndResponseLogger(object):
     logged.
 
     Args:
-        log (logging.getLogger): A logger to use to record data.  If not provided defaults to
+        logger (logging.getLogger): A logger to use to record data.  If not provided defaults to
             ``default_logger_name``.
         request_logger (func): A function for logging request information, if provided it must
             take the following arguments:  ``self``, ``request_kwargs``.  Defaults to
@@ -136,9 +136,9 @@ class RequestAndResponseLogger(object):
     '''
     default_logger_name = 'QE_requests_logger'
 
-    def __init__(self, log=None, request_logger=None, response_logger=None,
+    def __init__(self, logger=None, request_logger=None, response_logger=None,
                  exclude_request_params=None):
-        self.log = log or logging.getLogger(self.default_logger_name)
+        self.logger = logger or logging.getLogger(self.default_logger_name)
         self.exclude_request_params = list_from(exclude_request_params)
         self.response_logger = self._methodtype_or_builtin(response_logger, self._response_logger)
         self.request_logger = self._methodtype_or_builtin(request_logger, self._request_logger)
@@ -149,23 +149,23 @@ class RequestAndResponseLogger(object):
     def _request_logger(self, request_kwargs):
         kwargs = {'exclude_params': self.exclude_request_params}
         kwargs.update(request_kwargs)
-        self.log.debug(curl_command_from(**kwargs))
+        self.logger.debug(curl_command_from(**kwargs))
 
     def _log_response_status(self, response):
-        self.log.debug('-->Response status:  {}'.format(response.status_code))
+        self.logger.debug('-->Response status:  {}'.format(response.status_code))
 
     def _log_response_headers(self, response):
-        self.log.debug('-->Response headers: {}'.format(response.headers))
+        self.logger.debug('-->Response headers: {}'.format(response.headers))
 
     def _log_response_content(self, response):
-        self.log.debug('-->Response content: {}'.format(response.content.decode('utf-8')))
+        self.logger.debug('-->Response content: {}'.format(response.content.decode('utf-8')))
 
     def _response_logger(self, response):
         self._log_response_status(response)
         self._log_response_headers(response)
         self._log_response_content(response)
 
-    def log_call(self, request_kwargs, response):
+    def log(self, request_kwargs, response):
         '''
         Logs the request / response data.
 

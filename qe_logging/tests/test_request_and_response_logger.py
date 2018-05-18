@@ -88,7 +88,7 @@ def teardown_function():
 
 def _setup_log_and_get_contents(req, resp, **init_kwargs):
     log_file = _setup_logging()
-    RequestAndResponseLogger(**init_kwargs).log_call(req, resp)
+    RequestAndResponseLogger(**init_kwargs).log(req, resp)
     with open(log_file, 'r') as f:
         return f.read()
 
@@ -133,7 +133,7 @@ def test_request_and_response_are_logged(test_request, test_resp, **kwargs):
 )
 def test_log_can_be_passed(logger_name, test_request, test_resp):
     log_contents = test_request_and_response_are_logged(
-        test_request, test_resp, log=logging.getLogger(logger_name)
+        test_request, test_resp, logger=logging.getLogger(logger_name)
     )
     msg = 'Log info:\n\n{}\n\n Did not contain logger name: {}'.format(log_contents, logger_name)
     assert logger_name in log_contents, msg
