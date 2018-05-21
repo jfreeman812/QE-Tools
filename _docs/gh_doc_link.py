@@ -4,7 +4,7 @@ from github_tools import GHPRSession, ghprb_info, get_github_commenter_parser
 from qecommon_tools import var_from_env
 
 
-DOC_PATH = 'HTML_Report'
+DOC_PATH = 'HTMLReport'
 
 
 def main():
