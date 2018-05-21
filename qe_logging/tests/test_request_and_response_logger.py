@@ -171,7 +171,7 @@ class AlternateRequestLogger(RequestAndResponseLogger):
         super(AlternateRequestLogger, self).__init__(**kwargs)
         self.request_message = ALTERNATE_MSG
 
-    def request_logger(self, *args):
+    def log_request(self, *args):
         ALTERNATE_LOGGER.debug(self.request_message)
 
 
@@ -181,7 +181,7 @@ class AlternateResponseLogger(RequestAndResponseLogger):
         super(AlternateResponseLogger, self).__init__(**kwargs)
         self.response_message = ALTERNATE_MSG
 
-    def response_logger(self, *args):
+    def log_response(self, *args):
         ALTERNATE_LOGGER.debug(self.response_message)
 
 

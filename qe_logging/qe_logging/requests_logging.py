@@ -129,39 +129,59 @@ class RequestAndResponseLogger(object):
         exclude_request_params (list): If supplied will be excluded from the logging
             in the curl for the request.
             Note that this may make the curl invalid.
+
+    Note: The individual logging methods are exposed for the convenience of subclassing.
     '''
-    default_logger_name = 'QE_requests_logger'
+    default_logger_name = 'QE_requests'
 
     def __init__(self, logger=None, exclude_request_params=None):
         self.logger = logger or logging.getLogger(self.default_logger_name)
         self.exclude_request_params = list_from(exclude_request_params)
 
-    def request_logger(self, request_kwargs):
+    def log_request(self, request_kwargs):
+        '''
+        The log a request using ``curl_command_from``; excludes parameters per the constructor.
+
+        Args:
+            request_kwargs (dict): A dictionary of keyword arguments for the API call to log.
+        '''
         kwargs = {'exclude_params': self.exclude_request_params}
         kwargs.update(request_kwargs)
         self.logger.debug(curl_command_from(**kwargs))
 
     def log_response_status(self, response):
+        '''Log the response's status code field.'''
         self.logger.debug('-->Response status:  {}'.format(response.status_code))
 
     def log_response_headers(self, response):
+        '''Log the response's header field.'''
         self.logger.debug('-->Response headers: {}'.format(response.headers))
 
     def log_response_content(self, response):
+        '''Log the the response content field'''
         self.logger.debug('-->Response content: {}'.format(response.content.decode('utf-8')))
 
-    def response_logger(self, response):
+    def log_response(self, response):
+        '''
+        Log the full response, status, header, contents.
+
+        Args:
+            response (requests.models.Response): A Response object for the API call to log.
+
+        Uses the response log methods so that simple overrides of those don't require
+        this method to be overridden as well.
+        '''
         self.log_response_status(response)
         self.log_response_headers(response)
         self.log_response_content(response)
 
     def log(self, request_kwargs, response):
         '''
-        Logs the request / response data.
+        Convenience function to log a request and response together.
 
         Args:
-            request_kwargs (dict): A dictionary of keyword arguments for the API call to log.
-            response (requests.models.Response): A Response object for the API call to log.
+            request_kwargs (dict): Passed to ``log_request``, see that doc for info.
+            response (requests.models.Repsonse): Passed to ``log_response``, see that doc for info.
         '''
-        self.request_logger(request_kwargs)
-        self.response_logger(response)
+        self.log_request(request_kwargs)
+        self.log_response(response)
