@@ -86,9 +86,9 @@ def teardown_function():
     del logging.getLogger('').handlers[:]
 
 
-def _setup_log_and_get_contents(req, resp, **init_kwargs):
+def _setup_log_and_get_contents(req, resp, log_class=RequestAndResponseLogger, **init_kwargs):
     log_file = _setup_logging()
-    RequestAndResponseLogger(**init_kwargs).log(req, resp)
+    log_class(**init_kwargs).log(req, resp)
     with open(log_file, 'r') as f:
         return f.read()
 
@@ -162,11 +162,33 @@ def test_request_params_are_excluded(test_param, test_request, test_resp):
     assert excluded_value not in log_contents, msg
 
 
+ALTERNATE_MSG = generate_random_string()
+
+
+class AlternateRequestLogger(RequestAndResponseLogger):
+
+    def __init__(self, **kwargs):
+        super(AlternateRequestLogger, self).__init__(**kwargs)
+        self.request_message = ALTERNATE_MSG
+
+    def log_request(self, *args):
+        ALTERNATE_LOGGER.debug(self.request_message)
+
+
+class AlternateResponseLogger(RequestAndResponseLogger):
+
+    def __init__(self, **kwargs):
+        super(AlternateResponseLogger, self).__init__(**kwargs)
+        self.response_message = ALTERNATE_MSG
+
+    def log_response(self, *args):
+        ALTERNATE_LOGGER.debug(self.response_message)
+
+
 @pytest.mark.parametrize('test_request,test_resp', product(requests_to_test(), responses_to_test()))
 def test_custom_request_logger(test_request, test_resp):
-    alternate_msg = generate_random_string()
     log_contents = _setup_log_and_get_contents(
-        test_request, test_resp, request_logger=lambda *_: ALTERNATE_LOGGER.debug(alternate_msg)
+        test_request, test_resp, log_class=AlternateRequestLogger
     )
 
     _verify_response(test_resp, log_contents)
@@ -177,15 +199,14 @@ def test_custom_request_logger(test_request, test_resp):
         assert value not in log_contents, '{}{}'.format(msg, value)
 
     # Verify our custom message is in the log data.
-    msg = '{}custom request message {}'.format(ROOT_MSG.format(log_contents), alternate_msg)
-    assert alternate_msg in log_contents, msg
+    msg = '{}custom request message {}'.format(ROOT_MSG.format(log_contents), ALTERNATE_MSG)
+    assert ALTERNATE_MSG in log_contents, msg
 
 
 @pytest.mark.parametrize('test_request,test_resp', product(requests_to_test(), responses_to_test()))
 def test_custom_response_logger(test_request, test_resp):
-    alternate_msg = generate_random_string()
     log_contents = _setup_log_and_get_contents(
-        test_request, test_resp, response_logger=lambda *_: ALTERNATE_LOGGER.debug(alternate_msg)
+        test_request, test_resp, log_class=AlternateResponseLogger
     )
 
     _verify_request(test_request, log_contents)
@@ -196,5 +217,5 @@ def test_custom_response_logger(test_request, test_resp):
         assert value not in log_contents, '{}{}'.format(msg, value)
 
     # Verify our custom message is in the log data.
-    msg = '{}custom request message {}'.format(ROOT_MSG.format(log_contents), alternate_msg)
-    assert alternate_msg in log_contents, msg
+    msg = '{}custom request message {}'.format(ROOT_MSG.format(log_contents), ALTERNATE_MSG)
+    assert ALTERNATE_MSG in log_contents, msg

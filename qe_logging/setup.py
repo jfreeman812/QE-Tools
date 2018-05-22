@@ -9,13 +9,13 @@ CONSOLE_SCRIPTS = [
 ]
 
 INSTALL_REQUIRES = [
-    'qecommon_tools>=1.1.6',
+    'qecommon_tools~=1.1',
 ]
 
 TESTS_REQUIRE = [
     'pytest',
-    'requests>=2.10',
-    'requests-mock>=1.3',
+    'requests~=2.10.0',
+    'requests-mock~=1.3.0',
 ]
 
 EXTRAS_REQUIRE = {}
