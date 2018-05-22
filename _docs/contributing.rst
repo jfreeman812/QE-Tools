@@ -22,5 +22,6 @@ Documentation Review
 --------------------
 
 After successful execution of ``./self-check.sh`` (or running the ``self-check.sh`` included in the ``_docs`` directory), documentation will be built and available in the ``docs`` folder of the QE-Tools root. The documentation can also be reviewed after a successful check run by Jenkins on the creation of a PR, by following the "Docs Link" link comment that is auto-posted on the PR.
+
 .. _contributing: https://github.rackspace.com/dcx/dcxqe-common/blob/master/CONTRIBUTING.md
 .. _SDLC: https://pages.github.rackspace.com/AutomationServices/RBA-QE-Common/sdlc.html#code-management
