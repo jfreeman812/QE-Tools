@@ -25,8 +25,8 @@ TESTS_REQUIRE = [
 ]
 
 EXTRAS_REQUIRE = {
-    'API': ['requests~=2.18.4'],
-    'UI': ['selenium~=3.12.0'],
+    'api': ['requests~=2.18.4'],
+    'ui': ['selenium~=3.12.0'],
 }
 
 
