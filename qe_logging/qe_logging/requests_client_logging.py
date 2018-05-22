@@ -8,7 +8,13 @@ default URL handling, and a ``.token`` property for the ``X-Auth-Token`` header.
 This module uses ``class_lookup`` from ``qecommon_tools`` with the key
 ``requests.Session`` instead of hardcoding that class name, which is just the default
 if no value set.  If you need to change the class used, update ``class_lookup``
-`before` importing this module.
+`before` importing this module::
+
+    from qecommon_tools import class_lookup
+
+    class_lookup['requests.Session'] = myClassToUseInstead
+
+    import qe_logging.requests_client_logging  # noqa  (comment is for flake8)
 '''
 
 import logging
@@ -65,11 +71,15 @@ def _full_url(base_url, url=None):
 class QERequestsLoggingClient(class_lookup.get('requests.Session', requests.Session)):
     _logger = logging.getLogger(__name__)
 
-    def __init__(
-            self, base_url=None, token=None, curl_logger=None, content_type='application/json'
-    ):
+    base_url = None
+    '''
+    The base_url from the constructor is a public field, for inspection or update.
+    '''
+
+    def __init__(self, base_url=None, token=None, curl_logger=None,
+                 content_type='application/json'):
         '''
-        A logging client object based on the ``requests.Session``.
+        A logging client based on ``requests.Session``.
 
 
         Args:
@@ -89,7 +99,7 @@ class QERequestsLoggingClient(class_lookup.get('requests.Session', requests.Sess
         self.token = token
         self.curl_logger = self._initialized_logger(curl_logger or RequestAndResponseLogger)
 
-        # Although requests.Sessions doesnt not take any parameters, it is possible to register
+        # Although requests.Sessions does not take any parameters, it is possible to register
         # a different parent class that may take parameters as well as not accept *args or **kwargs,
         # we need to dynamically build the call
         if sys.version_info > (3, 2):
@@ -114,19 +124,6 @@ class QERequestsLoggingClient(class_lookup.get('requests.Session', requests.Sess
     def token(self):
         del self.default_headers['X-Auth-Token']
 
-    @property
-    def base_url(self):
-        '''
-        The base_url used for API calls.
-
-        This value is prefixed to any non-fully qualified URLs used.
-        '''
-        return self._base_url
-
-    @base_url.setter
-    def base_url(self, base_url):
-        self._base_url = base_url
-
     def _initialized_logger(self, curl_logger):
         return curl_logger(self._logger) if isinstance(curl_logger, type) else curl_logger
 
@@ -146,9 +143,14 @@ class QERequestsLoggingClient(class_lookup.get('requests.Session', requests.Sess
 
     def request(self, method, url, curl_logger=None, **kwargs):
         '''
-        Override the default request behavior to allow for default headers from the class to be
-        included as well as proper URL parsing with ``base_url`` prefixing,
-        and request/response logging.
+        Allow for a one-off custom logger (class or instance).
+
+        All the Session object verb methods (get, put, etc.) come through this method,
+        so we have one pinch point at which we can enhance the request processing::
+
+           * log the request and response per the logger, with a one-off override
+           * partial URLs are prefixed with the ``base_url`` for simpler use
+           * partial URLs are properly sanitized for simpler use
 
         Args:
             method (str): The request method (see requests.Session)
