@@ -12,7 +12,7 @@ if no value set.  If you need to change the class used, update ``class_lookup``
 
     from qecommon_tools import class_lookup
 
-    class_lookup['requests.Session'] = myClassToUseInstead
+    class_lookup['requests.Session'] = MyClassToUseInstead
 
     import qe_logging.requests_client_logging  # noqa  (comment is for flake8)
 '''
@@ -160,7 +160,8 @@ class QERequestsLoggingClient(class_lookup.get('requests.Session', requests.Sess
                 the request and response.
                 If not supplied, the curl_logger supplied at the class level (or the default) will
                 be used.
-            **kwargs: Arbitrary keyword arguments.
+            **kwargs: Arbitrary keyword arguments that are passed through to the ``request`` method
+                of the parent class.
 
         Returns:
             response (requests.Response): The result from the parent request call
@@ -180,6 +181,8 @@ class QERequestsLoggingClient(class_lookup.get('requests.Session', requests.Sess
             raise
         # Because request can be provided iterable, the logging needs to occur after the
         # request library is called to ensure the iterable is not expired before being
-        # utilized by the library
+        # utilized by the library. This can happen when uploading a large file where-in
+        # the file data is provided by a generator (for example). Fixing this code
+        # so that we can log early and not eat-up/expire the data is yet to come.
         self._get_logger(curl_logger).log(request_kwargs, response)
         return response
