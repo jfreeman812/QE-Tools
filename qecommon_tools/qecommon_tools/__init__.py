@@ -9,6 +9,29 @@ import string as _string
 import subprocess as _subprocess
 import sys as _sys
 
+import requests as _requests
+
+
+class_lookup = {}
+'''
+This dictionary is to allow code that needs to have very late binding of a class
+to look up the class here, and code that needs to control another module's use of a
+late bound class to set it in this dictionary.
+
+Code accessing this dictionary should use ``.get()`` with a default value so that
+`this` module doesn't have to import lots of things here to set up all the defaults.
+Code accessing this dictionary should publish which key(s) it will be using so that
+modules wishing to retarget those classes will know which keys to set.
+
+Code setting values in this dictionary so do so `before` importing modules that
+will use that value. Setting values in this dictionary is only needed when the
+default values need to be changed.
+
+(Motivation: the requests client logging code needs to be able to use a custom
+class instead of just ``requests.Session`` when being used by testing code
+with the Locust test runner, and it uses this dictionary to accomplish this.)
+'''
+
 
 def display_name(path, package_name=''):
     '''

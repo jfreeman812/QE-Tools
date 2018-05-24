@@ -8,6 +8,9 @@ A collection of helpers layered on top of Python logging for QE logging standard
 ``no_logging`` is a module to supress logging, such as might be useful
 in utility scripts.
 
+``requests_client_logging`` is a module that provides a drop-in replacement for
+``requests.Session`` that ties ``requests`` to ``requests_logging``, plus a few other handy things.
+
 ``requests_logging`` is a module to help with logging in requests API testing.
 
 As an aid for debugging, this module also provides a way to

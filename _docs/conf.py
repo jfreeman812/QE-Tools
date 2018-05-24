@@ -72,5 +72,12 @@ def html_page_context_handler(app, pagename, templatename, context, doctree):
         app.builder.handle_page(new_page, ctx, event_arg=doctree)
 
 
+def skip(app, what, name, obj, skip, options):
+    if name == '__init__':
+        return False
+    return skip
+
+
 def setup(app):
     app.connect('html-page-context', html_page_context_handler)
+    app.connect('autodoc-skip-member', skip)
