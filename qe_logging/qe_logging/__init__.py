@@ -1,17 +1,19 @@
 '''
 A collection of helpers layered on top of Python logging for QE logging standards.
 
-``setup_logging()`` is handy helper to create log files in well- known and standard QE locations.
+:py:func:`setup_logging()` - create log files in well-known and standard QE locations.
 
-``behave_logging`` is a module to help with logging in behave testing.
+:py:mod:`behave_logging<qe_logging.behave_logging>` - logging for ``behave``-based testing.
 
-``no_logging`` is a module to supress logging, such as might be useful
-in utility scripts.
+:py:mod:`no_logging<qe_logging.no_logging>` - supress logging, such as might be useful
+in utility scripts based on reuseable testing modules that do logging.
 
-``requests_client_logging`` is a module that provides a drop-in replacement for
-``requests.Session`` that ties ``requests`` to ``requests_logging``, plus a few other handy things.
+:py:mod:`requests_client_logging<qe_logging.requests_client_logging>` - a drop-in replacement for
+``requests.Session`` that ties ``requests``-based API-testing to
+:py:mod:`requests_logging<qe_logging.requests_logging>`, plus a few other handy things.
 
-``requests_logging`` is a module to help with logging in requests API testing.
+:py:mod:`requests_logging<qe_logging.requests_logging>` - logging helpers for ``requests``-based
+API testing.
 
 As an aid for debugging, this module also provides a way to
 include logging output on the console. This can be handy for
