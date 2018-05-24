@@ -26,7 +26,7 @@ Operational Details - Quick Start
     * Pull Requests should be atomic and as small as possible to accomplish what is needed. If there is a need to change multiple things, please split it into multiple Pull Requests.
     * Pull Requests should have a minimum of two reviews, with a preference for three.
 
-        * Once two reviewers have approved the Pull Request, any additional reviewer(s) have 24 hours in which to submit their reviews or to pass on the review. If no additional reviewer(s) respond within the 24-hour window, or they choose to pass, the Pull Request may be merged with only two approvals.
+        * Once two reviewers have approved the Pull Request, any additional reviewers have 24 hours in which to submit their reviews or to pass on the review. If no additional reviewers respond within the 24-hour window, or they choose to pass, the Pull Request may be merged with only two approvals.
 
     * Once engaging in a review, a reviewer has 48 hours to re-visit a review after the author has made the necessary changes. Any review that sits idle with a reviewer for over 48 hours will be considered approved by that reviewer.
     * All packages should have self-tests. Any new Pull Request with code changes should make a reasonable attempt to add tests for the new code.
