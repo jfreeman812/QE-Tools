@@ -31,7 +31,7 @@ Operational Details - Quick Start
     * Once engaging in a review, a reviewer has 48 hours to re-visit a review after the author has made the necessary changes. Any review that sits idle with a reviewer for over 48 hours will be considered approved by that reviewer.
     * All packages should have self-tests. Any new Pull Request with code changes should make a reasonable attempt to add tests for the new code.
 
-* Pull Request Procedure
+* Pull Request Procedure:
 
     * When creating a pull request, assign to as many members of the QE Tools Contributors team as possible. If you have previous discussed with a member of the team doing the first review, you may assign to them directly.
     * When starting a review, change the assignee list to yourself to prevent duplicate efforts.
