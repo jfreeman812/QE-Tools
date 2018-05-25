@@ -24,7 +24,8 @@ def main(file_paths=None):
         with lzma.open(filename) as f:
             data = json.loads(f.read())
         response = requests.post(
-            POST_URL, json=data, params={'timestamp': epoch_stamp, 'is_rewind': True}
+            POST_URL, json=data, params={'timestamp': epoch_stamp, 'is_rewind': True},
+            verify=False
         )
         if response.status_code != 201:
             print('Upload for "{}" failed!'.format(filename))
