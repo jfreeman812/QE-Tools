@@ -28,7 +28,7 @@ Automation Framework            Scripted Parsing and Analytics (SPA)
 Automation Framework            Timetable
 Automation Framework            Tyrant
 Automation Framework            User Profile
-Global Billing                  ACT API
+Global Billing                  ACT
 GSCS                            Document Management
 GSCS                            Product Catalog
 GSCS                            Quote Management
