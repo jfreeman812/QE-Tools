@@ -36,6 +36,8 @@ GSCS                            Raptor
 GSCS                            SF Stash
 Oracle EBS                      FMW (Calabrio)
 Oracle EBS                      FMW (Common)
+OS Deployment                   Kserver
+OS Deployment                   PowerBroker
 Provisioning Services           FireKick
 Provisioning Services           Torq API
 Rapid Provisioning Integration  BPI
