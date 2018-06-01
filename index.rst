@@ -89,3 +89,4 @@ check-unicode.py                                     Checks a directory structur
 
    Overview <sdlcs/README>
    Gherkin Standards <sdlcs/gherkin-standards>
+   Code Management <sdlcs/code-management>
