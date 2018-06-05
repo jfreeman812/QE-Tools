@@ -280,3 +280,28 @@ FILTER_LINES_DATA = [
 def test_filter_lines_given_str(input_, expected_output, line_filter, return_type):
     output = qecommon_tools.filter_lines(line_filter, input_, return_type)
     assert output == expected_output
+
+
+STRING_TO_LIST_DATA = {
+    '  This is a simple space separated list':
+        {'kwargs': {'sep': None},
+         'results': ['This', 'is', 'a', 'simple', 'space', 'separated', 'list'],
+         },
+    ' Sample value, from, a, config, file ':
+        {'kwargs': {},
+         'results': ['Sample value', 'from', 'a', 'config', 'file'],
+         },
+    ' plus-separated+string+here':
+        {'kwargs': {'sep': '+'},
+         'results': ['plus-separated', 'string', 'here'],
+         },
+    ' -strike-through-=-another-=-word-,=blah== ':
+        {'kwargs': {'sep': '=', 'maxsplit': 2, 'chars': '-'},
+         'results': [' -strike-through', 'another', 'word-,=blah== '],
+         },
+}
+
+
+@pytest.mark.parametrize('source,test_data', STRING_TO_LIST_DATA.items())
+def test_string_to_list(source, test_data):
+    assert qecommon_tools.string_to_list(source, **test_data['kwargs']) == test_data['results']
