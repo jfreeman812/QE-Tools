@@ -24,6 +24,7 @@ Several libraries have been created that can be installed via :doc:`Artifactory<
 
    qe_jira <_docs/qe_jira/README>
    qecommon_tools <docs/qecommon_tools>
+   qe_config <docs/qe_config>
    qe_coverage <_docs/reporting/qe_coverage>
    qe_logging <docs/qe_logging>
    qe_behave <_docs/qe_behave/README>
@@ -37,6 +38,7 @@ Library Name                                              Description
 ========================================================  ==============================================================================
 :doc:`qe_jira<_docs/qe_jira/README>`                      Quickly creates a JIRA on a QE board for testing of a JIRA from a dev board
 :doc:`qecommon_tools<docs/qecommon_tools>`                A library for helper functions across QE-Tools designed for larger consumption
+:doc:`qe_config<docs/qe_config>`                          A collection of tools for QE-related configuration processing.
 :doc:`qe_coverage<_docs/reporting/qe_coverage>`           A collection of tools for QE-related reporting
 :doc:`qe_logging<docs/qe_logging>`                        A collection of logging-related helpers to provide standard logging for QE.
 :doc:`qe_behave <_docs/qe_behave/README>`                 A collection of packages and tools to support Gherkin/Behave-based testing.

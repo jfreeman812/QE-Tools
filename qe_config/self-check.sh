@@ -1,0 +1,3 @@
+. ../path-setup.sh
+
+detox
