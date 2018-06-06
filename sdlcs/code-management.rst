@@ -34,7 +34,7 @@ Repository Conventions
 
       * invoke the ``self-check`` script with the ``--setup`` option to make sure that the environment is good and that the self-checks all pass
 
-    * script should handle all the usual command line switches for de-selecting tests, such as NYI, Quarantined, etc as well as the commonly used tracing/logging/reporting switches.
+    * script should handle any command line switches for de-selecting tests, such as NYI, Quarantined, etc as well as the commonly used tracing/logging/reporting switches.
     * script should accept arbitrary parameters that the user can use to pass any additional parameters required (either from a Jenkins job form or QE hand-run command line).
 
 * Each repository should also utilize the appropriate documentation tools for creating documentation for the code and test cases (e.g., Sphinx for Python)
