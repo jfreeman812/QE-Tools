@@ -8,7 +8,7 @@ Repository Conventions
 
 * Each repository should have, in the top level directory:
 
-  * ``README.md`` explaining what it is, who the audience is, etc.
+  * ``README.md`` or ``README.rst`` explaining what it is, who the audience is, etc.  This can simply include a link to the user documentation built from a documentation tool.
   * ``env-setup.sh`` an executable shell script that sets up the environment
 
     * to be run by humans at will
