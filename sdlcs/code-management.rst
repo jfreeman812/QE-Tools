@@ -9,33 +9,33 @@ Repository Conventions
 * Each repository should have, in the top level directory:
 
   * ``README.md`` or ``README.rst`` explaining what it is, who the audience is, etc.  This can simply include a link to the user documentation built from a documentation tool.
-  * ``env-setup.sh`` an executable shell script that sets up the environment
+  * ``env-setup`` an executable script that sets up the environment
 
     * to be run by humans at will
     * to be run (indirectly) by Jenkins and other automation
     * will fail if it is not running in a virtual environment
     * otherwise will install and otherwise configure the virtual environment for testing
 
-  * ``self-check.sh`` an executable shell script that does a self-check on the repository.
+  * ``self-check`` an executable script that does a self-check on the repository.
 
     * to be run by humans at will (such as before PRs)
     * to be run by automation (such as Jenkins) for PR acceptance testing.
     * script should support a ``--setup`` command line parameter and that switch will:
 
-      * invoke the ``env-setup.sh`` script to make sure the environment is good before attempting self-check logic.
+      * invoke the ``env-setup`` script to make sure the environment is good before attempting self-check logic.
 
     * Automation will always pass this script the parameter ``--setup`` so that it is up-to-date.
 
-  * ``run-tests.sh`` an executable shell script that handles the boiler plate of running tests:
+  * ``run-tests`` an executable script that handles the boiler plate of running tests:
 
     * to be run by humans at will
     * to be run by automation (such as Jenkins) for regular runs of test jobs
     * script should support a ``--check`` command line parameter and that switch will:
 
-      * invoke the ``self-check.sh`` script with the ``--setup`` option to make sure that the environment is good and that the self-checks all pass
+      * invoke the ``self-check`` script with the ``--setup`` option to make sure that the environment is good and that the self-checks all pass
 
     * script should handle all the usual command line switches for de-selecting tests, such as NYI, Quarantined, etc as well as the commonly used tracing/logging/reporting switches.
-    * script should accept arbitrary ("``$@``") parameters that the user can use to pass any additional parameters required (either from a Jenkins job form or QE hand-run command line).
+    * script should accept arbitrary parameters that the user can use to pass any additional parameters required (either from a Jenkins job form or QE hand-run command line).
 
 * Each repository should also utilize the appropriate documentation tools for creating documentation for the code and test cases (e.g., Sphinx for Python)
 
