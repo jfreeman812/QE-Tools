@@ -130,6 +130,20 @@ def list_from(item):
     return list(item)
 
 
+def string_to_list(source, sep=',', maxsplit=-1, chars=None):
+    '''``.split()`` a string into a list and ``.strip()`` each piece.
+
+    For handling lists of things, from config files, etc.
+
+    Args:
+        source (str): the source string to process
+        sep (str, optional): The ``.split`` ``sep`` (separator) to use.
+        maxsplit (int, optional): The ``.split`` ``maxsplit`` parameter to use.
+        chars (str, optional): The ``.strip`` ``chars`` parameter to use.
+    '''
+    return [item.strip(chars) for item in source.split(sep, maxsplit)]
+
+
 def cleanup_and_exit(dir_name=None, status=0, message=None):
     '''
     Cleanup a directory tree that was created and exit.
