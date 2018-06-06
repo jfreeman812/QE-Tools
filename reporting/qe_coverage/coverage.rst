@@ -95,7 +95,6 @@ Tag          Report As            Description
 deploy       deploy               Build verification test / quick test to validate successful deployment.
 smoke        smoke                Checks for basic functionality. Smoke tests should take less than 10 minutes in total.
 load         performance          Test is designed to stress the application.
-solo         solo                 Test that cannot be run in parallel with any other tests.
 integration  integration          Test exercises multiple applications and not just one component
 security     security             Test is a security test
 ..           all                  Test run during a normal test execution without restrictions.
