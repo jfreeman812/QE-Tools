@@ -33,6 +33,7 @@ def main():
                          '--force', '--module-first']
     subprocess.call(sphinx_apidoc_cmd + ['qecommon_tools/qecommon_tools'], cwd=BASE_DIR)
     subprocess.call(sphinx_apidoc_cmd + ['qe_logging/qe_logging'], cwd=BASE_DIR)
+    subprocess.call(sphinx_apidoc_cmd + ['qe_config/qe_config'], cwd=BASE_DIR)
     subprocess.check_call(['sphinx-build', '-c', DOCS_DIR, '-aEW', '.', 'docs/'], cwd=BASE_DIR)
 
 
