@@ -21,7 +21,7 @@ be used to override configuration settings. This makes it easy to have a cake
 used by your CI/CD server and still permit configuration values to be defined/overridden
 with manually entered job parameters.
 
-``load_cake`` returns a plain old Python ``ConfigParser`` instance that wwe already know and love.
+``load_cake`` returns a plain old Python ``ConfigParser`` instance that we already know and love.
 Or at least know.
 
 The built-in Python ``ConfigParser`` class already supports layering multiple configuration files;
@@ -205,7 +205,7 @@ def load_cake(master_config, cake_name, into_config=None):
     # config as entries in the default dictionary of the new config,
     # making them foundational starting point for the layers.
     # Since Python 2 doesn't have .read_dict() and since a pre-existing
-    # config parser may have been passed in, this is avoids any Python version
+    # config parser may have been passed in, this avoids any Python version
     # specific code, but does require keys to be lower-cased to make them findable.
     result_config.defaults().update([(k.lower(), v) for k, v in c.items(section_name)])
 
