@@ -33,7 +33,7 @@ def less_equal(self, a, b, msg=''):
     assert a <= b, _msg_concat(msg, "Expected '{}' <= '{}'".format(a, b))
 
 
-def to_be_in(self, value, sequence, msg=''):
+def is_in(self, value, sequence, msg=''):
     assert value in sequence, _msg_concat(
         msg, "Expected: '{}' to be in '{}'".format(value, sequence))
 
