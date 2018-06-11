@@ -207,42 +207,97 @@ Prefix        Use Case
 ============  ======================================================================
 <JIRA_ID>     Any commit related to a specific JIRA
 Enhancement   Any enhancement outside of JIRA (should be small changes)
-FF            A fast follow for a previous pull request (usually small very specific changes, expected to be completed quickly after the PR merges)
-DO NOT MERGE  A pull request that should not be merged (e.g., may break functionality, opened for debugging or discussion)
+FF            A fast follow for a previous pull request
+              (usually small very specific changes, expected to be completed quickly after the PR merges)
+DO NOT MERGE  A pull request that should not be merged
+              (e.g., may break functionality, opened for debugging or discussion)
 Spike         A proof-of-concept that may not be merged as-is; can include a JIRA ID
 ============  ======================================================================
 
-A pull request should contain a single unit of work. The pull request should only add, remove, or change one feature / group of features. Do not bundle features together. Changes that need to be made across multiple repositories are acceptable, but reference the partnering pull requests within each other. To quote the `Linux kernel submission guidelines`_:
+A pull request should contain a single unit of work.
+The pull request should only add, remove, or change
+one feature / group of features.
+Do not bundle features together.
+Changes that need to be made
+across multiple repositories are acceptable,
+but reference the partnering pull requests within each other.
+To quote the `Linux kernel submission guidelines`_:
 
-    For example, if your changes include both bug fixes and performance enhancements for a single driver, separate those changes into two or more patches. If your changes include an API update, and a new driver which uses that new API, separate those into two pull requests.
+    For example, if your changes include both bug fixes
+    and performance enhancements for a single driver,
+    separate those changes into two or more patches.
+    If your changes include an API update,
+    and a new driver which uses that new API,
+    separate those into two pull requests.
 
-    On the other hand, if you make a single change to numerous files, group those changes into a single pull request. Thus a single logical change is contained within a single pull request.
+    On the other hand,
+    if you make a single change to numerous files,
+    group those changes into a single pull request.
+    Thus a single logical change
+    is contained within a single pull request.
 
-    The point to remember is that each pull request should make an easily understood change that can be verified by reviewers. Each pull request should be justifiable on its own merits.
+    The point to remember is
+    that each pull request should make
+    an easily understood change
+    that can be verified by reviewers.
+    Each pull request should be justifiable
+    on its own merits.
 
-The final step before creating a pull request is to assign the appropriate reviewers. See `Collaborate: Review`_ to help determine the appropriate first reviewer(s).
+The final step before creating a pull request
+is to assign the appropriate reviewers.
+See `Collaborate: Review`_ to help determine
+the appropriate first reviewer(s).
 
 .. admonition:: Additional PR support
    :class: note
 
-   Depending on the nature of the pull request, the automatic Jenkins PR checker may not be sufficient to demonstrate that the code is working. In those cases, the pull request should be executed against the source system if possible in a Jenkins job and the job URL should be added to the pull request as a comment. If there are any failures in the job, include the appropriate explanation if the failure is acceptable (e.g., a test needs to be quarantined but is not included in this pull request). If needed, the Jenkins job can be re-run and additional links added to demonstrate the problem is at a system level and not related to the pull request.
+   Depending on the nature of the pull request,
+   the automatic Jenkins PR checker may not be sufficient
+   to demonstrate that the code is working.
+   In those cases,
+   the pull request should be executed
+   against the source system if possible
+   in a Jenkins job
+   and the job URL should be added
+   to the pull request as a comment.
+   If there are any failures in the job,
+   include the appropriate explanation
+   if the failure is acceptable
+   (e.g., a test needs to be quarantined but is not included in this pull request).
+   If needed, the Jenkins job can be re-run
+   and additional links added
+   to demonstrate the problem is at a system level
+   and not related to the pull request.
 
 .. admonition:: Merge Conflicts
    :class: note
 
-   Any pull request submitted needs to merge-able from the onset. When submitting a pull request, GitHub will issue a warning if a merge conflict exists:
+   Any pull request submitted needs to merge-able from the onset.
+   When submitting a pull request,
+   GitHub will issue a warning if a merge conflict exists:
 
     .. image:: _static/bad_merge.png
 
-   While GitHub will allow the pull request to be created, do not submit the pull request until the problem has been resolved. Sometimes a simple merge against the master branch is sufficient. There are times when a pull request may build on another pull request and require the other pull request to be resolved first. In those cases, indicate that status in the dependent pull request comments to avoid merge issues and ensure pull requests are reviewed and merged in the correct order.
+   While GitHub will allow the pull request to be created,
+   do not submit the pull request
+   until the problem has been resolved.
+   Sometimes a simple merge against the master branch is sufficient.
+   There are times when a pull request may build on another pull request
+   and require the other pull request to be resolved first.
+   In those cases,
+   indicate that status in the dependent pull request comments
+   to avoid merge issues and ensure pull requests are reviewed
+   and merged in the correct order.
 
-   If a completed merge causes an existing PR to have conflicts, try running::
+   If a completed merge causes an existing PR
+   to have conflicts, try running::
 
         git checkout <BRANCH_NAME>
         git pull upstream master
         git push origin <BRANCH_NAME>
 
-   If that is unsuccessful, a rebase_ may be necessary.
+   If that is unsuccessful,
+   a rebase_ may be necessary.
 
 Collaborate: Review
 ~~~~~~~~~~~~~~~~~~~
