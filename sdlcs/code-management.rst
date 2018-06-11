@@ -137,7 +137,10 @@ in a personal fork to the master branch on the main repository.
 Pull Request (PR) Workflow
 --------------------------
 
-A pull request is the process for transitioning code from a personal fork to the master repository. A pull request is a feature of GitHub that allows for collaboration on a proposed changed to the repository.
+A pull request is the process for transitioning code
+from a personal fork to the master repository.
+A pull request is a feature of GitHub that allows for
+collaboration on a proposed changed to the repository.
 
 At their core, any pull request needs to keep three things in mind:
 
@@ -148,27 +151,56 @@ At their core, any pull request needs to keep three things in mind:
 Work: Branch Management
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-While a pull request can be submitted from *any* branch, it is recommended to create a topic branch. That keeps the work atomic and allow for changes to easily be committed and pushed to the branch and automatically update the pull request. A suggested workflow for starting a branch is::
+While a pull request can be submitted from *any* branch,
+it is recommended to create a topic branch.
+That keeps the work atomic
+and allow for changes to easily be committed
+and pushed to the branch
+and automatically update the pull request.
+A suggested workflow for starting a branch is::
 
     git checkout master
     git pull upstream master       # Bring in the latest upstream code to minimize chance of merge conflict
     git checkout -b <BRANCH_NAME>  # Checkout <BRANCH_NAME> after creating it
 
-As development occurs, commits should be made to the branch. For details on commits, see `Commit Management`_. Once a branch is ready for submission as a pull request, it must be pushed to the personal repository::
+As development occurs,
+commits should be made to the branch.
+For details on commits,
+see `Commit Management`_.
+Once a branch is ready for submission as a pull request,
+it must be pushed to the personal repository::
 
     git push origin <BRANCH_NAME>
 
 .. note::
-   There is nothing that precludes pushing to the personal repository more frequently; it just is required for submitting a pull request. It is suggested to start pushing early and often as a part of the development process to minimize the code residing locally only.
+   There is nothing that precludes pushing
+   to the personal repository more frequently;
+   it just is required for submitting a pull request.
+   It is suggested to start pushing early
+   and often as a part of the development process
+   to minimize the code residing locally only.
 
 Work: Create Pull Request
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-A pull request should be feature complete upon submission. The submission of a pull request indicates that the code has been finished and confirmed functioning. Once a pull request has been created it is a signal to the reviewers to begin reviewing. The pull request process is detailed in `Creating a pull request from a fork`_. Note that the *head fork* is the personal repository fork.
+A pull request should be feature complete upon submission.
+The submission of a pull request indicates that the code has been finished
+and confirmed functioning.
+Once a pull request has been created
+it is a signal to the reviewers to begin reviewing.
+The pull request process is detailed in `Creating a pull request from a fork`_.
+Note that the *head fork* is the personal repository fork.
 
-As mentioned in `Work: Branch Management`_, by submitting each pull request from independent branches it ensures each pull request remains independent and minimizes merge conflicts.
+As mentioned in `Work: Branch Management`_,
+by submitting each pull request from independent branches
+it ensures each pull request remains independent
+and minimizes merge conflicts.
 
-Each pull request must have a title and a comment. These should conform to the standards described in `Commit Messages`_ with one addition: the title must be in the format of ``<Prefix>: <Title>`` where ``<Prefix>`` is one of the following:
+Each pull request must have a title and a comment.
+These should conform to the standards
+described in `Commit Messages`_ with one addition:
+the title must be in the format of
+``<Prefix>: <Title>`` where ``<Prefix>`` is one of the following:
 
 ============  ======================================================================
 Prefix        Use Case
