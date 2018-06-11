@@ -302,47 +302,109 @@ the appropriate first reviewer(s).
 Collaborate: Review
 ~~~~~~~~~~~~~~~~~~~
 
-Any PR submission needs to be reviewed by at one least one person.  The final reviewer is responsible for merging the pull request.
+Any PR submission needs to be reviewed
+by at one least one person.
+The final reviewer is responsible
+for merging the pull request.
 
-Once a pull request is ready assign all eligible members for review.  This can be tweaked if there is an arrangement with a particular individual invested with the changes being made, in this case assign that individual first.
+Once a pull request is ready
+assign all eligible members for review.
+This can be tweaked
+if there is an arrangement with a particular individual
+invested with the changes being made,
+in this case assign that individual first.
 
 QE-Tools Reviews
 ~~~~~~~~~~~~~~~~
 
-QE-Tools follows the previous section, with the addition of requiring reviews by two members of the QE-Tools-Contributors, though 3 is preferred.  Once the requested changes have been made, the reviewer has 48 hours to respond to the changes, or the pull request will be assumed approved.
+QE-Tools follows the previous section,
+with the addition of requiring reviews
+by two members of the QE-Tools-Contributors,
+though 3 is preferred.
+Once the requested changes have been made,
+the reviewer has 48 hours to respond to the changes,
+or the pull request will be assumed approved.
 
 All Participants
 ++++++++++++++++
 
-Try to keep all discussion contained within the pull request. If a discussion occurs outside of the pull request comments (e.g., video chat), a summary of the discussion should be added as a comment by the current assignee.
+Try to keep all discussion contained within the pull request.
+If a discussion occurs outside of the pull request comments
+(e.g., video chat),
+a summary of the discussion should be added
+as a comment by the current assignee.
 
-Once the pull request has been submitted, each iteration should be completed within one business day. If more time is needed, please post a comment informing all participants.
+Once the pull request has been submitted,
+each iteration should be completed
+within one business day.
+If more time is needed,
+please post a comment informing all participants.
 
 .. admonition:: Treat [Others] Like Friends and Family
    :class: note
 
-   It is always a good reminder that during a pull request code review, it is the code being reviewed, not the coder. When leaving a comment as a part of a pull request, ensure that the comments address the code and not the coder. When reading a comment, remember that the pull review process is intended as a mechanism for improving the code base and is a mechanism for facilitating that improvement rather than speaking negatively about an individual or their abilities.
+   It is always a good reminder
+   that during a pull request code review,
+   it is the code being reviewed,
+   not the coder.
+   When leaving a comment as a part of a pull request,
+   ensure that the comments address the code
+   and not the coder.
+   When reading a comment,
+   remember that the pull review process is intended
+   as a mechanism for improving the code base
+   and is a mechanism for facilitating that improvement rather than speaking negatively about an individual or their abilities.
 
 Participating As a Reviewer
 +++++++++++++++++++++++++++
 
-When starting to review a pull request, update the **Assignees** sidebar on the *Conversation* tab and remove any other reviewers. The code may reviewed either by looking at individual commits from the *Commits* tab or the entire code change from the *Files changed* tab. The review process workflow is detailed in `Reviewing proposed changes in a pull request`_.
+When starting to review a pull request,
+update the **Assignees** sidebar on the *Conversation* tab
+and remove any other reviewers.
+The code may reviewed either by
+looking at individual commits from the *Commits* tab
+or the entire code change from the *Files changed* tab.
+The review process workflow
+is detailed in `Reviewing proposed changes in a pull request`_.
 
-If approving the pull request, after clicking the *Submit review* button, either update the **Assignees** sidebar on the *Conversation* for the next set of reviewers or, if the final reviewer, merge the pull request.
+If approving the pull request,
+after clicking the *Submit review* button,
+either update the **Assignees** sidebar
+on the *Conversation* for the next set of reviewers or,
+if the final reviewer,
+merge the pull request.
 
-If adding comments or requesting changes, assign the pull request back to the original author.
+If adding comments or requesting changes,
+assign the pull request back to the original author.
 
 Participating As an Author
 ++++++++++++++++++++++++++
 
-When participating as an author for a code review, if any comments are added or changes are requested, make the necessary changes, answer any questions, and assign the pull request back to the individual requesting the changes, or to your local reviewers, whichever is "closer."
-Note also that when the PR checker is not sufficient (see above), you'll need to add a link to another test run showing that the changes made do not affect the test results.
+When participating as an author for a code review,
+if any comments are added or changes are requested,
+make the necessary changes,
+answer any questions,
+and assign the pull request back to
+the individual requesting the changes,
+or to your local reviewers,
+whichever is "closer."
+Note also that when the PR checker is not sufficient (see above),
+you'll need to add a link to another test run
+showing that the changes made do not affect the test results.
 
 
 Collaborate: Merge PRs
 ~~~~~~~~~~~~~~~~~~~~~~
 
-The final reviewer, as defined in `Collaborate: Review`_, should merge a pull request once the pull request is approved. If changes to the organizational repository since the pull request was last updated prevents the pull request from being merged cleanly, the reviewer should assign the pull request back to the author with a comment explaining the need for a final update.
+The final reviewer,
+as defined in `Collaborate: Review`_,
+should merge a pull request once the pull request is approved.
+If changes to the organizational repository
+since the pull request was last updated
+prevents the pull request from being merged cleanly,
+the reviewer should assign the pull request
+back to the author with a comment
+explaining the need for a final update.
 
 
 .. _Git Branches Considered Harmful: http://hintjens.com/blog:24
