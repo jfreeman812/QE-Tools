@@ -16,13 +16,17 @@ Repository Conventions
 
 * Each repository should have, in the top level directory:
 
-  * ``README.md`` or ``README.rst`` explaining what it is, who the audience is, etc.  This can simply include a link to the user documentation built from a documentation tool.
+  * ``README.md`` or ``README.rst`` explaining what it is,
+    who the audience is, etc.
+    This can simply include a link to the user documentation built from a documentation tool.
+
   * ``env-setup`` an executable script that sets up the environment
 
     * to be run by humans at will
     * to be run (indirectly) by Jenkins and other automation
     * will fail if it is not running in a virtual environment
-    * otherwise will install and otherwise configure the virtual environment for testing
+    * otherwise will install
+      and otherwise configure the virtual environment for testing
 
   * ``self-check`` an executable script that does a self-check on the repository.
 
@@ -38,14 +42,22 @@ Repository Conventions
 
     * to be run by humans at will
     * to be run by automation (such as Jenkins) for regular runs of test jobs
-    * script should support a ``--check`` command line parameter and that switch will:
+    * script should support a ``--check`` command line parameter
+      and that switch will:
 
-      * invoke the ``self-check`` script with the ``--setup`` option to make sure that the environment is good and that the self-checks all pass
+      * invoke the ``self-check`` script with the ``--setup`` option to make sure that the environment is good
+        and that the self-checks all pass
 
-    * script should handle any command line switches for de-selecting tests, such as NYI, Quarantined, etc as well as the commonly used tracing/logging/reporting switches.
-    * script should accept arbitrary parameters that the user can use to pass any additional parameters required (either from a Jenkins job form or QE hand-run command line).
+    * script should handle any command line switches for de-selecting tests,
+      such as NYI, Quarantined, etc
+      as well as the commonly used tracing/logging/reporting switches.
 
-* Each repository should also utilize the appropriate documentation tools for creating documentation for the code and test cases (e.g., Sphinx for Python)
+    * script should accept arbitrary parameters
+      that the user can use to pass any additional parameters required
+      (either from a Jenkins job form or QE hand-run command line).
+
+* Each repository should also utilize the appropriate documentation tools
+  for creating documentation for the code and test cases (e.g., Sphinx for Python)
 
 
 General Code Management Policies
@@ -54,15 +66,34 @@ General Code Management Policies
 Commit Management
 ~~~~~~~~~~~~~~~~~
 
-Commits should be smaller, related commits rather than large and monolithic. Do no lump together unrelated code into a single commit, unless requested to squash a PR by a reviewer.
+Commits should be smaller,
+related commits rather than large and monolithic.
+Do no lump together unrelated code into a single commit,
+unless requested to squash a PR by a reviewer.
 
 Commit Messages
 ~~~~~~~~~~~~~~~
 
-When doing a ``commit``, there is a specific format to follow. The commit should contain a summary as well as a description. The title should be no more than 50 characters in length. It is recommended, although not required, to utilize the prefixes found in `Work: Create Pull Request`_. The description should contain a more detailed explanation of the change. The description should word wrap at 72 lines as well. For additional information about the message format, see `A Note About Git Commit Messages`_.
+When doing a ``commit``,
+there is a specific format to follow.
+The commit should contain a summary as well as a description.
+The title should be no more than 50 characters in length.
+It is recommended,
+although not required,
+to utilize the prefixes found in `Work: Create Pull Request`_.
+The description should contain a more detailed explanation of the change.
+The description should word wrap at 72 lines as well.
+For additional information about the message format,
+see `A Note About Git Commit Messages`_.
 
 .. note::
-   GitHub utilizes the last commit message to try and pre-populate the title and comment. By following the suggested format above, the pull request title and comment should need minimal changes before creating. If the prefix is utilized, the pull request title will have it, which is where the prefix **is** required.
+   GitHub utilizes the last commit message to try and pre-populate the title and comment.
+   By following the suggested format above,
+   the pull request title
+   and comment should need minimal changes before creating.
+   If the prefix is utilized,
+   the pull request title will have it
+   which is where the prefix **is** required.
 
 Git Workflow
 ------------
@@ -74,20 +105,34 @@ Git Workflow
 Setup: Fork and Clone
 ~~~~~~~~~~~~~~~~~~~~~
 
-To develop for QE, a fork needs to be created of the organizational repository in a personal account and cloned locally. The process is documented in `Fork A Repo`_.
+To develop for QE,
+a fork needs to be created of the organizational repository in a personal account
+and cloned locally.
+The process is documented in `Fork A Repo`_.
 
 .. note::
-   To prevent accidentally pushing to the upstream repository, update the update push URL to a non-valid URL. It is recommended to use DISABLE as a visual indicator::
+   To prevent accidentally pushing to the upstream repository,
+   update the update push URL to a non-valid URL.
+   It is recommended to use DISABLE as a visual indicator::
 
         git remote set-url --push upstream DISABLE
 
-   The change to the upstream push URL is a secondary defense. The master branch for the organizational repository should be set as protected to disable pushing.
+   The change to the upstream push URL is a secondary defense.
+   The master branch for the organizational repository should be set as protected to disable pushing.
 
 Branching Policy
 ----------------
 
-The main repository has one, and only one, coding branch: ``master``. There *can* be a second branch, ``gh-pages``, that is a detached branch used for documentation.
-Branching is supported and required on all personal account forks. All pull requests (below) need to come from independent branches in a personal fork to the master branch on the main repository.
+The main repository has one,
+and only one,
+coding branch: ``master``.
+There *can* be a second branch,
+``gh-pages``,
+that is a detached branch used for documentation.
+Branching is supported
+and required on all personal account forks.
+All pull requests (below) need to come from independent branches
+in a personal fork to the master branch on the main repository.
 
 Pull Request (PR) Workflow
 --------------------------
