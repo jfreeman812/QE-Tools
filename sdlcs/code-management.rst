@@ -127,6 +127,14 @@ DO NOT MERGE  A pull request that should not be merged (e.g., may break function
 Spike         A proof-of-concept that may not be merged as-is; can include a JIRA ID
 ============  ======================================================================
 
+A pull request should contain a single unit of work. The pull request should only add, remove, or change one feature / group of features. Do not bundle features together. Changes that need to be made across multiple repositories are acceptable, but reference the partnering pull requests within each other. To quote the `Linux kernel submission guidelines`_:
+
+    For example, if your changes include both bug fixes and performance enhancements for a single driver, separate those changes into two or more patches. If your changes include an API update, and a new driver which uses that new API, separate those into two pull requests.
+
+    On the other hand, if you make a single change to numerous files, group those changes into a single pull request. Thus a single logical change is contained within a single pull request.
+
+    The point to remember is that each pull request should make an easily understood change that can be verified by reviewers. Each pull request should be justifiable on its own merits.
+
 The final step before creating a pull request is to assign the appropriate reviewers. See `Collaborate: Review`_ to help determine the appropriate first reviewer(s).
 
 .. admonition:: Additional PR support
@@ -179,14 +187,6 @@ Participating As a Reviewer
 +++++++++++++++++++++++++++
 
 When starting to review a pull request, update the **Assignees** sidebar on the *Conversation* tab and remove any other reviewers. The code may reviewed either by looking at individual commits from the *Commits* tab or the entire code change from the *Files changed* tab. The review process workflow is detailed in `Reviewing proposed changes in a pull request`_.
-
-In addition, a pull request should contain a single unit of work. The pull request should only add, remove, or change one feature / group of features. Do not bundle features together. Changes that need to be made across multiple repositories are acceptable, but reference the partnering pull requests within each other. To quote the `Linux kernel submission guidelines`_:
-
-    For example, if your changes include both bug fixes and performance enhancements for a single driver, separate those changes into two or more patches. If your changes include an API update, and a new driver which uses that new API, separate those into two [pull requests].
-
-    On the other hand, if you make a single change to numerous files, group those changes into a single [pull request]. Thus a single logical change is contained within a single [pull request].
-
-    The point to remember is that each [pull request] should make an easily understood change that can be verified by reviewers. Each [pull request] should be justifiable on its own merits.
 
 If approving the pull request, after clicking the *Submit review* button, either update the **Assignees** sidebar on the *Conversation* for the next set of reviewers or, if the final reviewer, merge the pull request.
 
