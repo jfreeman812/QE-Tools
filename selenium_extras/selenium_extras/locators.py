@@ -167,11 +167,13 @@ class Locator(object):
         except LocatorNotFoundException:
             return False
 
-    def _assert_is_present(self, msg_prefix=''):
+    def assert_is_present(self, msg_prefix=''):
+        '''assert, with a helpful message, that this locator is present.'''
         assert self.is_present(), '{} locator should have been present: {}'.format(
             msg_prefix, self)
 
-    def _assert_not_present(self, msg_prefix=''):
+    def assert_not_present(self, msg_prefix=''):
+        '''assert, with a helpful message, that this locator isn't present.'''
         assert not self.is_present(), '{} locator should not have been present: {}'.format(
             msg_prefix, self)
 
@@ -187,11 +189,13 @@ class Locator(object):
         except LocatorNotFoundException:
             return False
 
-    def _assert_is_visible(self, msg_prefix=''):
+    def assert_is_visible(self, msg_prefix=''):
+        '''assert, with a helpful message, that this locator is visible.'''
         assert self.is_visible(), '{} locator should have been visible: {}'.format(
             msg_prefix, self)
 
-    def _assert_not_visible(self, msg_prefix=''):
+    def assert_not_visible(self, msg_prefix=''):
+        '''assert, with a helpful message, that this locator isn't visible.'''
         assert not self.is_visible(), '{} locator should not have been visible: {}'.format(
             msg_prefix, self)
 
@@ -207,11 +211,13 @@ class Locator(object):
         except LocatorNotFoundException:
             return False
 
-    def _assert_is_enabled(self, msg_prefix=''):
+    def assert_is_enabled(self, msg_prefix=''):
+        '''assert, with a helpful message, that this locator is enabled.'''
         assert self.is_enabled(), '{} locator should have been enabled: {}'.format(
             msg_prefix, self)
 
-    def _assert_not_enabled(self, msg_prefix=''):
+    def assert_not_enabled(self, msg_prefix=''):
+        '''assert, with a helpful message, that this locator is not enabled.'''
         assert not self.is_enabled(), '{} locator should not have been enabled: {}'.format(
             msg_prefix, self)
 
@@ -307,11 +313,13 @@ class Button(Locator):
                          'selected').format(**locals()))
         return self.get_object().is_selected()
 
-    def _assert_is_selected(self, msg_prefix=''):
+    def assert_is_selected(self, msg_prefix=''):
+        '''assert, with a helpful message, that this locator is selected.'''
         assert self.is_selected(), '{} locator should have been selected: {}'.format(
             msg_prefix, self)
 
-    def _assert_not_selected(self, msg_prefix=''):
+    def assert_not_selected(self, msg_prefix=''):
+        '''assert, with a helpful message, that this locator is not selected.'''
         assert not self.is_selected(), '{} locator should not have been selected: {}'.format(
             msg_prefix, self)
 
