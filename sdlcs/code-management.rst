@@ -1,7 +1,15 @@
 Code Management
 ===============
 
-In order to facilitate team development and ease in deployments and automation, we have chosen to leverage the combination of Git (tool) and GitHub (platform) for the tracking and coordination aspects of the SDLC. Our git strategy is to maintain a public repository that has a single branch, master. Each developer then creates an account-level fork through GitHub and clones that fork locally for development. Any code changes are submitted via Pull Request for review and integration. For more information on why we use Forks and Pull Requests instead of branches, please see `Git Branches Considered Harmful`_.
+In order to facilitate team development and ease in deployments and automation,
+we have chosen to leverage the combination of Git (tool)
+and GitHub (platform) for the tracking and coordination aspects of the SDLC.
+Our git strategy is to maintain a public repository that has a single branch, master.
+Each developer then creates an account-level fork through GitHub
+and clones that fork locally for development.
+Any code changes are submitted via Pull Request for review and integration.
+For more information on why we use Forks and Pull Requests instead of branches,
+please see `Git Branches Considered Harmful`_.
 
 Repository Conventions
 ----------------------
