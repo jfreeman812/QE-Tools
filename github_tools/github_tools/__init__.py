@@ -38,20 +38,20 @@ PULL_WAIT = 20 * 60 * 60
 
 def get_reviews(token, organization, pr_age, name_filter=''):
     reviews = collections.defaultdict(set)
-    gh = github3.login(token=token, url='https://github.rackspace.com')
+    gh = github3.enterprise_login(token=token, url='https://github.rackspace.com')
     org = gh.organization(organization)
     repos = set()
-    for team in (x for x in org.iter_teams() if x.name.startswith(name_filter)):
-        repos.update(team.iter_repos())
+    for team in (x for x in org.teams() if x.name.startswith(name_filter)):
+        repos.update(team.repositories())
     for repo in repos:
-        for pull in (x for x in repo.iter_pulls() if x.state == 'open'):
-            assignees = {github3.users.User(x, pull) for x in pull._json_data.get('assignees')}
+        for pull in (x for x in repo.pull_requests() if x.state == 'open'):
+            assignees = {x.login for x in pull.assignees}
             if not assignees:
                 continue
             secs_since_last_update = (NOW - pull.updated_at).total_seconds()
             # Check the assignee list and ensure it is not solely the author. In the case of
             # ambiguity, err on the side of caution and alert all parties involved.
-            if {pull.user} != assignees and secs_since_last_update > pr_age:
+            if {pull.user.login} != assignees and secs_since_last_update > pr_age:
                 for assignee in assignees:
                     reviews[assignee].add((pull.title, pull.html_url))
     return reviews
