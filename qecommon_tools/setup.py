@@ -9,7 +9,8 @@ CONSOLE_SCRIPTS = [
 ]
 
 INSTALL_REQUIRES = [
-    'requests>=2.10'
+    'requests>=2.10',
+    'wrapt',
 ]
 
 TESTS_REQUIRE = [
