@@ -12,7 +12,7 @@ CONSOLE_SCRIPTS = [
 
 INSTALL_REQUIRES = [
     'requests>=2.10',
-    'github3.py>=0.9',
+    'github3.py~=1.1.10',
     'qecommon_tools>=1.0.3'
 ]
 
