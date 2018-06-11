@@ -305,3 +305,60 @@ STRING_TO_LIST_DATA = {
 @pytest.mark.parametrize('source,test_data', STRING_TO_LIST_DATA.items())
 def test_string_to_list(source, test_data):
     assert qecommon_tools.string_to_list(source, **test_data['kwargs']) == test_data['results']
+
+
+def test_fib_or_max():
+    # All numbers chosen here are arbitrary
+    assert qecommon_tools.fib_or_max(0, 30) == 0
+    assert qecommon_tools.fib_or_max(6, 30) == 8
+    assert qecommon_tools.fib_or_max(1000, 30) == 30
+
+
+def make_retry_helper(retry_count, exceptions_to_catch, max_retry_sleep):
+    @qecommon_tools.retry_on_exceptions(retry_count, exceptions_to_catch, max_retry_sleep)
+    def function_that_might_throw(exception, counter_list_hack):
+        counter_list_hack[0] += 1
+        if exception:
+            raise exception
+
+    return function_that_might_throw
+
+
+def test_retry_on_exception():
+    # All these are arbitrary, but...
+    # keep the retry count and sleep time low so tests don't take too long to run.
+    retry_count = 3
+    helper_that_might_throw = make_retry_helper(retry_count, (KeyError, NameError), 2)
+
+    # No exception, should only be called once.
+    counter = [0]
+    helper_that_might_throw(None, counter)
+    assert counter[0] == 1
+
+    # uncaught exception, should only be called once.
+    arbitrary_exception = IndexError   # Anything not listed above...
+    counter = [0]
+    with pytest.raises(IndexError):
+        helper_that_might_throw(IndexError, counter)
+    assert counter[0] == 1
+
+    # caught exceptions, make sure retry count is correct.
+    counter = [0]
+    arbitrary_exception = KeyError
+    with pytest.raises(arbitrary_exception):
+        helper_that_might_throw(arbitrary_exception, counter)
+
+    # <n> retries means <n>+1 calls
+    assert counter[0] == retry_count + 1
+
+
+def test_retry_on_exception_error_handling():
+    with pytest.raises(AssertionError) as e:
+        make_retry_helper(10, None, 1)
+    # Make sure we get the right error, but don't lock down the exact error string raised.
+    assert 'No exception' in str(e)
+
+    with pytest.raises(AssertionError) as e:
+        make_retry_helper(0, KeyError, 1)
+    # Make sure we get the right error, but don't lock down the exact error string raised.
+    assert 'max_retry_count must be' in str(e)

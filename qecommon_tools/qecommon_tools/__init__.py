@@ -2,14 +2,20 @@ from __future__ import print_function
 import ast
 from collections import Iterable
 import itertools as _itertools
+import logging
 import os as _os
 import random
 import shutil as _shutil
 import string as _string
 import subprocess as _subprocess
 import sys as _sys
+import time as _time
 
 import requests as _requests
+import wrapt as _wrapt
+
+
+_debug = logging.getLogger(__name__).debug
 
 
 class_lookup = {}
@@ -383,3 +389,54 @@ def filter_lines(line_filter, lines, return_type=None):
 
     filtered_lines = list(filter(line_filter, lines))
     return filtered_lines if return_type is list else '\n'.join(filtered_lines)
+
+
+def fib_or_max(fib_number_index, max_number=None):
+    '''The nth Fibonacci number or max_number, which ever is smaller.
+
+    This can be used for retrying failed operations with progressively longer
+    gaps between retries, cap'd at the max_number paraemter if given.
+    '''
+    current, next_ = 0, 1
+    for _ in range(fib_number_index):
+        current, next_ = next_, current + next_
+        if max_number and current > max_number:
+            return max_number
+    return current
+
+
+DEFAULT_MAX_RETRY_SLEEP = 30
+
+
+def retry_on_exceptions(max_retry_count, exceptions, max_retry_sleep=DEFAULT_MAX_RETRY_SLEEP):
+    '''
+    A wrapper to retry a function max_retry_count times if any of the given exceptions are raised.
+
+    In the event the exception/exceptions are raised, this code will sleep for ever increasing
+    amounts of time (using the fibonacci sequence) but capping at max_retry_sleep seconds.
+
+    Args:
+        max_retry_count (int): The maximum number of retries, must be > 0..
+        exceptions (exception or tuple of exceptions): The exceptions to catch and retry on.
+        max_retry_sleep (int, float): The maximum amount of time to sleep between retries.
+    '''
+    assert exceptions, 'No exception(s) given'
+    assert max_retry_count > 0, 'max_retry_count must be greater than 0'
+
+    @_wrapt.decorator
+    def wrapper(wrapped, instance, args, kwargs):
+        error_count = 0
+        while error_count <= max_retry_count:
+            try:
+                return wrapped(*args, **kwargs)
+            except exceptions as e:
+                error = e
+                _debug('Retry on exception: "{}" encountered during call'.format(error))
+                error_count += 1
+                retry_sleep = fib_or_max(error_count, max_number=max_retry_sleep)
+                _debug('...trying again after a sleep of {}'.format(retry_sleep))
+                _time.sleep(retry_sleep)
+        _debug('Retry on exception: Max Retry Count of {} Exceeded'.format(max_retry_count))
+        raise error
+
+    return wrapper
