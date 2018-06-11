@@ -154,9 +154,14 @@ The final step before creating a pull request is to assign the appropriate revie
 Collaborate: Review
 ~~~~~~~~~~~~~~~~~~~
 
-For QE-Tools, any submission needs to be reviewed by at least two members of the QE-Tools-Contributors, though 3 is preferred. The final reviewer is responsible for merging the pull request.
+Any PR submission needs to be reviewed by at one least one person.  The final reviewer is responsible for merging the pull request.
 
 Once a pull request is ready assign all eligible members for review.  This can be tweaked if there is an arrangement with a particular individual invested with the changes being made, in this case assign that individual first.
+
+QE-Tools Reviews
+~~~~~~~~~~~~~~~~
+
+QE-Tools follows the previous section, with the addition of requiring reviews by two members of the QE-Tools-Contributors, though 3 is preferred.  Once the requested changes have been made, the reviewer has 48 hours to respond to the changes, or the pull request will be assumed approved.
 
 All Participants
 ++++++++++++++++
