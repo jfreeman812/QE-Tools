@@ -34,8 +34,6 @@ from time import sleep
 # Turn off the spamminess of the Selenium Logger
 LOGGER.setLevel(logging.WARNING)
 
-DEFAULT_CONFIG_FILENAME = BASE_CONFIG_PATH = 'TBD'
-
 _screenshot_errormessage = "'{}' should have exactly 1 pair of curly brackets"
 
 
@@ -82,7 +80,7 @@ class SeleniumClient(object):
 
         self.base_screenshot_filename = base_screenshot_filename
 
-    def start(self, url=False):
+    def start(self, url=None):
         '''
         Go to the given url.
 

@@ -24,11 +24,13 @@ class JavascriptAlert(object):
         '''
         Every popup will need to use the driver object.
 
-        @param driver: The browser element to use for the action
+        Args:
+            driver (SeleniumClient): The driver to use for the action.
         '''
         self.popup = driver.alert()
 
     def is_present(self):
+        '''Is this popup present?'''
         try:
             if self.text:
                 return True
@@ -36,22 +38,16 @@ class JavascriptAlert(object):
             return False
 
     def accept(self):
-        '''
-        Accepting the popup
-        '''
+        '''Accepting the popup'''
         self.popup.accept()
 
     def dismiss(self):
-        '''
-        Dismiss the popup
-        '''
+        '''Dismiss the popup'''
         self.popup.dismiss()
 
     @property
     def text(self):
-        '''
-        Get the text of the popup
-        '''
+        '''Property: the text of the popup'''
         return self.popup.text
 
 
@@ -60,17 +56,14 @@ class JavascriptPrompt(JavascriptAlert):
     A prompt is able to accept text
     '''
     def enter(self, data):
-        '''
-        How to enter text into a javascript prompt.
+        '''Enter text into a javascript prompt.
 
-        @param data: The data to enter in the prompt
+        Args:
+            data (str): The data to enter in the prompt
         '''
         self.popup.send_keys(data)
 
 
 class JavascriptConfirm(JavascriptAlert):
-    '''
-    This is just a passed class that allows for processing a javascript
-    confirm call.  Simply syntactic sugar.
-    '''
+    '''Syntactic sugar for JavascriptAlter.'''
     pass

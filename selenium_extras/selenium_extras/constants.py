@@ -1,7 +1,6 @@
 import os
 from selenium.webdriver.common.by import By
 
-DEFAULT_CONFIG_FILENAME = 'selenium.config'
 SEARCH = {
     'class_name': By.CLASS_NAME,
     'class name': By.CLASS_NAME,
@@ -27,5 +26,3 @@ Keys to this dictionary are convenience values used when creating
 Locators or passing "by" values into to various helper functions
 in this package.
 '''
-
-JAVASCRIPT_SCROLL = 'window.scrollTo({x}, {y});'

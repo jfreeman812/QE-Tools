@@ -36,7 +36,7 @@ from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.support import expected_conditions as EC  # noqa N812
 from selenium.webdriver.support.ui import Select as NativeSelectWrapper
 
-from .constants import SEARCH, JAVASCRIPT_SCROLL
+from .constants import SEARCH
 from .exceptions import (InvalidSearchByException,
                          InvalidSearchForException,
                          LocatorNotFoundException)
@@ -99,8 +99,7 @@ class Locator(object):
 
     def scroll_to(self):
         '''Use Javascript to scroll to this locator.'''
-        self.driver.javascript(
-            JAVASCRIPT_SCROLL.format(**self.get_object().location))
+        self.driver.javascript('window.scrollTo({x}, {y});'.format(**self.get_object().location))
 
     def wait_for_present(self, timeout=None):
         '''Wait for this locator to be present on the page.
@@ -288,7 +287,6 @@ class Locator(object):
 
         Yields:
             selenium web-element object: each object found by the find_elements method.
-
         '''
         self._log.debug(('Searching for all {self} - '
                          'on page: "{self.driver.current_url}"').format(**locals()))
@@ -302,7 +300,7 @@ class Locator(object):
 
 
 class Button(Locator):
-    '''Locator that check if it is selected.'''
+    '''Locator that can check if it is selected.'''
 
     def is_selected(self):
         '''
