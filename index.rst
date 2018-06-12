@@ -29,6 +29,7 @@ Several libraries have been created that can be installed via :doc:`Artifactory<
    qe_logging <docs/qe_logging>
    qe_behave <_docs/qe_behave/README>
    github_tools <_docs/github_tools/README>
+   selenium_extras <docs/selenium_extras>
    sphinx-gherkindoc <_docs/sphinx-gherkindoc/README>
    tableread <_docs/tableread/README>
    _docs/artifactory
@@ -44,6 +45,7 @@ Library Name                                              Description
 :doc:`qe_behave <_docs/qe_behave/README>`                 A collection of packages and tools to support Gherkin/Behave-based testing.
 :doc:`github_tools<_docs/github_tools/README>`            A collection of tools around Git and GitHub to make developers' lives easier.
 :doc:`sphinx-gherkindoc<_docs/sphinx-gherkindoc/README>`  A tool to convert Gherkin into Sphinx documentation
+:doc:`selenium_extras<docs/selenium_extras>`              A library for easier use of Selenium (based on the OpenCAFE Selenium Plugin)
 :doc:`tableread<_docs/tableread/README>`                  A library for converting reStructredText tables into Python objects
 ========================================================  ==============================================================================
 

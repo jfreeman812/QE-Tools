@@ -1,0 +1,29 @@
+[browser]
+browser_name=Firefox
+
+# We have no performance requirements, and the
+# AUTO testing environment has been slow.
+# Setting these to 2 minutes so that we can
+# avoid false failures due to slow page loading
+# times. If pages and elements load faster,
+# then we will run faster.
+# (These are timeouts not hard sleep times.)
+page_load_timeout=120
+locator_wait=120
+
+# This will also be how long we wait for elements that will never
+# be on the page, setting it 2 minutes means tests will take too long.
+page_size=1280,1024
+
+grid_url=http://qe-gridhub.rax.io:4444/wd/hub
+download_directory=$PWD/pdf_folder
+
+old_profile=browser.helperApps.neverAsk.saveToDisk: application/pdf image/png image/bmp image/tiff image/jpeg image/gif image/svg+xml text/csv; network.proxy.http: proxy1.ord1.corp.rackspace.com; network.proxy.http_port: 3128; network.proxy.ssl: proxy1.ord1.corp.rackspace.com; network.proxy.ssl_port: 3128; network.proxy.type: 1
+
+[firefox_preferences]
+browser.helperApps.neverAsk.saveToDisk: application/pdf image/png image/bmp image/tiff image/jpeg image/gif image/svg+xml text/csv
+network.proxy.http: proxy1.ord1.corp.rackspace.com
+network.proxy.http_port: 3128
+network.proxy.ssl: proxy1.ord1.corp.rackspace.com
+network.proxy.ssl_port: 3128
+network.proxy.type: 1
