@@ -10,7 +10,7 @@ import requests_mock
 
 
 from qe_logging import setup_logging
-from qe_logging.requests_logging import RequestAndResponseLogger
+from qe_logging.requests_logging import IdentityLogger, RequestAndResponseLogger
 
 
 ###########################
@@ -20,6 +20,11 @@ from qe_logging.requests_logging import RequestAndResponseLogger
 
 def single_item_random_dict():
     return {generate_random_string(): generate_random_string()}
+
+
+# For identity logger checking:
+SECRET_RESPONSE_VALUE = 'XYZZ'
+BAD_SECRET_RESPONSE_DATA = 'Unauthorized: I cannot do that'
 
 
 session = requests.Session()
@@ -51,6 +56,20 @@ adapter.register_uri(
     status_code=202,
     headers=single_item_random_dict(),
     json=single_item_random_dict(),
+)
+adapter.register_uri(
+    'POST',
+    'mock://test.com/secrets',
+    status_code=202,
+    headers=single_item_random_dict(),
+    json={'reponse_data': 'There are SECRETS here: {}, ssshhh!'.format(SECRET_RESPONSE_VALUE)},
+)
+adapter.register_uri(
+    'POST',
+    'mock://test.com/bad-secrets',
+    status_code=401,
+    headers=single_item_random_dict(),
+    json={'reponse_data': BAD_SECRET_RESPONSE_DATA},
 )
 
 
@@ -219,3 +238,30 @@ def test_custom_response_logger(test_request, test_resp):
     # Verify our custom message is in the log data.
     msg = '{}custom request message {}'.format(ROOT_MSG.format(log_contents), ALTERNATE_MSG)
     assert ALTERNATE_MSG in log_contents, msg
+
+
+@pytest.mark.parametrize('log_class', [RequestAndResponseLogger, IdentityLogger])
+def test_identity_secrets_are_safe_with_identity_logger(log_class):
+    # We have other tests that check nitty gritty logging details,
+    # so this test is simpler, do secrets show up in the log files (regular logger),
+    # or not (IdentityLogger).
+    request_secret = 'MY_SECRET_HERE'
+    request = {'url': 'mock://test.com/secrets', 'method': 'POST',
+               'kwargs': {'data': {'username': 'UserName', 'password': request_secret}}}
+    response = session.post('mock://test.com/secrets')
+
+    log_contents = _setup_log_and_get_contents(request, response, log_class=log_class)
+    if log_class == IdentityLogger:
+        assert request_secret not in log_contents
+        assert SECRET_RESPONSE_VALUE not in log_contents
+    else:
+        assert request_secret in log_contents
+        assert SECRET_RESPONSE_VALUE in log_contents
+
+
+def test_identity_logger_log_response_when_response_has_errors():
+    request = {'url': 'mock://test.com/bad-secrets', 'method': 'POST'}
+    response = session.post('mock://test.com/bad-secrets')
+
+    log_contents = _setup_log_and_get_contents(request, response, log_class=IdentityLogger)
+    assert BAD_SECRET_RESPONSE_DATA in log_contents

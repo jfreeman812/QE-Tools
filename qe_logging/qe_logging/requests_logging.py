@@ -16,6 +16,7 @@ from types import MethodType
 import requests
 
 from qecommon_tools import list_from
+from qecommon_tools.http_helpers import is_status_code
 
 
 DEFAULT_OVERRIDE_HEADERS = {'X-Auth-Token': '$TOKEN'}
@@ -126,7 +127,7 @@ class RequestAndResponseLogger(object):
     Args:
         logger (logging.getLogger): A logger to use to record data.  If not provided defaults to
             ``default_logger_name``.
-        exclude_request_params (list): If supplied will be excluded from the logging
+        exclude_request_params (str, or list[str]): If supplied will be excluded from the logging
             in the curl for the request.
             Note that this may make the curl invalid.
 
@@ -185,3 +186,22 @@ class RequestAndResponseLogger(object):
         '''
         self.log_request(request_kwargs)
         self.log_response(response)
+
+
+class IdentityLogger(RequestAndResponseLogger):
+    '''
+    For use with the Identity client.
+
+    This will suppress the logging of the data header in the request
+    and will only log the response data if there is an error.
+    '''
+
+    def __init__(self, logger=None):
+        super(IdentityLogger, self).__init__(logger=logger, exclude_request_params='data')
+
+    def log_response_content(self, response):
+        '''Don't log anything unless there is an error; keep Identity secrets safe!'''
+        if is_status_code('any error', response.status_code):
+            super(IdentityLogger, self).log_response_content(response)
+        else:
+            self.logger.debug('-->Response content: <SUPPRESSED FOR SECURITY>')
