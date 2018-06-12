@@ -189,7 +189,8 @@ class RequestAndResponseLogger(object):
 
 
 class IdentityLogger(RequestAndResponseLogger):
-    '''For use with the Identity client.
+    '''
+    For use with the Identity client.
 
     This will suppress the logging of the data header in the request
     and will only log the response data if there is an error.
