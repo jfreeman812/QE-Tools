@@ -48,7 +48,7 @@ TC_PREFIX_LEN = len(TC_PREFIX)
 
 
 def neuter_unicode(thing):
-    return thing and thing.encode('ascii', 'xmlcharrefreplace')
+    return thing and str(thing.encode('ascii', 'xmlcharrefreplace'))
 
 
 def test_case_name_sanitize(name):
