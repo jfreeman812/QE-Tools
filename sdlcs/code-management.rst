@@ -33,7 +33,7 @@ Repository Conventions
   * ``self-check`` an executable script that does a self-check on the repository.
 
     * to be run by humans at will (such as before PRs)
-    * to be run by automation (such as Jenkins) for PR acceptance testing.
+    * to be run by automation tooling (such as Jenkins or Travis CI) for PR acceptance testing.
     * script should support a ``--setup`` command line parameter and that switch will:
 
       * invoke the ``env-setup`` script to make sure the environment is good before attempting self-check logic.
