@@ -95,6 +95,13 @@ def _enrich_data(entry):
     return entry
 
 
+def _only_first(data_list, matcher):
+    matching_indices = [i for i, x in enumerate(data_list) if matcher(x)]
+    for index in matching_indices[:0:-1]:
+        data_list.pop(index)
+    return data_list
+
+
 class SplunkAPI(Resource):
     fixed_arg_values = {}
 
@@ -112,7 +119,9 @@ class SplunkAPI(Resource):
     def _check_for_duplicates(self, events):
         test_ids = [self._test_id_from(x) for x in events]
         duplicates = {name: count for name, count in Counter(test_ids).items() if count > 1}
-        valids = [x for x in events if self._test_id_from(x) not in duplicates.keys()]
+        valids = events
+        for duplicate in duplicates.keys():
+            valids = _only_first(valids, lambda x: self._test_id_from(x) == duplicate)
         return valids, duplicates
 
     def _validate_payload(self):
@@ -156,18 +165,18 @@ class SplunkAPI(Resource):
         data_by_product = defaultdict(list)
         for entry in request.json:
             product = entry['Product Hierarchy'].split('::')[-1]
-            product = ''.join(filter(
+            product_slug = ''.join(filter(
                 lambda x: x.isalnum() or x in ('.', '_'), product.replace(' ', '_')
             ))
-            data_by_product[product].append(entry)
-        for product in data_by_product:
-            product_path = path.join(PROD_DATA_DIR, product)
+            data_by_product[product_slug].append(entry)
+        for product_slug in data_by_product:
+            product_path = path.join(PROD_DATA_DIR, product_slug)
             if not path.exists(product_path):
                 makedirs(product_path)
             file_path = path.join(
                 product_path, '{}.xz'.format(time.strftime('%Y%m%d_%H%M%S')))
             with lzma.open(file_path, 'wt') as f:
-                f.write(json.dumps(data_by_product[product]))
+                f.write(json.dumps(data_by_product[product_slug]))
 
     def _post(self, require_perfection=False, check_whitelist=False, write_file=False):
         initial_count = len(request.json)
@@ -180,7 +189,7 @@ class SplunkAPI(Resource):
             if disallowed:
                 message = 'This payload contains hierarchies not on the whitelist!'
                 return self._return_message(
-                    0, 0, initial_count, message, errors=disallowed, status_code=401
+                    initial_count=initial_count, message=message, errors=disallowed, status_code=401
                 )
 
         valids, duplicates = self._check_for_duplicates(valids)
@@ -192,16 +201,19 @@ class SplunkAPI(Resource):
         if require_perfection and errors:
             message = 'Some entries did not meet requirements, no data sent.'
             return self._return_message(
-                valids_count, 0, initial_count, message, errors=errors, status_code=400
+                allowed_count=valids_count, initial_count=initial_count,
+                message=message, errors=errors, status_code=400
             )
         if not valids:
             message = 'All entries contained errors, no data sent.'
             return self._return_message(
-                valids_count, 0, initial_count, message, errors=errors, status_code=400
+                allowed_count=valids_count, initial_count=initial_count,
+                message=message, errors=errors, status_code=400
             )
 
         valids = [_enrich_data(x) for x in valids]
         if write_file:
+            # wrap writing in a broad try/except so that write failures will not impede uploads
             try:
                 self._write_data_file()
             except BaseException:
@@ -230,7 +242,8 @@ class SplunkAPI(Resource):
             except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError) as e:
                 message = 'Some data failed to post due to remote host error!'
                 return self._return_message(
-                    valids_count, total_posted, initial_count, message, status_code=500,
+                    allowed_count=valids_count, posted_count=total_posted,
+                    initial_count=initial_count, message=message, status_code=500,
                     url=url, errors={'local_error': str(e), 'remote_error': str(response.content)}
                 )
 
@@ -240,12 +253,12 @@ class SplunkAPI(Resource):
             message = 'Some data posted, some filtered for errors.'
             status_code = 451
         return self._return_message(
-            valids_count, total_posted, initial_count, message,
-            url=url, errors=errors, status_code=status_code
+            allowed_count=valids_count, posted_count=total_posted, initial_count=initial_count,
+            message=message, url=url, errors=errors, status_code=status_code
         )
 
-    def _return_message(self, allowed_count, posted_count, initial_count, message, status_code=201,
-                        url=None, errors=None):
+    def _return_message(self, allowed_count=0, posted_count=0, initial_count=0, message='',
+                        status_code=201, url=None, errors=None):
         body = {
             'initial_event_count': initial_count,
             'validated_event_count': allowed_count,
@@ -254,7 +267,6 @@ class SplunkAPI(Resource):
             'errors': errors,
             'url': url
         }
-        print(body)
         return {k: v for k, v in body.items() if v not in (None, [], {})}, status_code
 
 
