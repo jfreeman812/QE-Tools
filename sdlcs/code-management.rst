@@ -4,7 +4,7 @@ Code Management
 In order to facilitate team development and ease in deployments and automation,
 we have chosen to leverage the combination of Git (tool)
 and GitHub (platform) for the tracking and coordination aspects of the SDLC.
-Our git strategy is to maintain a public repository that has a single branch, master.
+Our git strategy is to maintain a public repository that has a single branch: ``master``.
 Each developer then creates an account-level fork through GitHub
 and clones that fork locally for development.
 Any code changes are submitted via Pull Request for review and integration.
@@ -28,7 +28,7 @@ Repository Conventions
     * to be run (indirectly) via automation tooling (such as Jenkins or Travis CI)
     * will fail if it is not running in a virtual environment (when appropriate)
     * otherwise will install
-      and otherwise configure the environment for testing
+      and configure the environment for testing
 
   * ``self-check`` an executable script that does a self-check on the repository.
 
@@ -51,13 +51,9 @@ Repository Conventions
       * invoke the ``self-check`` script with the ``--setup`` option to make sure that the environment is good
         and that the self-checks all pass
 
-    * script should handle any command-line switches needed to pass to the framework
-      such as deselecting tests (e.g., skip quarantined tests)
-      as well as the commonly-used tracing/logging/reporting switches.
-
     * script should accept arbitrary parameters
-      that the user can use to pass any additional parameters required
-      (either from a Jenkins job form or QE hand-run command line).
+      (either from automation tooling or QE hand-run command line)
+      and pass them to the test framework.
 
 .. note::
    For the executable scripts,
@@ -165,7 +161,7 @@ it is recommended to create a topic branch.
 That keeps the work atomic
 and allows for changes to easily be committed
 and pushed to the branch
-and automatically update the pull request.
+and GitHub will automatically update the pull request.
 A suggested workflow for starting a branch is::
 
     git checkout master
@@ -201,7 +197,7 @@ The pull request process is detailed in `Creating a pull request from a fork`_.
 Note that the *head fork* is the personal repository fork.
 
 As mentioned in `Work: Branch Management`_,
-by submitting each pull request from independent branches
+by submitting each pull request from independent branches,
 it ensures each pull request remains independent
 and minimizes merge conflicts.
 
@@ -316,12 +312,12 @@ by at one least one person.
 The final reviewer is responsible
 for merging the pull request.
 
-Once a pull request is ready
+Once a pull request is ready,
 assign all eligible members for review.
-This can be tweaked
-if there is an arrangement with a particular individual
-invested with the changes being made,
-in this case assign that individual first.
+This can be tweaked if there is a previous arrangement,
+such as when a particular individual is invested in the changes being made
+or a small group has worked heavily in one area.
+In that case, the assignment may be more focused.
 
 QE-Tools Reviews
 ~~~~~~~~~~~~~~~~
