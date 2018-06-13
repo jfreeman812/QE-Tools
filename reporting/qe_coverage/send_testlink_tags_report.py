@@ -52,7 +52,7 @@ TC_PREFIX_LEN = len(TC_PREFIX)
 # no transformation is needed there.
 if sys.version_info.major < 3:
     def neuter_unicode(thing):
-        return thing and str(thing.encode('ascii', 'xmlcharrefreplace'))
+        return thing and thing.encode('ascii', 'xmlcharrefreplace')
 else:
     def neuter_unicode(thing):
         return thing
