@@ -12,6 +12,7 @@ CONSOLE_SCRIPTS = [
 # Major.Minor level; for third party packages, the patch level is included.
 INSTALL_REQUIRES = [
     'qecommon_tools~=1.1',
+    'qe_config~=1.0.0',
     'qe_logging~=1.1',
     'qe_coverage~=1.5',
     'sphinx_gherkindoc~=1.0',
@@ -26,7 +27,9 @@ TESTS_REQUIRE = [
 
 EXTRAS_REQUIRE = {
     'api': ['requests~=2.18.4'],
-    'ui': ['selenium~=3.12.0'],
+    'ui': ['selenium~=3.12.0',
+           'selenium_extras~=0.1.0',
+           ],
 }
 
 
