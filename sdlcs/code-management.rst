@@ -32,8 +32,8 @@ Repository Conventions
 
   * ``self-check`` an executable script that does a self-check on the repository.
 
-    * to be run by humans at will (such as before PRs)
-    * to be run by automation tooling (such as Jenkins or Travis CI) for PR acceptance testing.
+    * to be run by humans at will (such as before pull requests)
+    * to be run by automation tooling (such as Jenkins or Travis CI) for pull request acceptance testing.
     * script should support a ``--setup`` command line parameter and that switch will:
 
       * invoke the ``env-setup`` script to make sure the environment is good before attempting self-check logic.
@@ -73,7 +73,7 @@ Commit Management
 Commits should be smaller,
 related commits rather than large and monolithic.
 Do not lump together unrelated code into a single commit,
-unless requested to squash a PR by a reviewer.
+unless requested to squash a pull request by a reviewer.
 
 Commit Messages
 ~~~~~~~~~~~~~~~
@@ -213,7 +213,7 @@ Prefix        Use Case
 <JIRA_ID>     Any commit related to a specific JIRA
 Enhancement   Any enhancement outside of JIRA (should be small changes)
 FF            A fast follow for a previous pull request
-              (usually small very specific changes, expected to be completed quickly after the PR merges)
+              (usually small very specific changes, expected to be completed quickly after the pull request merges)
 DO NOT MERGE  A pull request that should not be merged
               (e.g., may break functionality, opened for debugging or discussion)
 Spike         A proof-of-concept that may not be merged as-is; can include a JIRA ID
@@ -253,11 +253,11 @@ is to assign the appropriate reviewers.
 See `Collaborate: Review`_ to help determine
 the appropriate first reviewer(s).
 
-.. admonition:: Additional PR support
+.. admonition:: Additional pull request support
    :class: note
 
    Depending on the nature of the pull request,
-   the automatic Jenkins PR checker may not be sufficient
+   the automatic Jenkins pull request checker may not be sufficient
    to demonstrate that the code is working.
    In those cases,
    the pull request should be executed
@@ -294,7 +294,7 @@ the appropriate first reviewer(s).
    to avoid merge issues and ensure pull requests are reviewed
    and merged in the correct order.
 
-   If a completed merge causes an existing PR
+   If a completed merge causes an existing pull request
    to have conflicts, try running::
 
         git checkout <BRANCH_NAME>
@@ -307,7 +307,7 @@ the appropriate first reviewer(s).
 Collaborate: Review
 ~~~~~~~~~~~~~~~~~~~
 
-Any PR submission needs to be reviewed
+Any pull request submission needs to be reviewed
 by at one least one person.
 The final reviewer is responsible
 for merging the pull request.
@@ -393,13 +393,13 @@ and assign the pull request back to
 the individual requesting the changes,
 or to your local reviewers,
 whichever is "closer."
-Note also that when the PR checker is not sufficient (see above),
+Note also that when the pull request checker is not sufficient (see above),
 you'll need to add a link to another test run
 showing that the changes made do not affect the test results.
 
 
-Collaborate: Merge PRs
-~~~~~~~~~~~~~~~~~~~~~~
+Collaborate: Merge Pull Requests
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The final reviewer,
 as defined in `Collaborate: Review`_,
