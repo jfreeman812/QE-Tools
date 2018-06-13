@@ -47,8 +47,15 @@ TC_PREFIX = 'tc:'
 TC_PREFIX_LEN = len(TC_PREFIX)
 
 
-def neuter_unicode(thing):
-    return thing and str(thing.encode('ascii', 'xmlcharrefreplace'))
+# the XML libraries return Unicode on Python 2 so this will turn that
+# back into a string when needed. Since Python 3 is native unicode,
+# no transformation is needed there.
+if sys.version_info.major < 3:
+    def neuter_unicode(thing):
+        return thing and str(thing.encode('ascii', 'xmlcharrefreplace'))
+else:
+    def neuter_unicode(thing):
+        return thing
 
 
 def test_case_name_sanitize(name):
