@@ -38,7 +38,9 @@ def validate_response_list(response_list, api_model, label_name, field_name_alte
         errors = validate_fields(entry, api_model, field_name_alternates)
         if errors:
             collected_errors.append({label_name: entry[label_name], 'errors': errors})
-    return collected_errors
+    rejected_labels = {x[label_name] for x in collected_errors}
+    valid_responses = [x for x in response_list if x[label_name] not in rejected_labels]
+    return valid_responses, collected_errors
 
 
 class CustomField(fields.String):
