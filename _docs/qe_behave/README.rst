@@ -22,6 +22,7 @@ General Testing
 These packages are included for enhancing all of our testing, alongside `behave`_ itself:
 
     * :doc:`qecommon_tools<../../docs/qecommon_tools>` - A collection of generally useful tools leveraged here, and by other QE-Tools projects; it is called out here to encourage use outside of just QE-Tools, and to elict contributions, improvements, etc.
+    * :doc:`qe_config<../../docs/qe_config>` - contains helper functions for managing config files across multiple related test environments.
     * :doc:`qe_logging<../../docs/qe_logging>` - contains ``behave_logging`` for clarity of ``behave`` tests, as well as additional capabilities for standardizing and simplifying logging in general.
 
 
@@ -31,7 +32,7 @@ UI Testing
 Install ``qe_behave`` with the ``[UI]`` option to get these:
 
     * `selenium`_  - base python selenium package
-    * <Forthcoming> - UI testing on top of selenium
+    * :doc:`selenium_extras<../../docs/selenium_extras>` - helpers for making selenium-based testing easier.
 
 
 API Testing
@@ -40,7 +41,9 @@ API Testing
 Install ``qe_behave`` with the ``[API]`` option to get these:
 
     * `requests`_ - base python requests package
-    * <Forthcoming> - API testing on top of requests
+
+Also, :doc:`qe_logging<../../docs/qe_logging>` - (Part of General Testing) contains :py:mod:`requests_client_logging<qe_logging.requests_client_logging>`
+which has some nice extra features (not just logging) as well.
 
 
 Tooling
