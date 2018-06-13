@@ -18,15 +18,17 @@ Repository Conventions
 
   * ``README.md`` or ``README.rst`` explaining what it is,
     who the audience is, etc.
-    This can simply include a link to the user documentation built from a documentation tool.
+    If applicable,
+    this can simply be a link to the documentation built
+    from a documentation tool. (See the ``README.rst`` for `this repository`_ as an example)
 
   * ``env-setup`` an executable script that sets up the environment
 
     * to be run by humans at will
-    * to be run (indirectly) by Jenkins and other automation
-    * will fail if it is not running in a virtual environment
+    * to be run (indirectly) via automation tooling (such as Jenkins or Travis CI)
+    * will fail if it is not running in a virtual environment (when appropriate)
     * otherwise will install
-      and otherwise configure the virtual environment for testing
+      and otherwise configure the environment for testing
 
   * ``self-check`` an executable script that does a self-check on the repository.
 
@@ -36,25 +38,31 @@ Repository Conventions
 
       * invoke the ``env-setup`` script to make sure the environment is good before attempting self-check logic.
 
-    * Automation will always pass this script the parameter ``--setup`` so that it is up-to-date.
+    * automation tooling (such as Jenkins or Travis CI) needs to always pass this script
+      the parameter ``--setup`` so that it is up-to-date.
 
   * ``run-tests`` an executable script that handles the boiler plate of running tests:
 
     * to be run by humans at will
-    * to be run by automation (such as Jenkins) for regular runs of test jobs
+    * to be run by automation tooling (such as Jenkins or Travis CI) for regular runs of test jobs
     * script should support a ``--check`` command line parameter
       and that switch will:
 
       * invoke the ``self-check`` script with the ``--setup`` option to make sure that the environment is good
         and that the self-checks all pass
 
-    * script should handle any command line switches for de-selecting tests,
-      such as NYI, Quarantined, etc
-      as well as the commonly used tracing/logging/reporting switches.
+    * script should handle any command-line switches needed to pass to the framework
+      such as deselecting tests (e.g., skip quarantined tests)
+      as well as the commonly-used tracing/logging/reporting switches.
 
     * script should accept arbitrary parameters
       that the user can use to pass any additional parameters required
       (either from a Jenkins job form or QE hand-run command line).
+
+.. note::
+   For the executable scripts,
+   use the appropriate language
+   and extension for your environment.
 
 * Each repository should also utilize the appropriate documentation tools
   for creating documentation for the code and test cases (e.g., Sphinx for Python)
@@ -68,7 +76,7 @@ Commit Management
 
 Commits should be smaller,
 related commits rather than large and monolithic.
-Do no lump together unrelated code into a single commit,
+Do not lump together unrelated code into a single commit,
 unless requested to squash a PR by a reviewer.
 
 Commit Messages
@@ -87,7 +95,8 @@ For additional information about the message format,
 see `A Note About Git Commit Messages`_.
 
 .. note::
-   GitHub utilizes the last commit message to try and pre-populate the title and comment.
+   If the pull request has only one commit,
+   GitHub utilizes the commit message to try and pre-populate the title and comment.
    By following the suggested format above,
    the pull request title
    and comment should need minimal changes before creating.
@@ -98,9 +107,9 @@ see `A Note About Git Commit Messages`_.
 Git Workflow
 ------------
 
-* Setup: Fork and Clone and Customize
-* Do Work: Branch and PR
-* Collaborate: Review and Merge PRs
+* `Setup: Fork and Clone`_
+* `Work: Branch Management`_
+* `Collaborate: Review`_
 
 Setup: Fork and Clone
 ~~~~~~~~~~~~~~~~~~~~~
@@ -144,7 +153,7 @@ collaboration on a proposed changed to the repository.
 
 At their core, any pull request needs to keep three things in mind:
 
-* Conforms to the below coding standards
+* Conforms to all coding standards
 * Makes a useful change
 * Doesn't break anything
 
@@ -154,7 +163,7 @@ Work: Branch Management
 While a pull request can be submitted from *any* branch,
 it is recommended to create a topic branch.
 That keeps the work atomic
-and allow for changes to easily be committed
+and allows for changes to easily be committed
 and pushed to the branch
 and automatically update the pull request.
 A suggested workflow for starting a branch is::
@@ -361,7 +370,7 @@ Participating As a Reviewer
 When starting to review a pull request,
 update the **Assignees** sidebar on the *Conversation* tab
 and remove any other reviewers.
-The code may reviewed either by
+The code may be reviewed either by
 looking at individual commits from the *Commits* tab
 or the entire code change from the *Files changed* tab.
 The review process workflow
@@ -414,3 +423,4 @@ explaining the need for a final update.
 .. _Creating a pull request from a fork: https://help.github.com/enterprise/user/articles/creating-a-pull-request-from-a-fork/
 .. _Reviewing proposed changes in a pull request: https://help.github.com/enterprise/user/articles/reviewing-proposed-changes-in-a-pull-request/
 .. _Linux kernel submission guidelines: https://www.kernel.org/doc/Documentation/SubmittingPatches
+.. _this repository: https://github.rackspace.com/QualityEngineering/QE-Tools/

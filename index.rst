@@ -88,5 +88,5 @@ check-unicode.py                                     Checks a directory structur
    :caption: SDLC Documents
 
    Overview <sdlcs/README>
-   Gherkin Standards <sdlcs/gherkin-standards>
    Code Management <sdlcs/code-management>
+   Gherkin Standards <sdlcs/gherkin-standards>
