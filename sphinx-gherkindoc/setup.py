@@ -15,7 +15,8 @@ INSTALL_REQUIRES = [
     'Sphinx>=1.3,<1.7',
     'sphinx_rtd_theme>=0.3.1',
     'behave>=1.2.6',
-    'qecommon_tools>=1.0.0'
+    'qecommon_tools>=1.0.0',
+    'recommonmark>=0.4.0',
 ]
 
 EXTRAS_REQUIRE = {}
