@@ -250,15 +250,17 @@ class SplunkAPI(Resource):
 
     def _return_message(self, allowed_count=0, posted_count=0, initial_count=0, message='',
                         status_code=201, url=None, errors=None):
-        body = {
+        always_keys = {
             'initial_event_count': initial_count,
             'validated_event_count': allowed_count,
             'posted_event_count': posted_count,
+        }
+        optional_keys = {
             'message': message,
             'errors': errors,
             'url': url
         }
-        return {k: v for k, v in body.items() if v not in (None, [], {})}, status_code
+        return {**always_keys, **{k: v for k, v in optional_keys if v}}, status_code
 
 
 @ns.route('/staging', endpoint='staging data')
