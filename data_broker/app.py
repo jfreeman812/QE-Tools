@@ -95,13 +95,6 @@ def _enrich_data(entry):
     return entry
 
 
-def _only_first(data_list, matcher):
-    matching_indices = [i for i, x in enumerate(data_list) if matcher(x)]
-    for index in matching_indices[:0:-1]:
-        data_list.pop(index)
-    return data_list
-
-
 class SplunkAPI(Resource):
     fixed_arg_values = {}
 
@@ -119,9 +112,7 @@ class SplunkAPI(Resource):
     def _check_for_duplicates(self, events):
         test_ids = [self._test_id_from(x) for x in events]
         duplicates = {name: count for name, count in Counter(test_ids).items() if count > 1}
-        valids = events
-        for duplicate in duplicates.keys():
-            valids = _only_first(valids, lambda x: self._test_id_from(x) == duplicate)
+        valids = {self._test_id_from(x): x for x in events}.values()
         return valids, duplicates
 
     def _validate_payload(self):
