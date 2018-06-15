@@ -319,17 +319,6 @@ such as when a particular individual is invested in the changes being made
 or a small group has worked heavily in one area.
 In that case, the assignment may be more focused.
 
-QE-Tools Reviews
-~~~~~~~~~~~~~~~~
-
-QE-Tools follows the previous section,
-with the addition of requiring reviews
-by two members of the QE-Tools-Contributors,
-though 3 is preferred.
-Once the requested changes have been made,
-the reviewer has 48 hours to respond to the changes,
-or the pull request will be assumed approved.
-
 All Participants
 ++++++++++++++++
 
