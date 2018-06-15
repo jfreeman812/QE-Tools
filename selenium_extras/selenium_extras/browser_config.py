@@ -136,7 +136,8 @@ def get_browser(browser_name,
                 window_size=None,
                 firefox_profile=None,
                 capabilities_dict=DEFAULT_BROWSER_CAPABILITIES,
-                grid_url=None):
+                grid_url=None,
+                **kwargs):
     '''Get a browser with some helpful pre-configuration.
 
     Args:
@@ -149,6 +150,7 @@ def get_browser(browser_name,
         capabilities_dict (dict, optional): Capabilities to set on top of the webdriver defaults
             for the given browser.
         grid_url (str, optional): if not None means you want to run on the grid instead of locally.
+        kwargs (dict): additional parameters for the Webdriver browser creation.
 
     Returns:
         webdriver: A webdriver browser instance configured as per the parameters.
@@ -165,9 +167,10 @@ def get_browser(browser_name,
             browser = webdriver.Firefox(
                 capabilities=capabilities,
                 firefox_profile=firefox_profile,
-                log_path=os.devnull)
+                log_path=os.devnull,
+                **kwargs)
         elif browser_name.lower() == 'chrome':
-            browser = webdriver.Chrome(desired_capabilities=capabilities)
+            browser = webdriver.Chrome(desired_capabilities=capabilities, **kwargs)
         else:
             raise UnknownBrowserException(browser_name)
 
