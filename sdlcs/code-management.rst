@@ -207,17 +207,17 @@ described in `Commit Messages`_ with one addition:
 the title must be in the format of
 ``<Prefix>: <Title>`` where ``<Prefix>`` is one of the following:
 
-============  ======================================================================
-Prefix        Use Case
-============  ======================================================================
-<JIRA_ID>     Any commit related to a specific JIRA
-Enhancement   Any enhancement outside of JIRA (should be small changes)
-FF            A fast follow for a previous pull request
-              (usually small very specific changes, expected to be completed quickly after the pull request merges)
-DO NOT MERGE  A pull request that should not be merged
-              (e.g., may break functionality, opened for debugging or discussion)
-Spike         A proof-of-concept that may not be merged as-is; can include a JIRA ID
-============  ======================================================================
+============  ==========================================================================
+Prefix        | Use Case
+============  ==========================================================================
+<JIRA_ID>     | Any commit related to a specific JIRA
+Enhancement   | Any enhancement outside of JIRA (should be small changes)
+FF            | A fast follow for a previous pull request (usually small very specific
+              | changes, expected to be completed quickly after the pull request merges)
+DO NOT MERGE  | A pull request that should not be merged (e.g., may break functionality,
+              | opened for debugging or discussion)
+Spike         | A proof-of-concept that may not be merged as-is; can include a JIRA ID
+============  ==========================================================================
 
 A pull request should contain a single unit of work.
 The pull request should only add, remove, or change
