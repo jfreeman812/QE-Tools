@@ -1,13 +1,14 @@
 Code Management
 ===============
 
-In order to facilitate team development and ease in deployments and automation,
-we have chosen to leverage the combination of Git (tool)
-and GitHub (platform) for the tracking and coordination aspects of the SDLC.
-Our git strategy is to maintain a public repository that has a single branch: ``master``.
-Each developer then creates an account-level fork through GitHub
-and clones that fork locally for development.
-Any code changes are submitted via Pull Request for review and integration.
+We use Git (tool) and GitHub (platform)
+to track and coordinate aspects of the SDLC
+in an effort to promote team development
+and ease automation of tasks such as deployments.
+We maintain a public repository with a single master branch.
+Each developer should create an account-level fork of that repository
+and clone that fork locally for development.
+Developers should submit changes via Pull Request for review and integration.
 For more information on why we use Forks and Pull Requests instead of branches,
 please see `Git Branches Considered Harmful`_.
 
@@ -33,26 +34,25 @@ Repository Conventions
   * ``self-check`` an executable script that does a self-check on the repository.
 
     * to be run by humans at will (such as before pull requests)
-    * to be run by automation tooling (such as Jenkins or Travis CI) for pull request acceptance testing.
-    * script should support a ``--setup`` command line parameter and that switch will:
+    * to be run by automation tooling for pull request acceptance testing.
+    * This script should support a --setup command line parameter
+      which will invoke the env-setup script
+      to make sure the environment is good
+      before running self-check logic.
 
-      * invoke the ``env-setup`` script to make sure the environment is good before attempting self-check logic.
+    * automation tooling must always pass the --setup parameter
+      to ensure the environment is up to date.
 
-    * automation tooling (such as Jenkins or Travis CI) needs to always pass this script
-      the parameter ``--setup`` so that it is up-to-date.
-
-  * ``run-tests`` an executable script that handles the boiler plate of running tests:
+  * ``run-tests`` an executable script that handles the boilerplate of running tests:
 
     * to be run by humans at will
-    * to be run by automation tooling (such as Jenkins or Travis CI) for regular runs of test jobs
-    * script should support a ``--check`` command line parameter
-      and that switch will:
+    * to be run by automation tooling for regular runs of test jobs
+    * this script should support a --check command line parameter
+      which will invoke the self-check script with the --setup option
+      to make sure the environment is good
+      and the self-checks all pass
 
-      * invoke the ``self-check`` script with the ``--setup`` option to make sure that the environment is good
-        and that the self-checks all pass
-
-    * script should accept arbitrary parameters
-      (either from automation tooling or QE hand-run command line)
+    * this script should accept arbitrary parameters
       and pass them to the test framework.
 
 .. note::
@@ -60,7 +60,7 @@ Repository Conventions
    use the appropriate language
    and extension for your environment.
 
-* Each repository should also utilize the appropriate documentation tools
+* Each repository should also use the appropriate documentation tools
   for creating documentation for the code and test cases (e.g., Sphinx for Python)
 
 
@@ -78,9 +78,9 @@ unless requested to squash a pull request by a reviewer.
 Commit Messages
 ~~~~~~~~~~~~~~~
 
-When doing a ``commit``,
+When doing a commit,
 there is a specific format to follow.
-The commit should contain a summary as well as a description.
+The commit should contain a summary and a description.
 The title should be no more than 50 characters in length.
 It is recommended,
 although not required,
@@ -92,11 +92,11 @@ see `A Note About Git Commit Messages`_.
 
 .. note::
    If the pull request has only one commit,
-   GitHub utilizes the commit message to try and pre-populate the title and comment.
+   GitHub uses the commit message to try and pre-populate the title and comment.
    By following the suggested format above,
    the pull request title
-   and comment should need minimal changes before creating.
-   If the prefix is utilized,
+   and comment should need minimal changes.
+   If the prefix is used,
    the pull request title will have it
    which is where the prefix **is** required.
 
@@ -111,19 +111,19 @@ Setup: Fork and Clone
 ~~~~~~~~~~~~~~~~~~~~~
 
 To develop for QE,
-a fork needs to be created of the organizational repository in a personal account
-and cloned locally.
-The process is documented in `Fork A Repo`_.
+create a fork of the organizational repository in your personal account
+and clone that fork locally as documented in `Fork A Repo`_.
 
 .. note::
    To prevent accidentally pushing to the upstream repository,
    update the update push URL to a non-valid URL.
-   It is recommended to use DISABLE as a visual indicator::
+   We recommend using DISABLE as a visual indicator::
 
         git remote set-url --push upstream DISABLE
 
-   The change to the upstream push URL is a secondary defense.
-   The master branch for the organizational repository should be set as protected to disable pushing.
+   This change to the upstream push URL is a secondary defense
+   because the master branch for the upstream repository should be set
+   as a protected branch to disable pushing.
 
 Branching Policy
 ----------------
@@ -147,7 +147,7 @@ from a personal fork to the master repository.
 A pull request is a feature of GitHub that allows for
 collaboration on a proposed changed to the repository.
 
-At their core, any pull request needs to keep three things in mind:
+At its core a pull request needs to meet three criteria:
 
 * Conforms to all coding standards
 * Makes a useful change
@@ -157,7 +157,7 @@ Work: Branch Management
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 While a pull request can be submitted from *any* branch,
-it is recommended to create a topic branch.
+we recommend creating a topic branch.
 That keeps the work atomic
 and allows for changes to easily be committed
 and pushed to the branch
@@ -390,9 +390,7 @@ if any comments are added or changes are requested,
 make the necessary changes,
 answer any questions,
 and assign the pull request back to
-the individual requesting the changes,
-or to your local reviewers,
-whichever is "closer."
+the individual requesting the changes.
 Note also that when the pull request checker is not sufficient (see above),
 you'll need to add a link to another test run
 showing that the changes made do not affect the test results.
