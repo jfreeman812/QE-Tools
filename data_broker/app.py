@@ -88,6 +88,13 @@ def _token_config():
 TOKENS = _token_config()
 
 
+def _enrich_data(entry):
+    product_hierarchy = entry.pop('Product Hierarchy')
+    team, product = product_hierarchy.split(custom_fields.ProductHierarchy.hierarchy_separator)
+    entry.update({'Team': team, 'Product': product})
+    return entry
+
+
 class SplunkAPI(Resource):
     fixed_arg_values = {}
 
@@ -102,20 +109,28 @@ class SplunkAPI(Resource):
             '', 'q=search%20{}'.format(parse.quote(search_query)), ''
         ))
 
+    def _check_for_duplicates(self, events):
+        test_ids = [self._test_id_from(x) for x in events]
+        duplicates = {name: count for name, count in Counter(test_ids).items() if count > 1}
+        valids = {self._test_id_from(x): x for x in events}.values()
+        return valids, duplicates
+
+    def _validate_payload(self):
+        field_name_alternates = {'Product Hierarchy': 'Product'}
+        return custom_fields.validate_response_list(
+            request.json, coverage_entry, 'Test Name', field_name_alternates=field_name_alternates
+        )
+
+    @staticmethod
+    def _test_id_from(event):
+        return event.get('test_id', '{}.{}'.format(event['Categories'][-1], event['Test Name']))
+
     def _prep_event(self, upload_id, common_data, event):
         event.update(upload_id=upload_id)
-        if not event.get('test_id'):
-            event['test_id'] = '{}.{}'.format(
-                event['Categories'][-1],
-                event['Test Name']
-            )
+        event['test_id'] = self._test_id_from(event)
         event = {'event': event}
         event.update(common_data)
         return event
-
-    def _check_for_duplicates(self, events):
-        test_ids = [x['event']['test_id'] for x in events]
-        return {name: count for name, count in Counter(test_ids).items() if count > 1}
 
     def _chunk_events(self, events):
         data = []
@@ -127,10 +142,74 @@ class SplunkAPI(Resource):
                 data = [event]
         yield data
 
-    def _post(self, args, events=None):
-        events = events or args.get('events', [])
-        if not events:
+    def _prep_args(self):
+        args = {**self.fixed_arg_values}  # noqa: E999
+        timestamp = request.args.get('timestamp')
+        if timestamp:
+            args.update(timestamp=timestamp)
+        return args
+
+    def _check_whitelist(self):
+        return list(whitelist.get_disallowed({x['Product Hierarchy'] for x in request.json}))
+
+    def _write_data_file(self):
+        data_by_product = defaultdict(list)
+        for entry in request.json:
+            product = entry['Product Hierarchy'].split('::')[-1]
+            product_slug = ''.join(filter(
+                lambda x: x.isalnum() or x in ('.', '_'), product.replace(' ', '_')
+            ))
+            data_by_product[product_slug].append(entry)
+        for product_slug in data_by_product:
+            product_path = path.join(PROD_DATA_DIR, product_slug)
+            if not path.exists(product_path):
+                makedirs(product_path)
+            file_path = path.join(
+                product_path, '{}.xz'.format(time.strftime('%Y%m%d_%H%M%S')))
+            with lzma.open(file_path, 'wt') as f:
+                f.write(json.dumps(data_by_product[product_slug]))
+
+    def _post(self, require_perfection=False, check_whitelist=False, write_file=False):
+        initial_count = len(request.json)
+        if not initial_count:
             return {'message': 'No events to post!'}, 400
+        valids, errors = self._validate_payload()
+
+        if check_whitelist:
+            disallowed = self._check_whitelist()
+            if disallowed:
+                message = 'This payload contains hierarchies not on the whitelist!'
+                return self._return_message(
+                    initial_count=initial_count, message=message, errors=disallowed, status_code=401
+                )
+
+        valids, duplicates = self._check_for_duplicates(valids)
+        if duplicates:
+            errors.append({'duplicate entries': duplicates})
+
+        valids_count = len(valids)
+
+        if require_perfection and errors:
+            message = 'Some entries did not meet requirements, no data sent.'
+            return self._return_message(
+                allowed_count=valids_count, initial_count=initial_count,
+                message=message, errors=errors, status_code=400
+            )
+        if not valids:
+            message = 'All entries contained errors, no data sent.'
+            return self._return_message(
+                allowed_count=valids_count, initial_count=initial_count,
+                message=message, errors=errors, status_code=400
+            )
+
+        valids = [_enrich_data(x) for x in valids]
+        if write_file:
+            # wrap writing in a broad try/except so that write failures will not impede uploads
+            try:
+                self._write_data_file()
+            except BaseException:
+                pass
+        args = self._prep_args()
         common_data = {
             'time': args.get('timestamp') or time.time(),
             'host': SCHEMA_VERSION,
@@ -139,11 +218,10 @@ class SplunkAPI(Resource):
             'sourcetype': '_json'
         }
         upload_id = str(uuid.uuid4())
-        events = [self._prep_event(upload_id, common_data, x) for x in events]
-        duplicates = self._check_for_duplicates(events)
-        if duplicates:
-            return {'error': 'The attached test_ids exist more than once!',
-                    'duplicate_ids': duplicates}, 400
+        events = [self._prep_event(upload_id, common_data, x) for x in valids]
+
+        total_posted = 0
+        url = self._display_url(index=args['index'], upload_id=upload_id)
         for subset in self._chunk_events(events):
             response = requests.post(
                 SPLUNK_COLLECTOR_URL, data='\n'.join(map(json.dumps, subset)),
@@ -151,47 +229,38 @@ class SplunkAPI(Resource):
             )
             try:
                 response.raise_for_status()
+                total_posted += len(subset)
             except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError) as e:
-                return {'message': 'data failed to post!',
-                        'error': str(e),
-                        'response_text': str(response.content)}, 500
-        return {'message': 'data posted successfully!',
-                'url': self._display_url(index=args['index'], upload_id=upload_id)}, 201
+                message = 'Some data failed to post due to remote host error!'
+                return self._return_message(
+                    allowed_count=valids_count, posted_count=total_posted,
+                    initial_count=initial_count, message=message, status_code=500,
+                    url=url, errors={'local_error': str(e), 'remote_error': str(response.content)}
+                )
 
-    def _validate_payload(self):
-        field_name_alternates = {'Product Hierarchy': 'Product'}
-        errors = custom_fields.validate_response_list(request.json, coverage_entry, 'Test Name',
-                                                      field_name_alternates=field_name_alternates)
+        message = 'data posted successfully!'
+        status_code = 201
         if errors:
-            return {'message': 'payload validation failed!', 'errors': errors}, 400
+            message = 'Some data posted, some filtered for errors.'
+            status_code = 451
+        return self._return_message(
+            allowed_count=valids_count, posted_count=total_posted, initial_count=initial_count,
+            message=message, url=url, errors=errors, status_code=status_code
+        )
 
-    def _prep_args(self):
-        args = {**self.fixed_arg_values}  # noqa: E999
-        timestamp = request.args.get('timestamp')
-        if timestamp:
-            args.update(timestamp=timestamp)
-        return args
-
-
-# leaving fully-extensible API
-@ns.route('/', endpoint='RAW-Data')
-@api.hide
-class RawCoverage(SplunkAPI):
-
-    @api.response(201, 'Accepted')
-    @api.response(500, 'Server Error')
-    @api.doc('POST-Raw-Data')
-    @api.expect(raw_args)
-    def post(self):
-        args = request.json
-        return self._post(args)
-
-
-def _enrich_data(entry):
-    product_hierarchy = entry.pop('Product Hierarchy')
-    team, product = product_hierarchy.split(custom_fields.ProductHierarchy.hierarchy_separator)
-    entry.update({'Team': team, 'Product': product})
-    return entry
+    def _return_message(self, allowed_count=0, posted_count=0, initial_count=0, message='',
+                        status_code=201, url=None, errors=None):
+        always_keys = {
+            'initial_event_count': initial_count,
+            'validated_event_count': allowed_count,
+            'posted_event_count': posted_count,
+        }
+        optional_keys = {
+            'message': message,
+            'errors': errors,
+            'url': url
+        }
+        return {**always_keys, **{k: v for k, v in optional_keys if v}}, status_code
 
 
 @ns.route('/staging', endpoint='staging data')
@@ -204,40 +273,12 @@ class StagingCoverage(SplunkAPI):
     @api.doc('POST-Staging-Data')
     @api.expect([coverage_entry], validate=True)
     def post(self):
-        validation_message = self._validate_payload()
-        if validation_message:
-            return validation_message
-        args = self._prep_args()
-        return self._post(args, events=[_enrich_data(x) for x in request.json])
+        return self._post()
 
 
 @ns.route('/production', endpoint='production data')
 class ProductionCoverage(SplunkAPI):
     fixed_arg_values = {'source': SPLUNK_REPORT_SOURCE, 'index': SPLUNK_PRODUCTION_INDEX}
-
-    def _check_whitelist(self):
-        rejected = whitelist.get_disallowed({x['Product Hierarchy'] for x in request.json})
-        if rejected:
-            err_msg = 'The listed Product Hierarchies are not allowed to post to production.'
-            return {'Message': err_msg,
-                    'Errors': list(rejected)}, 401
-
-    def _write_data_file(self):
-        data_by_product = defaultdict(list)
-        for entry in request.json:
-            product = entry['Product Hierarchy'].split('::')[-1]
-            product = ''.join(filter(
-                lambda x: x.isalnum() or x in ('.', '_'), product.replace(' ', '_')
-            ))
-            data_by_product[product].append(entry)
-        for product in data_by_product:
-            product_path = path.join(PROD_DATA_DIR, product)
-            if not path.exists(product_path):
-                makedirs(product_path)
-            file_path = path.join(
-                product_path, '{}.xz'.format(time.strftime('%Y%m%d_%H%M%S')))
-            with lzma.open(file_path, 'wt') as f:
-                f.write(json.dumps(data_by_product[product]))
 
     @api.response(201, 'Accepted')
     @api.response(400, 'Bad Request')
@@ -246,21 +287,9 @@ class ProductionCoverage(SplunkAPI):
     @api.doc('POST-Staging-Data')
     @api.expect([coverage_entry], validate=True)
     def post(self):
-        validation_message = self._validate_payload()
-        if validation_message:
-            return validation_message
-        whitelist_msg = self._check_whitelist()
-        if whitelist_msg:
-            return whitelist_msg
-        args = self._prep_args()
         # on a "rewind" call, do not write a second copy of the data
-        if not request.args.get('is_rewind', False):
-            # don't let a file storage failure throw a user-visible error
-            try:
-                self._write_data_file()
-            except BaseException:
-                pass
-        return self._post(args, events=[_enrich_data(x) for x in request.json])
+        write_file = not request.args.get('is_rewind', False)
+        return self._post(check_whitelist=True, require_perfection=True, write_file=write_file)
 
 
 if __name__ == '__main__':
