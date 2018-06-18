@@ -271,7 +271,7 @@ class StagingCoverage(SplunkAPI):
     @api.response(400, 'Bad Request')
     @api.response(500, 'Server Error')
     @api.doc('POST-Staging-Data')
-    @api.expect([coverage_entry], validate=True)
+    @api.expect([coverage_entry], validate=False)
     def post(self):
         return self._post()
 
@@ -285,7 +285,7 @@ class ProductionCoverage(SplunkAPI):
     @api.response(401, 'Unauthorized')
     @api.response(500, 'Server Error')
     @api.doc('POST-Staging-Data')
-    @api.expect([coverage_entry], validate=True)
+    @api.expect([coverage_entry], validate=False)
     def post(self):
         # on a "rewind" call, do not write a second copy of the data
         write_file = not request.args.get('is_rewind', False)
