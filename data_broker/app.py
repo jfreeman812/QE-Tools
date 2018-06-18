@@ -260,7 +260,7 @@ class SplunkAPI(Resource):
             'errors': errors,
             'url': url
         }
-        return {**always_keys, **{k: v for k, v in optional_keys if v}}, status_code
+        return {**always_keys, **{k: v for k, v in optional_keys.items() if v}}, status_code
 
 
 @ns.route('/staging', endpoint='staging data')
