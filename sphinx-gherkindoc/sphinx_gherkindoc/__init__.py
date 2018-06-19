@@ -1,12 +1,38 @@
-#!/usr/bin/env python
+#!/usr/bin/en python
+'''
+Bring Gherkin Goodness into the Sphinx/reStructuredText world!
+
+Two functions here (see setup.py for the installed entry point names):
+config - Emit a useful sphinx config file with the goodness we need for:
+main - Converting a directory tree of Gherkin files into Sphinxy/rST goodness.
+
+The Gherkin conversion process has two parts:
+
+    * Creating a rST file from a feature file
+    * Creating a nested set of TOCs that link to the feature files and any
+      rSt content that is also in the file system.
+      This latter capability is so that we can inject helpful text/explanation
+      at any level of the testing directory tree hierarchy.
+
+For historical reasons, all the converted files end up in the destination directory directly,
+witout any subdirectories..
+To support this, source file names are converted to flat file names
+with the the original directory name parts separated by dots (.).
+To avoid any conflict in this flattened name space, directory names,
+which become rST table of contents files, and feature files,
+which become the test description rST files, are given unique suffixes.
+This keeps prevents conflicts, for example, sibling subdirectory 'foo' and 'foo.feature'
+from having a name collision in our flattened name space.
+'''
+
 from __future__ import print_function
 import argparse
 from collections import defaultdict
 import fnmatch
-import functools
 import itertools
 import os.path
 import re
+import shutil
 
 import behave.parser
 import sphinx
@@ -14,18 +40,76 @@ import sphinx.util
 
 from qecommon_tools import display_name, get_file_contents
 
-SOURCE_PATTERNS = ('*.feature', '*.md', '*.rst')
-SKIPPED_SET = set()
+
+# For now, avoid processing files in these popular version control directories.
+# However, this begs the question: should be just always ignore `dotfile' directories?
+NUISANCE_DIRS = ['.git', '.hg', '.svn']
+
+# DRY_RUN and VERBOSE are global states for all the code.
+# By making these into global variables, the code "admits that" they are global;
+# rather than cluttering up method parameters passing these values around,
+# and having to track if any particular method/function needs or no-longer needs them.
+DRY_RUN = False
+VERBOSE = False
+
+
+def verbose(message):
+    '''print message only if VERBOSE, with a DRY_RUN prefix as appropriate.'''
+    if not VERBOSE:
+        return
+    if DRY_RUN:
+        message = 'dry-run: ' + message
+    print(message)
+
+
+# Must be lowercase.
+FEATURE_FILE_SUFFIX = '.feature'
+SOURCE_SUFFICIES = (FEATURE_FILE_SUFFIX, '.md', '.rst')
+
 # The csv-table parser for restructuredtext does not allow for escaping so use
 # a unicode character that looks like a quote but will not be in any Gherkin
 QUOTE = '\u201C'
 _escape_mappings = {ord(x): u'\\{}'.format(x) for x in ('*', '"', '#', ':', '<', '>')}
 _advanced_escape_mappings = _escape_mappings.copy()
 _advanced_escape_mappings[ord('\\')] = u'\\\\\\'
+
+# Increments of how much we indent Sphinx rST content when indenting.
 INDENT_DEPTH = 4
+
+# This is a pretty arbitrary number controlling how much detail
+# will show up in the various TOCs.
+DEFAULT_TOC_DEPTH = 4
+
+
+class SphinxWriter(object):
+    '''Easy Sphinx-format file creator.'''
+
+    sections = ['', '=', '-', '~', '.', '*', '+', '_', '<', '>', '/']
+
+    def __init__(self):
+        self._output = []
+
+    def add_output(self, line, line_breaks=1, indent_by=0):
+        self._output.append(u'{}{}{}'.format(' ' * indent_by, line,
+                                             '\n' * line_breaks))
+
+    def blank_line(self):
+        self.add_output('')
+
+    def create_section(self, level, section):
+        '''Create a section of <level> (1-10 supported).'''
+        self.add_output(section)
+        self.add_output(self.sections[level] * len(section.rstrip()),
+                        line_breaks=2)
+
+    def write_to_file(self, filename):
+        verbose('Writing {}'.format(filename))
+        with sphinx.util.osutil.FileAvoidWrite(filename) as f:
+            f.write(''.join(self._output).encode('utf8'))
 
 
 class GlossaryEntry(object):
+    '''Keep track of all the different places, and by which spellings, something is used.'''
     def __init__(self):
         self.step_set = set()
         self.locations = defaultdict(list)
@@ -47,26 +131,33 @@ class GlossaryEntry(object):
 step_glossary = defaultdict(GlossaryEntry)
 
 
-def write_steps_glossary(glossary_name, args):
+def make_steps_glossary(project_name):
+    '''Return SphinxWriter containing the step glossary information, if any.'''
+
     if not step_glossary:
-        return
-    glossary = SphinxWriter(glossary_name, args)
-    glossary.create_section(1, u'{} Glossary'.format(args.doc_project))
+        return None
+
+    glossary = SphinxWriter()
+    glossary.create_section(1, u'{} Glossary'.format(project_name))
+
     master_step_names = {name for gloss in step_glossary.values() for name in gloss.step_set}
     for term in sorted(master_step_names):
         glossary.add_output(u'- :term:`{}`'.format(rst_escape(term, slash_escape=True)))
+
     glossary.blank_line()
     glossary.add_output('.. glossary::')
     for entry in sorted(step_glossary.values(), reverse=True):
-        for term in entry.step_set:
+        for term in sorted(entry.step_set):
             glossary.add_output(rst_escape(term, slash_escape=True),
                                 indent_by=INDENT_DEPTH)
+
         for location, line_numbers in sorted(entry.locations.items()):
             line_numbers = map(str, line_numbers)
             definition = u'| {}: {}'.format(location, ', '.join(line_numbers))
             glossary.add_output(definition, indent_by=INDENT_DEPTH * 2)
         glossary.blank_line()
-    glossary.write_file()
+
+    return glossary
 
 
 def rst_escape(unescaped, slash_escape=False):
@@ -74,311 +165,374 @@ def rst_escape(unescaped, slash_escape=False):
     return unescaped.translate(_advanced_escape_mappings if slash_escape else _escape_mappings)
 
 
-def _get_source_files(files):
-    filter_partial = functools.partial(fnmatch.filter, files)
-    return list(itertools.chain(*map(filter_partial, SOURCE_PATTERNS)))
+def is_private(filename):
+    '''Private files have an underscore prefix (mimics Python method name convention)'''
+    return filename.startswith('_')
 
 
-class SphinxWriter(object):
-    sections = ['', '=', '-', '~', '.', '*', '+', '_', '<', '>', '/']
-
-    def __init__(self, dest_prefix, args):
-        self.dest_prefix = dest_prefix
-        self.args = args
-        self.dest_suffix = args.suffix
-        self._output = []
-
-    def add_output(self, line, line_breaks=1, indent_by=0):
-        self._output.append(u'{}{}{}'.format(' ' * indent_by, line,
-                                             '\n' * line_breaks))
-
-    def blank_line(self):
-        self.add_output('')
-
-    def create_section(self, level, section):
-        '''Create a section of <level> (1-10 supported).'''
-        self.add_output(section)
-        self.add_output(self.sections[level] * len(section.rstrip()),
-                        line_breaks=2)
-
-    def write_file(self):
-        '''Write the output file for project/category <name>.'''
-        file_name = os.extsep.join([self.dest_prefix, self.dest_suffix])
-        file_path = os.path.join(self.args.output_path, file_name)
-        if self.args.dry_run:
-            print('Would create file [{}]'.format(file_path))
-            return
-        if not self.args.force and os.path.isfile(file_path):
-            print('File {} already exists, skipping.'.format(file_path))
-            return
-        if not self.args.quiet:
-            print('Creating file [{}]'.format(file_path))
-        with sphinx.util.osutil.FileAvoidWrite(file_path) as f:
-            f.write(''.join(self._output).encode('utf8'))
+def is_rst_file(filename):
+    return filename.lower().endswith('.rst')
 
 
-class ParseSource(SphinxWriter):
-    def __init__(self, source_path, category, args):
-        self.source_path = source_path
-        source_name = os.path.basename(source_path)
-        source_prefix, self.source_suffix = os.path.splitext(source_name)
-        dest_prefix = '.'.join([category, source_prefix])
-        super(ParseSource, self).__init__(dest_prefix, args)
+def is_feature_file(filename):
+    return filename.lower().endswith(FEATURE_FILE_SUFFIX)
 
-    def update_suffix(self):
-        self.dest_suffix = self.source_suffix.lstrip(os.extsep)
 
-    def section(self, level, obj):
+def is_wanted_file(filename):
+    '''Wanted as in: We know how to process it :)'''
+    return filename.lower().endswith(SOURCE_SUFFICIES)
+
+
+def is_excluded(filename, exclude_pattern_list):
+    '''Does this filename match any of our exlusion patterns'''
+    return any(map(lambda x: fnmatch.fnmatch(filename, x), exclude_pattern_list))
+
+
+def wanted_source_files(files, exclude_pattern_list):
+    '''wanted files unless they match an exclusion pattern'''
+    wanted_files = filter(is_wanted_file, files)
+    return [a_file for a_file in wanted_files if not is_excluded(a_file, exclude_pattern_list)]
+
+
+# Simplified this from a class, for various reasons.
+# Additional simplification work is needed!!!!
+def feature_to_rst(source_path):
+    '''Return a SphinxWriter containing the rST for the given feature file.'''
+    output_file = SphinxWriter()
+
+    def section(level, obj):
         section_name = u'{}: {}'.format(obj.keyword, rst_escape(obj.name))
-        self.create_section(level, section_name.rstrip(': '))
+        output_file.create_section(level, section_name.rstrip(': '))
 
-    def description(self, description):
+    def description(description):
         if not description:
             return
         if not isinstance(description, (list, tuple)):
             description = [description]
         for line in description:
-            self.add_output(rst_escape(line), indent_by=INDENT_DEPTH)
+            output_file.add_output(rst_escape(line), indent_by=INDENT_DEPTH)
             # Since behave strips newlines, a reasonable guess must be made as
             # to when a newline should be re-inserted
             if line[-1] == '.' or line == description[-1]:
-                self.blank_line()
+                output_file.blank_line()
 
-    def text(self, text):
+    def text(text):
         if not text:
             return
-        self.blank_line()
+        output_file.blank_line()
         if not isinstance(text, (list, tuple)):
             text = [text]
-        self.add_output('::', line_breaks=2)
+        output_file.add_output('::', line_breaks=2)
         # Since text blocks are treated as raw text, any new lines in the
         # Gherkin are preserved. To convert the text block into a code block,
         # each new line must be indented.
         for line in itertools.chain(*(x.splitlines() for x in text)):
-            self.add_output(rst_escape(line), line_breaks=2,
-                            indent_by=INDENT_DEPTH)
+            output_file.add_output(rst_escape(line), line_breaks=2,
+                                   indent_by=INDENT_DEPTH)
 
-    def tags(self, tags, *parent_objs):
+    def tags(tags, *parent_objs):
         parent_with_tags = tuple(x for x in parent_objs if x.tags)
         if not (tags or parent_with_tags):
             return
-        self.add_output('.. pull-quote::', line_breaks=2)
+        output_file.add_output('.. pull-quote::', line_breaks=2)
         tag_str = ', '.join(tags)
         for obj in parent_with_tags:
             tag_str += u' (Inherited from {}: {})'.format(obj.keyword,
                                                           ', '.join(obj.tags))
-        self.add_output(u'*Tagged: {}*'.format(tag_str.strip()), line_breaks=2,
-                        indent_by=INDENT_DEPTH)
+        output_file.add_output(u'*Tagged: {}*'.format(tag_str.strip()), line_breaks=2,
+                               indent_by=INDENT_DEPTH)
 
-    def steps(self, steps):
+    def steps(steps):
         for step in steps:
             step_glossary[step.name.lower()].add_reference(step.name, step.filename, step.line)
             bold_step = re.sub(r'(\\\<.*?\>)', r'**\1**', rst_escape(step.name))
-            self.add_output(u'- {} {}'.format(step.keyword, bold_step))
+            output_file.add_output(u'- {} {}'.format(step.keyword, bold_step))
             if step.table:
-                self.blank_line()
-                self.table(step.table, inline=True)
+                output_file.blank_line()
+                table(step.table, inline=True)
             if step.text:
-                self.text(step.text)
-        self.blank_line()
+                text(step.text)
+        output_file.blank_line()
 
-    def examples(self, scenario, feature):
+    def examples(scenario, feature):
         for example in getattr(scenario, 'examples', []):
-            self.section(3, example)
-            self.tags(example.tags, scenario, feature)
-            self.table(example.table)
-            self.blank_line()
+            section(3, example)
+            tags(example.tags, scenario, feature)
+            table(example.table)
+            output_file.blank_line()
 
-    def table(self, table, inline=False):
+    def table(table, inline=False):
         indent_by = INDENT_DEPTH if inline else 0
         directive = '.. csv-table::'
-        self.add_output(directive, indent_by=indent_by)
+        output_file.add_output(directive, indent_by=indent_by)
         headers = u'", "'.join(table.headings)
         indent_by += INDENT_DEPTH
-        self.add_output(u':header: "{}"'.format(headers), indent_by=indent_by)
-        self.add_output(u':quote: {}'.format(QUOTE), line_breaks=2,
-                        indent_by=indent_by)
+        output_file.add_output(u':header: "{}"'.format(headers), indent_by=indent_by)
+        output_file.add_output(u':quote: {}'.format(QUOTE), line_breaks=2, indent_by=indent_by)
         for row in table.rows:
             row = u'{0}, {0}'.format(QUOTE).join(map(rst_escape, row))
-            self.add_output(u'{0}{1}{0}'.format(QUOTE, row), indent_by=indent_by)
+            output_file.add_output(u'{0}{1}{0}'.format(QUOTE, row), indent_by=indent_by)
 
-    def _set_output(self):
-        self.update_suffix()
-        with open(self.source_path, 'r') as source_fo:
-            self._output = source_fo.readlines()
+    feature = behave.parser.parse_file(source_path)
+    section(1, feature)
+    description(feature.description)
+    if feature.background:
+        section(2, feature.background)
+        steps(feature.background.steps)
+    for scenario in feature.scenarios:
+        section(2, scenario)
+        tags(scenario.tags, feature)
+        description(scenario.description)
+        steps(scenario.steps)
+        examples(scenario, feature)
 
-    def parse(self):
-        '''Build the text of the file and write the file.'''
-        if not fnmatch.fnmatch(self.source_path, SOURCE_PATTERNS[0]):
-            return self._set_output()
-        try:
-            feature = behave.parser.parse_file(self.source_path)
-            self.section(1, feature)
-            self.description(feature.description)
-            if feature.background:
-                self.section(2, feature.background)
-                self.steps(feature.background.steps)
-            for scenario in feature.scenarios:
-                self.section(2, scenario)
-                self.tags(scenario.tags, feature)
-                self.description(scenario.description)
-                self.steps(scenario.steps)
-                self.examples(scenario, feature)
-        except behave.parser.ParserError:
-            self._set_output()
+    return output_file
 
 
-class ParseTOC(SphinxWriter):
-    def parse_with_docs(self, toc_path, section=None):
-        self.create_section(1, section or self.args.doc_project)
-        toc_files = {os.path.join(toc_path, x) for x in
-                     _get_source_files(os.listdir(toc_path))}
-        for file_path in fnmatch.filter(toc_files, '*.rst'):
-            with open(file_path, 'r') as doc_fo:
-                self.add_output(doc_fo.read(), line_breaks=2)
-            SKIPPED_SET.add(file_path)
-            toc_files.remove(file_path)
-        name_partial = functools.partial(str.format, '{}.{}', self.dest_prefix)
-        toc_names = list(map(name_partial, map(os.path.basename, toc_files)))
-        feature_set = set(map(lambda x: os.path.splitext(x)[0], toc_names))
-        self.toctree(feature_set)
+def make_flat_name(path_list, filename_root=None, is_dir=False, ext='.rst'):
+    '''
+    A flattened file name from a list of directories and an optional filename.
 
-    def parse(self, feature_set, section=None, include_subs=False):
-        self.create_section(1, section or self.args.doc_project)
-        feature_set = set(feature_set)
-        self.toctree(feature_set, include_subs)
-
-    def toctree(self, feature_set, include_subs=False):
-        self.add_output('.. toctree::')
-        self.add_output(':maxdepth: {}'.format(self.args.maxdepth),
-                        line_breaks=2, indent_by=INDENT_DEPTH)
-        prev_feature = ''
-        for feature in sorted(feature_set):
-            # look if the feature is a sub-category and, if yes, ignore it
-            if feature.startswith(u'{}.'.format(prev_feature)) and not include_subs:
-                continue
-            prev_feature = feature
-            self.add_output(feature, indent_by=INDENT_DEPTH)
+    As per notes above, this will give us a non-nested directory structure.
+    '''
+    if filename_root is not None:
+        path_list = path_list + [filename_root]
+    result = '.'.join(path_list)
+    if ext is None:
+        return result
+    return result + ('-toc' if is_dir else '-file') + ext
 
 
-def _path_to_category(walk_root, root_path):
-    category_dir = os.path.dirname(root_path)
-    return os.path.relpath(walk_root, category_dir).replace(os.path.sep, '.')
+# IMPLEMENTATION NOTES:
+# When generating rST output files from directory trees containing feature files,
+# and rST/MarkDown, files, implementation concerns:
+# * Walking a directory tree top down makes it hard to know if any subdirectories
+#   will have interesting content worth including.
+# * Walking a directory tree bottom up makes it hard to efficiently process excluded
+#   directories.
+#
+# Strategy: Use a 2-phased approach:
+# 1 Walk the directory tree top-down to avoid descending in to excluded directories.
+#   Record an ordered list of places that are not excluded and thus worth looking at.
+# 2 Process the recorded list in reverse order, effecting a bottom-up processing of the tree,
+#   without the bottom-up concern. This way we can prune out directories that are
+#   either empty or have empty children.
+
+def toctree(path_list, subdirs, files, maxtocdepth):
+    '''
+    Return a SphinxWriter for one level of a directory tree.
+
+    Any rST files found at this level will have their content
+    included in the TOC file instead of being referenced.
+    This allows us to put content in the TOC file directly.
+    The rST files that are included are expected to contain proper headers as well as content.
+    If no rST files are included, a header is created using display_name from qecommon_tools.
+
+    NOTE: If there is more than one rST file present,
+          the order of their inclusion in the TOC is by filename sort order.
+    '''
+
+    of = SphinxWriter()
+    non_included_files = []
+    need_header = True  # Track if we need to generate our own header boiler-plate.
+
+    for a_file in sorted(files):
+        if not is_rst_file(a_file):
+            non_included_files.append(a_file)
+            continue
+
+        source_name_list = path_list + [a_file]
+        source_name = os.path.join(*source_name_list)
+        verbose('Copying content from: {}'.format(source_name))
+        of.add_output(get_file_contents(source_name), line_breaks=2)
+        need_header = False
+
+    if need_header:
+        # We're just adding a boiler plate heading.
+        temp_path_list = path_list or [os.curdir]
+        of.create_section(1, display_name(os.path.join(*temp_path_list)))
+
+    of.add_output('.. toctree::')
+    of.add_output(':maxdepth: {}'.format(maxtocdepth),
+                  line_breaks=2, indent_by=INDENT_DEPTH)
+
+    for a_file in non_included_files:
+        # For MarkDown file content to be properly processed we
+        # need toleave the file name extension unchanged.
+        ext = None if a_file.lower().endswith('.md') else ''
+        name = make_flat_name(path_list, filename_root=a_file, is_dir=False, ext=ext)
+        of.add_output(name, indent_by=INDENT_DEPTH)
+
+    for subdir in subdirs:
+        name = make_flat_name(path_list, filename_root=subdir, is_dir=True, ext='')
+        of.add_output(name, indent_by=INDENT_DEPTH)
+
+    return of
 
 
-class RecurseTree(object):
-    def __init__(self, args):
-        self.root_path = args.gherkin_path
-        self.args = args
+def scan_tree(starting_point, private, exclude_patterns):
+    '''
+    return list of entities to proces, in top-down orders.
 
-    def _is_included(self, file_path):
-        '''Determine if a file or path should be included based on
-           exclude_patterns and private'''
-        if os.path.basename(file_path).startswith('_') and not self.args.private:
-            return False
-        return not any(map(lambda x: fnmatch.fnmatch(file_path, x),
-                           self.args.exclude_patterns))
+    the list can easily be processed with `.pop` to get a bottom-up
+    directory ordering.
+    '''
+    result = []
 
-    def _filter_categories(self, root, categories):
-        categories = [x for x in categories if self._is_included(os.path.join(root, x))]
-        for category in categories[:]:
-            category_files = os.listdir(os.path.join(root, category))
-            if not _get_source_files(category_files):
-                categories.remove(category)
-        return categories
+    for me, dirs, files in sphinx.util.osutil.walk(starting_point):
+        if is_excluded(me, exclude_patterns):
+            dirs[:] = []
+            continue
 
-    def _build_name(self, root, project, category):
-        package = root[len(self.root_path):].lstrip(os.path.sep).replace(os.path.sep, '.')
-        return '.'.join(filter(None, [project, package, category]))
+        me_list = me.split(os.sep)
 
-    def _parse_category(self, root, project, category):
-        category_name = self._build_name(root, project, category)
-        category_path = os.path.join(root, category)
-        category_display_name = display_name(category_path, package_name=category_name)
-        # Each parsed category needs a TOC for sphinx so we write it here
-        toc_file = ParseTOC(category_name, self.args)
-        toc_file.parse_with_docs(category_path, section=category_display_name)
-        toc_file.write_file()
-        return category_name
+        # This prevents creating "dot" files in the output directory, which can be very confusing.
+        if me_list[0] == os.path.curdir:
+            me_list = me_list[1:]
 
-    def parse(self):
-        feature_set = set()
-        project = os.path.basename(self.root_path)
-        walk = sphinx.util.osutil.walk
-        for out in walk(self.root_path, followlinks=self.args.follow_links):
-            root, categories, files = out
-            base_category = _path_to_category(root, self.root_path)
-            source_files = _get_source_files(files)
-            path_partial = functools.partial(os.path.join, root)
-            source_paths = set(filter(self._is_included, map(path_partial,
-                                                             source_files)))
-            for category in self._filter_categories(root, categories):
-                feature_set.add(self._parse_category(root, project, category))
-            for source_path in sorted(source_paths - SKIPPED_SET):
-                feature = ParseSource(source_path, base_category, self.args)
-                feature.parse()
-                feature.write_file()
-                if root == self.root_path:
-                    feature_set.add(feature.dest_prefix)
-        return feature_set
+        for nuisance_dir in NUISANCE_DIRS:
+            if nuisance_dir in dirs:
+                dirs.remove(nuisance_dir)
+
+        if not private:
+            for a_dir in filter(is_private, dirs[:]):
+                dirs.remove(a_dir)
+
+        files = wanted_source_files(files, exclude_patterns)
+
+        result.append((me, me_list, dirs[:], files))
+
+    return result
+
+
+def process_args(args):
+    work_to_do = scan_tree(args.gherkin_path, args.private, args.exclude_patterns)
+    maxtocdepth = args.maxtocdepth
+    output_path = args.output_path
+    toc_name = args.toc_name
+    step_glossary_name = args.step_glossary_name
+    doc_project = args.doc_project
+
+    top_level_toc_filename = os.path.join(output_path, toc_name) + '.rst'
+
+    non_empty_dirs = set()
+
+    while work_to_do:
+        a_dir, a_dir_list, subdirs, files = work_to_do.pop()
+        new_subdirs = []
+        for subdir in subdirs:
+            subdir_path = os.path.join(a_dir, subdir)
+            if subdir_path in non_empty_dirs:
+                new_subdirs.append(subdir)
+
+        if not (files or new_subdirs):
+            continue
+
+        non_empty_dirs.add(a_dir)
+
+        if DRY_RUN:
+            continue
+
+        toc_file = toctree(a_dir_list, new_subdirs, files, maxtocdepth)
+        # Check to see if we are at the last item to be processed
+        # (which has already been popped)
+        # to write the asked for master TOC file name.
+        if not work_to_do:
+            toc_filename = top_level_toc_filename
+        else:
+            toc_filename = os.path.join(output_path, make_flat_name(a_dir_list, is_dir=True))
+        toc_file.write_to_file(toc_filename)
+
+        for a_file in files:
+            a_file_list = a_dir_list + [a_file]
+            source_name = os.path.join(*a_file_list)
+            if is_feature_file(a_file):
+                dest_name = os.path.join(output_path, make_flat_name(a_file_list, is_dir=False))
+                feature_rst_file = feature_to_rst(source_name)
+                verbose('converting "{}" to "{}"'.format(source_name, dest_name))
+                feature_rst_file.write_to_file(dest_name)
+            elif not is_rst_file(a_file):
+                dest_name = os.path.join(output_path, make_flat_name(a_file_list, is_dir=False,
+                                                                     ext=None))
+                verbose('copying "{}" to "{}"'.format(source_name, dest_name))
+                shutil.copy(source_name, dest_name)
+
+    if step_glossary_name:
+        glossary_filename = os.path.join(output_path, '{}.rst'.format(step_glossary_name))
+        glossary = make_steps_glossary(doc_project)
+
+        if DRY_RUN:
+            verbose('No glossary generated')
+            return
+
+        if glossary is None:
+            print('No steps to include in the glossary: no glossary generated')
+            return
+
+        verbose('Writing sphinx glossary: {}'.format(glossary_filename))
+        glossary.write_to_file(glossary_filename)
 
 
 def main():
-    description = 'Look recursively in <gherkin_path> for Gherkin files and READMEs create one ' \
-                  'reST file for each.'
-    parser = argparse.ArgumentParser(description=description)
+    '''Convert a directory-tree of Gherking Feature files to rST files'''
+    description = 'Look recursively in <gherkin_path> for Gherkin files and create one ' \
+                  'reST file for each. Other rST files found along the way will be included ' \
+                  'as prologue content above each TOC.'
+    parser = argparse.ArgumentParser(description=description,
+                                     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('gherkin_path', help='Directory to search for Gherkin files')
     parser.add_argument('output_path', help='Directory to place all output')
     parser.add_argument('exclude_patterns', nargs='*',
                         help='file and/or directory patterns that will be excluded')
-    parser.add_argument('-d', '--maxdepth', type=int, default=4,
+    parser.add_argument('-d', '--maxtocdepth', type=int, default=DEFAULT_TOC_DEPTH,
                         help='Maximum depth of submodules to show in the TOC')
-    parser.add_argument('-f', '--force', action='store_true', help='Overwrite existing files')
-    parser.add_argument('-l', '--follow-links', action='store_true', help='Follow symbolic links.')
     parser.add_argument('-n', '--dry-run', action='store_true',
                         help='Run the script without creating files')
-    parser.add_argument('-e', '--separate', action='store_true',
-                        help='Put documentation for each module on its own page')
     parser.add_argument('-P', '--private', action='store_true', help='Include "_private" folders')
-    parser.add_argument('-T', '--no-toc', action='store_true',
-                        help='Don\'t create a table of contents file')
-    parser.add_argument('-N', '--toc-name', help='File name for TOC')
-    parser.add_argument('-s', '--suffix', help='file suffix (default: rst)', default='rst')
+    parser.add_argument('-N', '--toc-name', help='File name for TOC', default='gherkin')
     parser.add_argument('-H', '--doc-project', help='Project name (default: root module name)')
     parser.add_argument('-q', '--quiet', action='store_true', help='Silence any output to screen')
-    parser.add_argument('-G', '--step-glossary', action='store_true',
-                        help='Include steps glossary')
+    parser.add_argument('-G', '--step-glossary-name', default=None,
+                        help='Include steps glossary under the given name.'
+                        ' If not specified, no glossary will be created.')
+    parser.add_argument('-v', '--verbose', action='store_true',
+                        help='print files created and actions taken')
     parser.add_argument('--version', action='store_true', help='Show version information and exit')
+
     args = parser.parse_args()
+
     if args.version:
-        parser.exit(message='Sphinx (sphinx-apidoc) {}'.format(sphinx.__display_version__))
+        parser.exit(message='Sphinx (sphinx-gherkindoc) {}'.format(sphinx.__display_version__))
+
+    if args.dry_run:
+        global DRY_RUN
+        DRY_RUN = True
+
+    if args.verbose:
+        global VERBOSE
+        VERBOSE = True
+
     if args.doc_project is None:
         args.doc_project = os.path.abspath(args.gherkin_path).split(os.path.sep)[-1]
-    args.suffix.lstrip(os.extsep)
-    args.gherkin_path = os.path.abspath(args.gherkin_path)
-    args.output_path = os.path.abspath(args.output_path)
+
     if not os.path.isdir(args.gherkin_path):
         parser.error('{} is not a directory.'.format(args.gherkin_path))
+
+    args.output_path = os.path.abspath(args.output_path)
     if not os.path.isdir(args.output_path):
-        if not args.dry_run:
+        if not DRY_RUN:
+            verbose('creating directory: {}'.format(args.output_path))
             os.makedirs(args.output_path)
-    args.exclude_patterns = [os.path.abspath(exclude) for exclude in args.exclude_patterns]
-    tree = RecurseTree(args)
-    feature_set = tree.parse()
-    if not args.no_toc:
-        toc_file = ParseTOC(args.toc_name or 'features', args)
-        toc_file.parse(feature_set, include_subs=True)
-        toc_file.write_file()
-    if args.step_glossary:
-        glossary_name = '{}_glossary'.format(toc_file.dest_prefix)
-        write_steps_glossary(glossary_name, args)
+
+    process_args(args)
 
 
 def config():
     '''Emit a customized version of the sample sphinx config file'''
     description = 'Create a default Sphinx configuration for producing nice' \
                   ' Gherkin-based documentation'
-    parser = argparse.ArgumentParser(description=description)
+    parser = argparse.ArgumentParser(description=description,
+                                     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('project_name', default='Your Project Name Here',
                         help='Name of your project')
     parser.add_argument('author', default='Your Team Name Here',
