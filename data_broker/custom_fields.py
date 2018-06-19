@@ -17,9 +17,9 @@ def validate_fields(payload, api_model, field_name_alternates=None):
             continue
         if alternate in payload:
             payload[main] = payload.pop(alternate)
-    for key in api_model:
-        if api_model[key].required and key not in payload:
-            messages.append('Missing required key "{}"'.format(key))
+    missing_requireds = {x for x in api_model if api_model[x].required} - set(payload.keys())
+    if missing_requireds:
+        messages.append('Missing required keys "{}"'.format(', '.join(missing_requireds)))
     for key in payload:
         if key not in api_model:
             continue
