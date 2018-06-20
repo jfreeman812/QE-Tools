@@ -1,6 +1,6 @@
-#!/usr/bin/en python
+#!/usr/bin/env python
 '''
-Bring Gherkin Goodness into the Sphinx/reStructuredText world!
+Bring Gherkin Goodness into the Sphinx/reStructuredText (rST) world!
 
 Two functions here (see setup.py for the installed entry point names):
 config - Emit a useful sphinx config file with the goodness we need for:
@@ -10,7 +10,7 @@ The Gherkin conversion process has two parts:
 
     * Creating a rST file from a feature file
     * Creating a nested set of TOCs that link to the feature files and any
-      rSt content that is also in the file system.
+      rST content that is also in the file system.
       This latter capability is so that we can inject helpful text/explanation
       at any level of the testing directory tree hierarchy.
 
@@ -18,11 +18,9 @@ For historical reasons, all the converted files end up in the destination direct
 witout any subdirectories..
 To support this, source file names are converted to flat file names
 with the the original directory name parts separated by dots (.).
-To avoid any conflict in this flattened name space, directory names,
-which become rST table of contents files, and feature files,
-which become the test description rST files, are given unique suffixes.
-This keeps prevents conflicts, for example, sibling subdirectory 'foo' and 'foo.feature'
-from having a name collision in our flattened name space.
+Directory names and feature files are given unique suffixes.
+This is to prevent conflicts when, for example, subdirectory 'foo' and file 'foo.feature'
+occur in the same directory.
 '''
 
 from __future__ import print_function
@@ -40,10 +38,6 @@ import sphinx.util
 
 from qecommon_tools import display_name, get_file_contents
 
-
-# For now, avoid processing files in these popular version control directories.
-# However, this begs the question: should be just always ignore `dotfile' directories?
-NUISANCE_DIRS = ['.git', '.hg', '.svn']
 
 # DRY_RUN and VERBOSE are global states for all the code.
 # By making these into global variables, the code "admits that" they are global;
@@ -165,9 +159,9 @@ def rst_escape(unescaped, slash_escape=False):
     return unescaped.translate(_advanced_escape_mappings if slash_escape else _escape_mappings)
 
 
-def is_private(filename):
+def not_private(filename):
     '''Private files have an underscore prefix (mimics Python method name convention)'''
-    return filename.startswith('_')
+    return not filename.startswith('_')
 
 
 def is_rst_file(filename):
@@ -186,6 +180,10 @@ def is_wanted_file(filename):
 def is_excluded(filename, exclude_pattern_list):
     '''Does this filename match any of our exlusion patterns'''
     return any(map(lambda x: fnmatch.fnmatch(filename, x), exclude_pattern_list))
+
+
+def not_hidden(name):
+    return not name.startswith('.')
 
 
 def wanted_source_files(files, exclude_pattern_list):
@@ -390,13 +388,12 @@ def scan_tree(starting_point, private, exclude_patterns):
         if me_list[0] == os.path.curdir:
             me_list = me_list[1:]
 
-        for nuisance_dir in NUISANCE_DIRS:
-            if nuisance_dir in dirs:
-                dirs.remove(nuisance_dir)
+        # Remove all hidden directories on principle.
+        # This stops scanning into version control directories such as .git, ,hg, etc.
+        dirs[:] = filter(not_hidden, dirs)
 
         if not private:
-            for a_dir in filter(is_private, dirs[:]):
-                dirs.remove(a_dir)
+            dirs[:] = filter(not_private, dirs)
 
         files = wanted_source_files(files, exclude_patterns)
 
