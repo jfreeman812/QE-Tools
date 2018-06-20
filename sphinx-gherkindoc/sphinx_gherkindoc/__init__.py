@@ -36,7 +36,7 @@ import behave.parser
 import sphinx
 import sphinx.util
 
-from qecommon_tools import display_name, get_file_contents
+from qecommon_tools import display_name, get_file_contents, list_from
 
 
 # DRY_RUN and VERBOSE are global states for all the code.
@@ -205,9 +205,7 @@ def feature_to_rst(source_path):
     def description(description):
         if not description:
             return
-        if not isinstance(description, (list, tuple)):
-            description = [description]
-        for line in description:
+        for line in list_from(description):
             output_file.add_output(rst_escape(line), indent_by=INDENT_DEPTH)
             # Since behave strips newlines, a reasonable guess must be made as
             # to when a newline should be re-inserted
@@ -218,13 +216,11 @@ def feature_to_rst(source_path):
         if not text:
             return
         output_file.blank_line()
-        if not isinstance(text, (list, tuple)):
-            text = [text]
         output_file.add_output('::', line_breaks=2)
         # Since text blocks are treated as raw text, any new lines in the
         # Gherkin are preserved. To convert the text block into a code block,
         # each new line must be indented.
-        for line in itertools.chain(*(x.splitlines() for x in text)):
+        for line in itertools.chain(*(x.splitlines() for x in list_from(text))):
             output_file.add_output(rst_escape(line), line_breaks=2,
                                    indent_by=INDENT_DEPTH)
 
