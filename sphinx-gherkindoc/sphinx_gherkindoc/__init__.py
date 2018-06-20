@@ -2,25 +2,8 @@
 '''
 Bring Gherkin Goodness into the Sphinx/reStructuredText (rST) world!
 
-Two functions here (see setup.py for the installed entry point names):
-config - Emit a useful sphinx config file with the goodness we need for:
-main - Converting a directory tree of Gherkin files into Sphinxy/rST goodness.
-
-The Gherkin conversion process has two parts:
-
-    * Creating a rST file from a feature file
-    * Creating a nested set of TOCs that link to the feature files and any
-      rST content that is also in the file system.
-      This latter capability is so that we can inject helpful text/explanation
-      at any level of the testing directory tree hierarchy.
-
-For historical reasons, all the converted files end up in the destination directory directly,
-witout any subdirectories..
-To support this, source file names are converted to flat file names
-with the the original directory name parts separated by dots (.).
-Directory names and feature files are given unique suffixes.
-This is to prevent conflicts when, for example, subdirectory 'foo' and file 'foo.feature'
-occur in the same directory.
+To keep our documentation DRY, please see the published ``sphinx-gherkindoc``
+documentation for the QE-Tools repo.
 '''
 
 from __future__ import print_function
