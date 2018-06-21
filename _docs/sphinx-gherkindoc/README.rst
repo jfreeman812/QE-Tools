@@ -13,7 +13,7 @@ Sphinx makes Gherkin pretty enough to be readable.
 into easy to read documents you won't cringe to share with your larger team.
 
 **Easily see what steps you have and where you are using them.**
-``sphinx-gherkindox`` can create a glossary of your steps.
+``sphinx-gherkindoc`` can create a glossary of your steps.
 This helps makes it easy to:
 
    * find steps to reuse
@@ -104,11 +104,11 @@ Conventions - Sphinx-based document production usually uses two directories:
 process all feature and document files in/under ``feature/root/directory-here`` into the
 ``_docs`` directory using all the defaults::
 
-       sphincx-gherkindoc feature/root/directory-here _docs
+       sphinx-gherkindoc feature/root/directory-here _docs
 
 2. Same as above, but also create a step glossary file ``my_step_glossary`` in ``_docs``::
 
-       sphinx-gherkindoc -G my_step_glossary  feature/root/directory-here _docs
+       sphinx-gherkindoc -G my_step_glossary feature/root/directory-here _docs
 
 3. Experiment!
 Once you have the 2nd step working and integrated in to your document building process,
