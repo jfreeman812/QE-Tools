@@ -38,6 +38,8 @@ Oracle EBS                      FMW (Calabrio)
 Oracle EBS                      FMW (Common)
 OS Deployment                   Kserver API
 OS Deployment                   PowerBroker API
+Provisioning Services           DCX Gateway
+Provisioning Services           Environment Manager
 Provisioning Services           FireKick
 Provisioning Services           Torq API
 Rapid Provisioning Integration  BPI
