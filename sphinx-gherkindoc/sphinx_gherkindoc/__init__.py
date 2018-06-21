@@ -333,14 +333,14 @@ def toctree(path_list, subdirs, files, maxtocdepth):
     of.add_output(':maxdepth: {}'.format(maxtocdepth),
                   line_breaks=2, indent_by=INDENT_DEPTH)
 
-    for a_file in non_included_files:
+    for a_file in sorted(non_included_files):
         # For MarkDown file content to be properly processed we
         # need toleave the file name extension unchanged.
         ext = None if a_file.lower().endswith('.md') else ''
         name = make_flat_name(path_list, filename_root=a_file, is_dir=False, ext=ext)
         of.add_output(name, indent_by=INDENT_DEPTH)
 
-    for subdir in subdirs:
+    for subdir in sorted(subdirs):
         name = make_flat_name(path_list, filename_root=subdir, is_dir=True, ext='')
         of.add_output(name, indent_by=INDENT_DEPTH)
 
