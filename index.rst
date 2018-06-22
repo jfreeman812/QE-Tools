@@ -89,8 +89,6 @@ check-unicode.py                                     Checks a directory structur
 
 
 .. toctree::
-   :caption: SDLC Documents
+   :caption: Resource Documents
 
-   Overview <sdlcs/README>
-   Code Management <sdlcs/code-management>
-   Gherkin Standards <sdlcs/gherkin-standards>
+   SDLC Documents <sdlcs/README>
