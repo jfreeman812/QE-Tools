@@ -16,5 +16,6 @@ with any deletions, additions, or modifications being relatively minor:
 .. toctree::
    :caption: Documents
 
+   Terminology <terminology>
    Code Management <code-management>
    Gherkin Standards <gherkin-standards>
