@@ -100,6 +100,23 @@ def test_cleanup_and_exit_with_dir():
     assert not path.exists(dir_path)
 
 
+def test_no_virtual_env(monkeypatch):
+    # Don't depend on tests being run in, or not run in, a virtual environment.
+    monkeypatch.delenv('VIRTUAL_ENV', raising=False)
+    arbitrary_exit_code = 45
+    with pytest.raises(SystemExit) as pytest_wrapped_e:
+        qecommon_tools.must_be_in_virtual_environment(exit_code=arbitrary_exit_code)
+    assert pytest_wrapped_e.value.code == arbitrary_exit_code
+
+
+def test_virtual_env(monkeypatch):
+    # Don't depend on tests being run in, or not run in, a virtual environment.
+    monkeypatch.setenv('VIRTUAL_ENV', 'arbitrary_value')
+    arbitrary_exit_code = 45
+    # If this next function call exits, pytest will report an error:
+    qecommon_tools.must_be_in_virtual_environment(exit_code=arbitrary_exit_code)
+
+
 def test_safe_run_passing():
     # This should not raise any exceptions (pytest will fail the test if it does)
     qecommon_tools.safe_run(['ls'])
