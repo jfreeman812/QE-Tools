@@ -269,6 +269,14 @@ def generate_random_string(prefix='', suffix='', size=8):
     return '{}{}{}'.format(prefix, rand_string, suffix)
 
 
+def must_be_in_virtual_environment(
+        exit_code=1,
+        message='Must be running in a Python virtual environment, aborting!'):
+    '''Exit with the given code and message if not running in a Python virtual environment'''
+    if 'VIRTUAL_ENV' not in _os.environ:
+        exit(exit_code, message)
+
+
 def must_get_key(a_dict, key):
     '''
     Either return the value for the key, or raise an exception.
