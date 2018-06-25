@@ -101,7 +101,7 @@ def test_cleanup_and_exit_with_dir():
 
 
 def test_no_virtual_env(monkeypatch):
-    # Don't depend on tests being run it, or not run it, a virtual environment.
+    # Don't depend on tests being run in, or not run in, a virtual environment.
     monkeypatch.delenv('VIRTUAL_ENV', raising=False)
     arbitrary_exit_code = 45
     with pytest.raises(SystemExit) as pytest_wrapped_e:
@@ -110,7 +110,7 @@ def test_no_virtual_env(monkeypatch):
 
 
 def test_virtual_env(monkeypatch):
-    # Don't depend on tests being run it, or not run it, a virtual environment.
+    # Don't depend on tests being run in, or not run in, a virtual environment.
     monkeypatch.setenv('VIRTUAL_ENV', 'arbitrary_value')
     arbitrary_exit_code = 45
     # If this next function call exits, pytest will report an error:
