@@ -1,8 +1,11 @@
 #! /usr/bin/env python
 import argparse
 import os
+import shutil
 import subprocess
 import sys
+
+from qecommon_tools import must_be_in_virtual_environment
 
 
 DOCS_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -20,9 +23,14 @@ def main():
     # Build parser
     parser = argparse.ArgumentParser()
     parser.add_argument('--setup', action='store_true', help='Install needed libraries')
+    parser.add_argument('--clean', action='store_true',
+                        help='Delete the output directory before starting to build documents')
     args = parser.parse_args()
     # Run necessary commands
+    if args.clean:
+        shutil.rmtree('docs', ignore_errors=True)
     if args.setup:
+        must_be_in_virtual_environment()
         try:
             pip_install = ['pip', 'install', '-r', '{}/requirements.txt'.format(DOCS_DIR)]
             subprocess.check_call(pip_install, cwd=BASE_DIR)
