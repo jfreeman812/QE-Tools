@@ -1,91 +1,89 @@
 How to Contribute
 =================
 
-Contributions are greatly appreciated.
-To maintain standards and ease code review, the following is recommended.
+All contributions are greatly appreciated and welcome!
 
-Contribution Standards
-----------------------
+We are looking for contrbutions that add new packages as well as those that
+improve/enhance/bug-fix existing packages!
+We are also very open to preliminary version 0.1 packages;
+those have less stringent requirements due to their initial / draft nature.
 
-To ensure following repo standards and easing code review,
-QE-Tools follows the DCXQE contributing_ standards.
-This document includes git, code review, docstring, and pep standards of the repo.
+Contribution and Workflow Standards
+-----------------------------------
 
-Workflow Standards
-------------------
+To maintain standards and ease code review,
+we follow the processes as describe in our very own :doc:`SDLC Documents<../sdlcs/README>`,
+with some refinements.
+Refinements?
+Wait, if you want everyone else to use that SDLC, why aren't you using it here?
+We are! The packages in this repo are intended for use by many other teams;
+based on that larger scope and responsibility, our SDLC is slightly more `stringent` than might
+be appropriate for any individual QE team.
+Our refinements are a little bit about code and a bit more about the Pull Request (PR) process:
 
-Further detail of Code Management, Git Workflow,
-and Pull Request Workflow is outlined in RBA-QE's SDLC_.
 
-Self Check
-----------
+  * The Code Itself:
 
-After following the standards as given in the documentation links above,
-if the QE-Tools :doc:`git-hooks <github_tools/README>` are not installed a self check
-can be run from the root directory of QE-Tools via ``./self-check.sh``.
+    * Documentation: A must-have.
+      We follow the Google `napolean documentation standard`_.
+      See our existing package documentation for examples as well.
+    * Self-tests: A very-strong-want-to-have.
+      PRs with code changes should make a reasonable attempt to add tests for new/revised code.
 
-Operational Details - Quick Start
----------------------------------
 
-* Pull Request Guidelines:
+  * The PR process:
 
-    * Pull Requests should be atomic and as small as possible to accomplish what is needed.
-      If there is a need to change multiple things, please split it into multiple Pull Requests.
-    * Pull Requests should have a minimum of two reviews, with a preference for three.
+    * PRs need three reviewers' approvals to merge, but can make it through with two:
 
-        * Once two reviewers have approved the Pull Request,
-          any additional reviewers have 24 hours in which to submit
-          their reviews or to pass on the review.
-          If no additional reviewers respond within the 24-hour window, or they choose to pass,
-          the Pull Request may be merged with only two approvals.
+        * After second reviewer signed off, any third reviewer has 24 hours to chime in.
+          After 24 hours, a PR can be merged with only two reviewers' approval.
+        * Trivial Pull Requests (e.g., fixing a typo or making a private method public
+          for a future Pull Request) may be "First Review, First Merge" (FRFM)
+          if the author and first reviewer concur.
 
-    * Once engaging in a review, a reviewer has 48 hours to re-visit a review
-      after the author has made the necessary changes.
-      Any review that sits idle with a reviewer for over 48 hours
-      will be considered approved by that reviewer.
-    * All packages should have self-tests.
-      Any new Pull Request with code changes should make a reasonable attempt
-      to add tests for the new code.
+    * Review/Change workflow:
 
-* Pull Request Procedure:
+        * Assign new PRs to as many members of the QE Tools Contributors team as possible.
+          PRs previously discussed with a specific person may be assigned to them directy to start.
+        * When starting a review, prune the assignee list to just yourself to avoid duplicate effort.
+        * Once engaged, a reviewer has 48 hours to respond to changes
+          before the changes are considered approved.
+        * Once completed reviewing:
 
-    * When creating a pull request,
-      assign to as many members of the QE Tools Contributors team as possible.
-      If you have previous discussed with a member of the team doing the first review,
-      you may assign to them directly.
-    * When starting a review, change the assignee list to yourself to prevent duplicate efforts.
-    * Once completed reviewing:
+            * If approving or if just commenting,
+              un-assign yourself and assign to any remaining members of the QE Tools Contributors team.
+            * If requesting changes, assign the PR back to the author.
 
-        * If approving or just commenting,
-          un-assign yourself and assign to any remaining members of the QE Tools Contributors team.
-        * If requesting changes, assign the Pull Request Back to the author.
-
-    * As an author, once requested edits are completed,
-      un-assign yourself and assign to the reviewer requesting the feedback.
-
-        * If the change is large enough and other individuals have already reviewed,
+        * As an author, once requested edits are completed,
+          un-assign yourself and assign to the reviewer requesting the feedback;
+          If the change is large enough and other individuals have already reviewed,
           you may re-assign to them and ask for an additional review, but it is not required.
 
-.. note::
-    For trivial Pull Requests (e.g., fixing a typo or making a private method public
-    for a future Pull Request) may be "First Review, First Merge" (FRFM)
-    if the author and first reviewer concur.
+    * Fast Follows (FF): Sometimes reviewers will accept / merge changes upon condition of a FF PR.
+      FF is usually used when additional changes will cause a lot of diff noise, or otherwise make
+      the current PR harder to understand, `without` making significant changes
+      to the functioning of the code.
+      When a PR is merged with a FF request, the author is expected to submit the FF PR quickly.
+      This should not be difficult as changes deferred to a FF PR should not be substantial.
 
-.. note::
-    A Pull Request might be merged with requests for changes in a Fast-Follow (FF) Pull Request.
-    This is often done when the changes would complicate the current Pull Request,
-    such as renaming a heavily-used method or documentation cleanup separate from the code.
-    For FF Pull Requests, the original author is expected to submit the follow up
-    Pull Request quickly.
 
 Documentation Review
 --------------------
 
-After successful execution of ``./self-check.sh``
-(or running the ``self-check.sh`` included in the ``_docs`` directory),
-documentation will be built and available in the ``docs`` folder of the QE-Tools root.
-The documentation can also be reviewed after a successful check run by Jenkins
-on the creation of a PR, by following the "Docs Link" link comment that is auto-posted on the PR.
+Documentation for this repo is built with the ``_docs/build-docs.py`` script.
+Documentation builds have additional Python packaging requirements.
+When running that script for the first time in a virtual environment, 
+use the ``--setup`` command-line parameter to make sure all the necessary packages are installed.
+The built documents will be in the ``docs`` directory.
+Typically you can open the ``docs/index.html`` file to browse the documentation.
+
+This repo has an automatic PR checker job that will also build the documentation and post a link
+to it in the comments for any submitted or updated PR.
+Reviewers are free to pull the PR and build the docs but it is usually easier to wait for this
+job to run and just view the documents at the link it posts.
+
+
 
 .. _contributing: https://github.rackspace.com/dcx/dcxqe-common/blob/master/CONTRIBUTING.md
 .. _SDLC: https://pages.github.rackspace.com/AutomationServices/RBA-QE-Common/sdlc.html#code-management
+.. _`napolean documentation standard`: http://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html
