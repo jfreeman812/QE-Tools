@@ -155,7 +155,7 @@ class SplunkAPI(Resource):
     def _write_data_file(self):
         data_by_product = defaultdict(list)
         for entry in request.json:
-            product = entry['Product Hierarchy'].split('::')[-1]
+            product = entry['Product']
             product_slug = ''.join(filter(
                 lambda x: x.isalnum() or x in ('.', '_'), product.replace(' ', '_')
             ))
