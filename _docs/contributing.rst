@@ -12,7 +12,7 @@ Contribution and Workflow Standards
 -----------------------------------
 
 To maintain standards and ease code review,
-we follow the processes as describe in our very own :doc:`SDLC Documents<../sdlcs/README>`,
+we follow the processes in our very own :doc:`SDLC Documents<../sdlcs/README>`,
 with some refinements.
 Refinements?
 Wait, if you want everyone else to use that SDLC, why aren't you using it here?
