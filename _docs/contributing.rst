@@ -14,9 +14,11 @@ Contribution and Workflow Standards
 To maintain standards and ease code review,
 we follow the processes in our very own :doc:`SDLC Documents<../sdlcs/README>`,
 with some refinements.
-Refinements?
-Wait, if you want everyone else to use that SDLC, why aren't you using it here?
-We are! The packages in this repo are intended for use by many other teams;
+"Refinements?
+Wait, if you want everyone else to use that SDLC,
+why aren't you using it here?" you may ask.
+To which we say: "We are!"
+The packages in this repo are intended for use by many other teams;
 based on that larger scope and responsibility, our SDLC is slightly more `stringent` than might
 be appropriate for any individual QE team.
 Our refinements are a little bit about code and a bit more about the Pull Request (PR) process:
