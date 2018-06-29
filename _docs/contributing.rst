@@ -35,10 +35,10 @@ Our refinements are a little bit about code and a bit more about the Pull Reques
 
   * The PR process:
 
-    * PRs need three reviewers' approvals to merge, but can make it through with two:
+    * Merging: three reviewers' approvals needed; to avoid delays, we `can` merge with two:
 
-        * After second reviewer signed off, any third reviewer has 24 hours to chime in.
-          After 24 hours, a PR can be merged with only two reviewers' approval.
+        * After the second reviewer signs off, any third reviewer has 24 hours to chime in.
+          After 24 hours, a PR can be merged with only two reviewers' approvals.
         * Trivial Pull Requests (e.g., fixing a typo or making a private method public
           for a future Pull Request) may be "First Review, First Merge" (FRFM)
           if the author and first reviewer concur.
@@ -47,13 +47,11 @@ Our refinements are a little bit about code and a bit more about the Pull Reques
 
         * Assign new PRs to as many members of the QE Tools Contributors team as possible.
           PRs previously discussed with a specific person may be assigned to them directy to start.
-        * When starting a review, prune the assignee list to just yourself to avoid duplicate effort.
         * Once engaged, a reviewer has 48 hours to respond to changes
           before the changes are considered approved.
         * Once completed reviewing:
 
-            * If approving or if just commenting,
-              un-assign yourself and assign to any remaining members of the QE Tools Contributors team.
+            * If approving or if just commenting, un-assign yourself.
             * If requesting changes, assign the PR back to the author.
 
         * As an author, once requested edits are completed,
