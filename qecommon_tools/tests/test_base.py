@@ -379,3 +379,110 @@ def test_retry_on_exception_error_handling():
         make_retry_helper(0, KeyError, 1)
     # Make sure we get the right error, but don't lock down the exact error string raised.
     assert 'max_retry_count must be' in str(e)
+
+
+def test_simple_response_data():
+    response = qecommon_tools.generate_random_string()
+    description = qecommon_tools.generate_random_string()
+    extra_field = qecommon_tools.generate_random_string()
+    a_response = qecommon_tools.ResponseInfo(response=response, description=description,
+                                             extra_field=extra_field)
+    assert a_response.response == response
+    assert a_response.description == description
+    assert a_response.extra_field == extra_field
+    # No callbacks, so the response data should just be the response
+    assert a_response.response_data == response
+
+
+# Testing helpers for the ResponseInfo callback mechanism.
+
+# Keep track of how many times the callback has been invoked.
+# Using the usual list hack to avoid global variable declarations and annoyances.
+arbitrary_callback_counter = [0]
+
+ARBITRARY_CALLBACK_VALUE = 'phone number 867-5329'
+
+
+@pytest.fixture
+def random_string():
+    '''Something arbitrary and random that doesn't collide with ARBITRARY_CALLBACK_VALUE'''
+    # making the value larger ensures it won't collide.
+    return qecommon_tools.generate_random_string(size=len(ARBITRARY_CALLBACK_VALUE) + 1)
+
+
+def arbitrary_callback():
+    arbitrary_callback_counter[0] += 1
+    return ARBITRARY_CALLBACK_VALUE
+
+
+def test_callback_response_data(random_string):
+    a_response = qecommon_tools.ResponseInfo(response=random_string,
+                                             response_callback=arbitrary_callback)
+    assert a_response.response_data == ARBITRARY_CALLBACK_VALUE
+
+    # Now make sure .response has been changed:
+    assert a_response.response == ARBITRARY_CALLBACK_VALUE
+
+
+def test_callback_response_data_callback_only_called_once():
+    a_response = qecommon_tools.ResponseInfo(response_callback=arbitrary_callback)
+
+    arbitrary_callback_counter[0] = 0
+
+    assert a_response.response_data == ARBITRARY_CALLBACK_VALUE
+    assert arbitrary_callback_counter[0] == 1
+
+    assert a_response.response_data == ARBITRARY_CALLBACK_VALUE
+    assert arbitrary_callback_counter[0] == 1
+
+
+def test_extract_response_data():
+    arbitrary_string = 'arbitrary_string'.lower()
+    a_response = qecommon_tools.ResponseInfo(response=arbitrary_string,
+                                             response_data_extract=str.swapcase)
+    assert a_response.response_data == arbitrary_string.swapcase()
+
+
+def test_extract_and_callback_response_data(random_string):
+    a_response = qecommon_tools.ResponseInfo(response=random_string,
+                                             response_callback=arbitrary_callback,
+                                             response_data_extract=str.swapcase)
+    assert a_response.response_data == ARBITRARY_CALLBACK_VALUE.swapcase()
+
+
+def test_empty_common_list_errors_out():
+    with pytest.raises(AssertionError):
+        for item in qecommon_tools.CommonList():
+            pass
+
+
+def test_mundane_common_list():
+    arbitrary_list_len = random.randint(1, 10)  # Anything > 0 is fine.
+    common_list = qecommon_tools.CommonList()
+    common_list.extend(range(arbitrary_list_len))
+    for item in common_list:
+        pass   # make sure no exception thrown.
+    assert common_list == list(range(arbitrary_list_len))
+
+
+def test_common_list_attr_access():
+    arbitrary_list_len = random.randint(1, 10)  # Anything > 0 is fine.
+    common_list = qecommon_tools.CommonList()
+    for x in range(arbitrary_list_len):
+        common_list.append(qecommon_tools.ResponseInfo(data=x))
+    assert common_list.data == list(range(arbitrary_list_len))
+
+
+def test_common_list_attr_set(random_string):
+    arbitrary_list_len = random.randint(1, 10)  # Anything > 0 is fine.
+    common_list = qecommon_tools.CommonList()
+
+    # First set up different data for each item
+    for x in range(arbitrary_list_len):
+        common_list.append(qecommon_tools.ResponseInfo(data=x))
+
+    # overwrite data with the same value.
+    common_list.data = random_string
+
+    # make sure new value is consisten across each element.
+    assert common_list.data == [random_string] * arbitrary_list_len

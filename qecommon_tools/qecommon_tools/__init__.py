@@ -448,3 +448,121 @@ def retry_on_exceptions(max_retry_count, exceptions, max_retry_sleep=DEFAULT_MAX
         raise error
 
     return wrapper
+
+
+class CommonList(list):
+    '''
+    lists of similar objects that can be operated on as a group.
+
+    Iterating on this list will fail if the list is empty!
+    This simplifies code from having to check for empty lists everywhere.
+    Empty lists are a problem because ``for`` loop bodies don't execute on empyt lists.
+    thus any checks/tests/etc in a loop body would not run.
+    In a testing context, the loop would "succeed" by not doing anything
+    (it would fail to have checked anything) and that would be a false-positive.
+
+    Accessing an attribute on this list instead
+    returns a list of that attribute's value from each member.
+    (unless the attribute is defined here or in the base class)
+    If any member of this list does not have that attribute, ``AttributeError`` is raised.
+
+    Setting an attribute on this list instead sets the attribute on each member.
+    '''
+
+    def __iter__(self):
+        '''
+        Iterate only if not empty.
+
+        Any loops that check items in the list could fail to fail for empty
+        lists becuase the loop body would never execute.
+        Help our clients by asserting if the list is empty so they don't have to.
+        '''
+        assert self, 'list is empty!'
+        return super(CommonList, self).__iter__()
+
+    def __getattr__(self, name):
+        try:
+            return [getattr(x, name) for x in self]
+        except AttributeError:
+            message = 'Attribute "{}" not present on all list items.'
+            raise AttributeError(message.format(name))
+
+    def __setattr__(self, name, value):
+        '''On each element, set the give attribute to the given value'''
+        for item in self:
+            setattr(item, name, value)
+
+    def update_all(self, **kwargs):
+        '''On each element, set each key as an attribute to the corresponding value from kwargs.'''
+        for key, value in kwargs.items():
+            setattr(self, key, value)
+
+
+class ResponseInfo(object):
+
+    def __init__(self, response=None, description=None, response_callback=None,
+                 response_data_extract=None, **kwargs):
+        '''
+        Keep track of needed info about test operation responses (or any info really).
+
+        Originally created to augment/track info about ``requests'`` responses, it's not limited
+        or bounded by that use case.
+        Please read ``response`` more generally as any kind of object
+        useful for catpuring some kind of response from the system under test.
+        In addition, arbitrary other attributes can be set on this object.
+        To make that easier, ``kwargs`` is processed as attribute / value pairs to be set on the
+        object, for whatever attributes make sense for your application.
+
+        Sometimes this object is keeping track of a response that is needed,
+        but isn't available yet.
+        In these cases, ``response_callback`` can be set to a parameter-less function that
+        can be called to obtain the response when the ``response_data`` property is used.
+
+        For ease of use, when the data is buried in the response or otherwise needs to be decoded,
+        ``response_data_extract`` can be used. It should take one parameter (the response) and
+        return the desired data from it. This function should not have any side-effects.
+        ``response_data_extract`` is also used by the ``response_data`` property,
+        see that property documentation for details.
+
+        Args:
+            response (any, optional): Whatever kind of response object you need to track.
+            description (str, optional): Description (if any) of this particular response.
+            response_callback (function w/no parameters, optional):
+                A callback to use in place of the ``response`` field.
+            response_data_extract (function w/1 parameter, optional):
+                A callback used to extract wanted data from the response.
+            kwargs (dict, optional): any additional attributes to set on this object,
+                                     based on the name/value pairs in kwargs.
+        '''
+
+        super(ResponseInfo, self).__init__()
+
+        self.response = response
+        self.description = description
+        self.response_callback = response_callback
+        self.response_data_extract = response_data_extract
+        for key, value in kwargs.items():
+            setattr(self, key, value)
+
+    @property
+    def response_data(self):
+        '''Property that returns the data from a response:
+
+        1. If ``response_callback`` is set, that is used to obtain the response,
+           otherwise the ``response`` attribute is used.
+           If the ``response_callback`` is called,
+           it's result is assigned to the ``.response`` attribute and
+           the ``response_callback`` attribute is set to None.
+           This is to prevent the callback from being invoked more than once.
+        2. If ``response_data_extract`` is set, it is called on the response
+           from step 1, and it's return value is the value of this property.
+           Otherwise the result of step 1 is returned as is.
+           Note that in this step the ``.response`` attribute is not changed,
+           the ``response_data_extract`` callback is expected to have no side-effects.
+        '''
+        if self.response_callback:
+            self.response = self.response_callback()
+            self.response_callback = None
+        if self.response_data_extract:
+            return self.response_data_extract(self.response)
+        return self.response
