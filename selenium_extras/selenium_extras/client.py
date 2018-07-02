@@ -214,7 +214,7 @@ class SeleniumClient(object):
         try:
             WebDriverWait(self, timeout).until(lambda d: not d.is_jquery_active())
         except TimeoutException:
-            message = 'JQuery is still on a process. {} seconds are out'.format(timeout)
+            message = 'JQuery was still active after {} seconds.'.format(timeout)
             raise JQueryTimeoutException(message)
 
     def is_document_ready(self):
