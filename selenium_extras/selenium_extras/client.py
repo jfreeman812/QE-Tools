@@ -27,7 +27,7 @@ from selenium.webdriver.support import expected_conditions as EC  # noqa N812
 from selenium.webdriver.remote.remote_connection import LOGGER
 
 from .constants import SEARCH
-from .exceptions import PageLoadTimeoutException
+from .exceptions import PageLoadTimeoutException, JQueryTimeoutException
 
 from time import sleep
 
@@ -196,6 +196,26 @@ class SeleniumClient(object):
         except TimeoutException:
             message = 'Page failed to become document ready within {} seconds'.format(timeout)
             raise PageLoadTimeoutException(message)
+
+    def wait_for_jquery_done(self, timeout=None):
+        '''
+        Wait timeout seconds for ``is_jquery_active`` to return True.
+
+        Args:
+            timeout (int): How long to wait in seconds. If None, then
+                the page_load_timeout from the constructor will be used.
+
+        Raises:
+            JQueryTimeoutException: If ``is_jquery_active`` doesn't return
+                False in the given time.
+        '''
+        if timeout is None:
+            timeout = self.page_load_timeout
+        try:
+            WebDriverWait(self, timeout).until(lambda d: not d.is_jquery_active())
+        except TimeoutException:
+            message = 'JQuery is still on a process. {} seconds are out'.format(timeout)
+            raise JQueryTimeoutException(message)
 
     def is_document_ready(self):
         '''
