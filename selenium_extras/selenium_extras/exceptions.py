@@ -45,3 +45,8 @@ class LocatorNotFoundException(BaseSeleniumException):
 class PageLoadTimeoutException(BaseSeleniumException):
     def __init__(self, message='Page failed to load in the required time'):
         super(PageLoadTimeoutException, self).__init__(message)
+
+
+class JQueryTimeoutException(BaseSeleniumException):
+    def __init__(self, message='JQuery failed to finish in the required time'):
+        super(JQueryTimeoutException, self).__init__(message)
