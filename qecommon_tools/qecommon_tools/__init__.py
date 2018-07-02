@@ -451,7 +451,7 @@ def retry_on_exceptions(max_retry_count, exceptions, max_retry_sleep=DEFAULT_MAX
 
 
 def single_item_from(item_list, list_name=''):
-    '''return the single item from item_list, assert of length is not equal to 1'''
+    '''Assert item_list has one item, and return that item.'''
     label = '{} list'.format(list_name) if list_name else 'List'
     assert len(item_list) == 1, '{} was not of length 1: "{}"'.format(label, item_list)
     return item_list[0]
@@ -517,7 +517,7 @@ class CommonList(list):
 
     @property
     def single_item(self):
-        '''Return single item from this CommonList or assert if length is not 1'''
+        '''Assert this CommonList has one item, and return that item.'''
         return single_item_from(self, list_name='CommonList')
 
     def update_all(self, **kwargs):
@@ -573,9 +573,9 @@ class ResponseInfo(object):
             setattr(self, key, value)
 
     def run_response_callback(self):
-        '''Run the ``response_callback, if any, and set ``response`` to the result.
+        '''Run the ``response_callback``, if any, and set ``response`` to the result.
 
-        Resets response_callback to None so callback isn't run more than once.
+        Set ``response_callback`` to None so iit isn't run more than once.
         '''
         if self.response_callback:
             self.response = self.response_callback()
