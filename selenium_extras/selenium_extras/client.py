@@ -199,7 +199,7 @@ class SeleniumClient(object):
 
     def wait_for_jquery_done(self, timeout=None):
         '''
-        Wait timeout seconds for ``is_jquery_active`` to return True.
+        Wait timeout seconds for ``is_jquery_active`` to return False.
 
         Args:
             timeout (int): How long to wait in seconds. If None, then
