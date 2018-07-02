@@ -46,7 +46,7 @@ Our refinements are a little bit about code and a bit more about the Pull Reques
     * Review/Change workflow:
 
         * Assign new PRs to as many members of the QE Tools Contributors team as possible.
-          PRs previously discussed with a specific person may be assigned to them directy to start.
+          PRs previously discussed with a specific person may be assigned to them directly to start.
         * Once engaged, a reviewer has 48 hours to respond to changes
           before the changes are considered approved.
         * Once completed reviewing:
