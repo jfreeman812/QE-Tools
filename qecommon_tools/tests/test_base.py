@@ -381,6 +381,15 @@ def test_retry_on_exception_error_handling():
     assert 'max_retry_count must be' in str(e)
 
 
+def test_single_item_from():
+    bad_lists = [[], list(range(100))]
+    for bad_list in bad_lists:
+        with pytest.raises(AssertionError):
+            qecommon_tools.single_item_from(bad_list)
+
+    assert qecommon_tools.single_item_from([1]) == 1
+
+
 def test_simple_response_data():
     response = qecommon_tools.generate_random_string()
     description = qecommon_tools.generate_random_string()
@@ -428,11 +437,13 @@ def test_callback_response_data_callback_only_called_once():
     a_response = qecommon_tools.ResponseInfo(response_callback=arbitrary_callback)
 
     arbitrary_callback_counter[0] = 0
+    a_response.run_response_callback()
 
-    assert a_response.response_data == ARBITRARY_CALLBACK_VALUE
+    assert a_response.response == ARBITRARY_CALLBACK_VALUE
     assert arbitrary_callback_counter[0] == 1
 
-    assert a_response.response_data == ARBITRARY_CALLBACK_VALUE
+    a_response.run_response_callback()
+    assert a_response.response == ARBITRARY_CALLBACK_VALUE
     assert arbitrary_callback_counter[0] == 1
 
 
@@ -465,6 +476,31 @@ def test_mundane_common_list():
     assert common_list == list(range(arbitrary_list_len))
 
 
+def test_common_list_set():
+    arbitrary_list_len = random.randint(1, 10)  # Anything > 0 is fine.
+    common_list = qecommon_tools.CommonList()
+    common_list.extend(range(arbitrary_list_len))
+    assert len(common_list) == arbitrary_list_len
+    common_list.set([])
+    assert len(common_list) == 0
+    common_list.set([-1, -2])
+    assert len(common_list) == 2
+    assert common_list == [-1, -2]
+
+
+def test_common_list_single_item():
+    common_list = qecommon_tools.CommonList()
+    with pytest.raises(AssertionError):
+        common_list.single_item
+
+    common_list.append(3)
+    assert common_list.single_item == 3
+
+    common_list.append(4)
+    with pytest.raises(AssertionError):
+        common_list.single_item
+
+
 def test_common_list_attr_access():
     arbitrary_list_len = random.randint(1, 10)  # Anything > 0 is fine.
     common_list = qecommon_tools.CommonList()
@@ -486,3 +522,23 @@ def test_common_list_attr_set(random_string):
 
     # make sure new value is consisten across each element.
     assert common_list.data == [random_string] * arbitrary_list_len
+
+
+def test_response_list_build_and_set(random_string):
+    response_list = qecommon_tools.ResponseList()
+
+    assert len(response_list) == 0
+    response_list.build_and_set(response=random_string)
+    assert len(response_list) == 1
+    assert isinstance(response_list.single_item, qecommon_tools.ResponseInfo)
+
+
+def test_response_list_run_response_callbacks():
+    arbitrary_list_len = random.randint(1, 10)  # Anything > 0 is fine.
+    response_list = qecommon_tools.ResponseList()
+
+    response_list.extend(qecommon_tools.ResponseInfo(response_callback=arbitrary_callback)
+                         for x in range(arbitrary_list_len))
+    arbitrary_callback_counter[0] = 0
+    response_list.run_response_callbacks()
+    assert arbitrary_callback_counter[0] == arbitrary_list_len

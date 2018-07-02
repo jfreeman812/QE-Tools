@@ -450,6 +450,13 @@ def retry_on_exceptions(max_retry_count, exceptions, max_retry_sleep=DEFAULT_MAX
     return wrapper
 
 
+def single_item_from(item_list, list_name=''):
+    '''return the single item from item_list, assert of length is not equal to 1'''
+    label = '{} list'.format(list_name) if list_name else 'List'
+    assert len(item_list) == 1, '{} was not of length 1: "{}"'.format(label, item_list)
+    return item_list[0]
+
+
 class CommonList(list):
     '''
     lists of similar objects that can be operated on as a group.
@@ -488,12 +495,33 @@ class CommonList(list):
             raise AttributeError(message.format(name))
 
     def __setattr__(self, name, value):
-        '''On each element, set the give attribute to the given value'''
+        '''On each item, set the give attribute to the given value'''
         for item in self:
             setattr(item, name, value)
 
+    def set(self, resp):
+        '''
+        Clear and set the contents of this to single object or an iterator of objects.
+
+        Generators will be converted into a list to allow access more than once.
+
+        This method can be handy/useful when transforming a CommonList's contents
+        from one form to another, such as:
+
+        >>> x = CommonList()
+        >>> ...
+        >>> x.set(transform(thing, doo_dad) for thing in x)
+        '''
+        del self[:]  # self.clear is not available before Python 3.3 :-(
+        self.extend(list_from(resp))
+
+    @property
+    def single_item(self):
+        '''Return single item from this CommonList or assert if length is not 1'''
+        return single_item_from(self, list_name='CommonList')
+
     def update_all(self, **kwargs):
-        '''On each element, set each key as an attribute to the corresponding value from kwargs.'''
+        '''On each item, set each key as an attribute to the corresponding value from kwargs.'''
         for key, value in kwargs.items():
             setattr(self, key, value)
 
@@ -544,6 +572,15 @@ class ResponseInfo(object):
         for key, value in kwargs.items():
             setattr(self, key, value)
 
+    def run_response_callback(self):
+        '''Run the ``response_callback, if any, and set ``response`` to the result.
+
+        Resets response_callback to None so callback isn't run more than once.
+        '''
+        if self.response_callback:
+            self.response = self.response_callback()
+            self.response_callback = None
+
     @property
     def response_data(self):
         '''Property that returns the data from a response:
@@ -560,9 +597,20 @@ class ResponseInfo(object):
            Note that in this step the ``.response`` attribute is not changed,
            the ``response_data_extract`` callback is expected to have no side-effects.
         '''
-        if self.response_callback:
-            self.response = self.response_callback()
-            self.response_callback = None
+        self.run_response_callback()
         if self.response_data_extract:
             return self.response_data_extract(self.response)
         return self.response
+
+
+class ResponseList(CommonList):
+    '''A CommonList specialized for ResponseInfo object items.'''
+
+    def build_and_set(self, *args, **kwargs):
+        '''Create ResponseInfo object with args & kwargs, then ``.set`` it on this ResponseList.'''
+        self.set(ResponseInfo(*args, **kwargs))
+
+    def run_response_callbacks(self):
+        '''Call ``run_response_callback`` on each item of this ReponseList.'''
+        for resp_info in self:
+            resp_info.run_response_callback()
