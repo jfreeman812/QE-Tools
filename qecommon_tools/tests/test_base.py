@@ -390,7 +390,7 @@ def test_single_item_from():
     assert qecommon_tools.single_item_from([1]) == 1
 
 
-def test_simple_response_data():
+def test_simple_responseinfo_data():
     response = qecommon_tools.generate_random_string()
     description = qecommon_tools.generate_random_string()
     extra_field = qecommon_tools.generate_random_string()
@@ -461,67 +461,82 @@ def test_extract_and_callback_response_data(random_string):
     assert a_response.response_data == ARBITRARY_CALLBACK_VALUE.swapcase()
 
 
-def test_empty_common_list_errors_out():
+def test_empty_notemptylist_errors_out():
     with pytest.raises(AssertionError):
-        for item in qecommon_tools.CommonList():
+        for item in qecommon_tools.NotEmptyList():
             pass
 
 
-def test_mundane_common_list():
+def test_mundane_notemptylist():
     arbitrary_list_len = random.randint(1, 10)  # Anything > 0 is fine.
-    common_list = qecommon_tools.CommonList()
-    common_list.extend(range(arbitrary_list_len))
-    for item in common_list:
+    my_list = qecommon_tools.NotEmptyList()
+    my_list.extend(range(arbitrary_list_len))
+    for item in my_list:
         pass   # make sure no exception thrown.
-    assert common_list == list(range(arbitrary_list_len))
+    assert my_list == list(range(arbitrary_list_len))
 
 
-def test_common_list_set():
+def test_commonattributelist_attr_access():
     arbitrary_list_len = random.randint(1, 10)  # Anything > 0 is fine.
-    common_list = qecommon_tools.CommonList()
-    common_list.extend(range(arbitrary_list_len))
-    assert len(common_list) == arbitrary_list_len
-    common_list.set([])
-    assert len(common_list) == 0
-    common_list.set([-1, -2])
-    assert len(common_list) == 2
-    assert common_list == [-1, -2]
-
-
-def test_common_list_single_item():
-    common_list = qecommon_tools.CommonList()
-    with pytest.raises(AssertionError):
-        common_list.single_item
-
-    common_list.append(3)
-    assert common_list.single_item == 3
-
-    common_list.append(4)
-    with pytest.raises(AssertionError):
-        common_list.single_item
-
-
-def test_common_list_attr_access():
-    arbitrary_list_len = random.randint(1, 10)  # Anything > 0 is fine.
-    common_list = qecommon_tools.CommonList()
+    my_list = qecommon_tools.CommonAttributeList()
     for x in range(arbitrary_list_len):
-        common_list.append(qecommon_tools.ResponseInfo(data=x))
-    assert common_list.data == list(range(arbitrary_list_len))
+        my_list.append(qecommon_tools.ResponseInfo(data=x))
+    assert my_list.data == list(range(arbitrary_list_len))
 
 
-def test_common_list_attr_set(random_string):
+def test_commonattributelist_attr_set(random_string):
     arbitrary_list_len = random.randint(1, 10)  # Anything > 0 is fine.
-    common_list = qecommon_tools.CommonList()
+    my_list = qecommon_tools.CommonAttributeList()
 
     # First set up different data for each item
     for x in range(arbitrary_list_len):
-        common_list.append(qecommon_tools.ResponseInfo(data=x))
+        my_list.append(qecommon_tools.ResponseInfo(data=x))
 
     # overwrite data with the same value.
-    common_list.data = random_string
+    my_list.data = random_string
 
     # make sure new value is consisten across each element.
-    assert common_list.data == [random_string] * arbitrary_list_len
+    assert my_list.data == [random_string] * arbitrary_list_len
+
+
+def test_commonattributelist_update_all(random_string):
+    arbitrary_list_len = random.randint(1, 10)  # Anything > 0 is fine.
+    my_list = qecommon_tools.CommonAttributeList()
+
+    # First set up different data for each item
+    for x in range(arbitrary_list_len):
+        my_list.append(qecommon_tools.ResponseInfo(data=x))
+
+    my_list.update_all(data=random_string, data2=random_string + random_string)
+
+    # make sure new values are consisten across each element.
+    assert my_list.data == [random_string] * arbitrary_list_len
+    assert my_list.data2 == [random_string + random_string] * arbitrary_list_len
+
+
+def test_responselist_set():
+    arbitrary_list_len = random.randint(1, 10)  # Anything > 0 is fine.
+    my_list = qecommon_tools.ResponseList()
+    my_list.extend(range(arbitrary_list_len))
+    assert len(my_list) == arbitrary_list_len
+    my_list.set([])
+    assert len(my_list) == 0
+    my_list.set([-1, -2])
+    assert len(my_list) == 2
+    assert my_list == [-1, -2]
+
+
+def test_responselist_single_item():
+    my_list = qecommon_tools.ResponseList()
+    with pytest.raises(AssertionError):
+        my_list.single_item
+
+    my_list.append(3)
+    assert my_list.single_item == 3
+
+    my_list.append(4)
+    with pytest.raises(AssertionError):
+        my_list.single_item
 
 
 def test_response_list_build_and_set(random_string):

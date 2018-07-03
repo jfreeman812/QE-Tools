@@ -457,23 +457,16 @@ def single_item_from(item_list, list_name=''):
     return item_list[0]
 
 
-class CommonList(list):
+class NotEmptyList(list):
     '''
-    lists of similar objects that can be operated on as a group.
+    A list that fails to iterate if it is empty.
 
-    Iterating on this list will fail if the list is empty!
+    Iterating on this list will fail if the list is empty.
     This simplifies code from having to check for empty lists everywhere.
     Empty lists are a problem because ``for`` loop bodies don't execute on empyt lists.
     thus any checks/tests/etc in a loop body would not run.
     In a testing context, the loop would "succeed" by not doing anything
     (it would fail to have checked anything) and that would be a false-positive.
-
-    Accessing an attribute on this list instead
-    returns a list of that attribute's value from each member.
-    (unless the attribute is defined here or in the base class)
-    If any member of this list does not have that attribute, ``AttributeError`` is raised.
-
-    Setting an attribute on this list instead sets the attribute on each member.
     '''
 
     def __iter__(self):
@@ -485,7 +478,20 @@ class CommonList(list):
         Help our clients by asserting if the list is empty so they don't have to.
         '''
         assert self, 'list is empty!'
-        return super(CommonList, self).__iter__()
+        return super(NotEmptyList, self).__iter__()
+
+
+class CommonAttributeList(list):
+    '''
+    A list for similar objects that can be operated on as a group.
+
+    Accessing an attribute on this list instead
+    returns a list of that attribute's value from each member.
+    (unless the attribute is defined here or in the base class)
+    If any member of this list does not have that attribute, ``AttributeError`` is raised.
+
+    Setting an attribute on this list instead sets the attribute on each member.
+    '''
 
     def __getattr__(self, name):
         try:
@@ -498,27 +504,6 @@ class CommonList(list):
         '''On each item, set the give attribute to the given value'''
         for item in self:
             setattr(item, name, value)
-
-    def set(self, resp):
-        '''
-        Clear and set the contents of this to single object or an iterator of objects.
-
-        Generators will be converted into a list to allow access more than once.
-
-        This method can be handy/useful when transforming a CommonList's contents
-        from one form to another, such as:
-
-        >>> x = CommonList()
-        >>> ...
-        >>> x.set(transform(thing, doo_dad) for thing in x)
-        '''
-        del self[:]  # self.clear is not available before Python 3.3 :-(
-        self.extend(list_from(resp))
-
-    @property
-    def single_item(self):
-        '''Assert this CommonList has one item, and return that item.'''
-        return single_item_from(self, list_name='CommonList')
 
     def update_all(self, **kwargs):
         '''On each item, set each key as an attribute to the corresponding value from kwargs.'''
@@ -603,8 +588,28 @@ class ResponseInfo(object):
         return self.response
 
 
-class ResponseList(CommonList):
-    '''A CommonList specialized for ResponseInfo object items.'''
+class ResponseList(NotEmptyList, CommonAttributeList):
+    '''A list specialized for testing, w/ResponseInfo object items.'''
+
+    def set(self, resp):
+        '''
+        Clear and set the contents of this to single object or an iterator of objects.
+
+        Generators will be converted into a list to allow access more than once.
+
+        This method can be handy/useful when transforming a this list's contents
+        from one form to another, such as:
+
+        >>> x = CommonAttributeList()
+        >>> ...
+        >>> x.set(transform(thing, doo_dad) for thing in x)
+        '''
+        self[:] = list_from(resp)
+
+    @property
+    def single_item(self):
+        '''Property - Assert this list has one item, and return that item.'''
+        return single_item_from(self, list_name=self.__class__.__name__)
 
     def build_and_set(self, *args, **kwargs):
         '''Create ResponseInfo object with args & kwargs, then ``.set`` it on this ResponseList.'''
