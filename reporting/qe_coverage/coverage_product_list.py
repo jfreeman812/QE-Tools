@@ -2,16 +2,34 @@ import argparse
 from csv import DictReader
 import os
 
+from qecommon_tools import exit as _exit
 from qecommon_tools import safe_run
 
 
 def _run_reports(builder_args, additional_args):
-    with open(builder_args.coverage_csv_file, 'r') as csvfile:
-        for row in DictReader(csvfile):
-            product_hierarchy = row.pop('product_hierarchy')
+    csv_file = builder_args.coverage_csv_file
+    no_cs = 'Missing coverage_script from command line or CSV file: "{}"'.format(csv_file)
+    no_dit = 'Missing default_interface_type from command line or CSV file: "{}"'.format(csv_file)
+    no_ph = 'Missing product_hierarchy column from CSV file: "{}"'.format(csv_file)
+
+    with open(csv_file, 'r') as csvfile:
+        for row in DictReader(csvfile, skipinitialspace=True):
+            coverage_script = row.pop('coverage_script', builder_args.coverage_script)
+            if coverage_script is None:
+                _exit(1, no_cs)
+
+            default_interface_type = row.pop('default_interface_type',
+                                             builder_args.default_interface_type)
+            if default_interface_type is None:
+                _exit(1, no_dit)
+
+            product_hierarchy = row.pop('product_hierarchy', None)
+            if product_hierarchy is None:
+                _exit(1, no_ph)
+
             coverage_command = [
-                builder_args.coverage_script,
-                builder_args.default_interface_type,
+                coverage_script,
+                default_interface_type,
                 product_hierarchy,
             ]
             for key, value in ((k, v) for k, v in row.items() if v):
@@ -34,10 +52,10 @@ def _get_parser():
     )
     parser.add_argument('coverage_csv_file',
                         help='The path to the csv containing product data.')
-    parser.add_argument('coverage_script',
-                        help='The name of the coverage script to be run.')
-    parser.add_argument('default_interface_type', choices=['api', 'gui'],
-                        help='The interface type of the product if not otherwise specified.')
+    parser.add_argument('coverage_script', nargs='?',
+                        help='The coverage script to be run, if not specified in the CSV file.')
+    parser.add_argument('default_interface_type', nargs='?', choices=['api', 'gui'],
+                        help='The interface type of the product, if not specified in the CSV file.')
     return parser
 
 
