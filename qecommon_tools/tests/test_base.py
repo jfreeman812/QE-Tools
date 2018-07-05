@@ -379,3 +379,181 @@ def test_retry_on_exception_error_handling():
         make_retry_helper(0, KeyError, 1)
     # Make sure we get the right error, but don't lock down the exact error string raised.
     assert 'max_retry_count must be' in str(e)
+
+
+def test_single_item_from():
+    bad_lists = [[], list(range(100))]
+    for bad_list in bad_lists:
+        with pytest.raises(AssertionError):
+            qecommon_tools.single_item_from(bad_list)
+
+    assert qecommon_tools.single_item_from([1]) == 1
+
+
+def test_simple_responseinfo_data():
+    response = qecommon_tools.generate_random_string()
+    description = qecommon_tools.generate_random_string()
+    extra_field = qecommon_tools.generate_random_string()
+    a_response = qecommon_tools.ResponseInfo(response=response, description=description,
+                                             extra_field=extra_field)
+    assert a_response.response == response
+    assert a_response.description == description
+    assert a_response.extra_field == extra_field
+    # No callbacks, so the response data should just be the response
+    assert a_response.response_data == response
+
+
+# Testing helpers for the ResponseInfo callback mechanism.
+
+# Keep track of how many times the callback has been invoked.
+# Using the usual list hack to avoid global variable declarations and annoyances.
+arbitrary_callback_counter = [0]
+
+ARBITRARY_CALLBACK_VALUE = 'phone number 867-5329'
+
+
+@pytest.fixture
+def random_string():
+    '''Something arbitrary and random that doesn't collide with ARBITRARY_CALLBACK_VALUE'''
+    # making the value larger ensures it won't collide.
+    return qecommon_tools.generate_random_string(size=len(ARBITRARY_CALLBACK_VALUE) + 1)
+
+
+def arbitrary_callback():
+    arbitrary_callback_counter[0] += 1
+    return ARBITRARY_CALLBACK_VALUE
+
+
+def test_callback_response_data(random_string):
+    a_response = qecommon_tools.ResponseInfo(response=random_string,
+                                             response_callback=arbitrary_callback)
+    assert a_response.response_data == ARBITRARY_CALLBACK_VALUE
+
+    # Now make sure .response has been changed:
+    assert a_response.response == ARBITRARY_CALLBACK_VALUE
+
+
+def test_callback_response_data_callback_only_called_once():
+    a_response = qecommon_tools.ResponseInfo(response_callback=arbitrary_callback)
+
+    arbitrary_callback_counter[0] = 0
+    a_response.run_response_callback()
+
+    assert a_response.response == ARBITRARY_CALLBACK_VALUE
+    assert arbitrary_callback_counter[0] == 1
+
+    a_response.run_response_callback()
+    assert a_response.response == ARBITRARY_CALLBACK_VALUE
+    assert arbitrary_callback_counter[0] == 1
+
+
+def test_extract_response_data():
+    arbitrary_string = 'arbitrary_string'.lower()
+    a_response = qecommon_tools.ResponseInfo(response=arbitrary_string,
+                                             response_data_extract=str.swapcase)
+    assert a_response.response_data == arbitrary_string.swapcase()
+
+
+def test_extract_and_callback_response_data(random_string):
+    a_response = qecommon_tools.ResponseInfo(response=random_string,
+                                             response_callback=arbitrary_callback,
+                                             response_data_extract=str.swapcase)
+    assert a_response.response_data == ARBITRARY_CALLBACK_VALUE.swapcase()
+
+
+def test_empty_notemptylist_errors_out():
+    with pytest.raises(AssertionError):
+        for item in qecommon_tools.NotEmptyList():
+            pass
+
+
+def test_mundane_notemptylist():
+    arbitrary_list_len = random.randint(1, 10)  # Anything > 0 is fine.
+    my_list = qecommon_tools.NotEmptyList()
+    my_list.extend(range(arbitrary_list_len))
+    for item in my_list:
+        pass   # make sure no exception thrown.
+    assert my_list == list(range(arbitrary_list_len))
+
+
+def test_commonattributelist_attr_access():
+    arbitrary_list_len = random.randint(1, 10)  # Anything > 0 is fine.
+    my_list = qecommon_tools.CommonAttributeList()
+    for x in range(arbitrary_list_len):
+        my_list.append(qecommon_tools.ResponseInfo(data=x))
+    assert my_list.data == list(range(arbitrary_list_len))
+
+
+def test_commonattributelist_attr_set(random_string):
+    arbitrary_list_len = random.randint(1, 10)  # Anything > 0 is fine.
+    my_list = qecommon_tools.CommonAttributeList()
+
+    # First set up different data for each item
+    for x in range(arbitrary_list_len):
+        my_list.append(qecommon_tools.ResponseInfo(data=x))
+
+    # overwrite data with the same value.
+    my_list.data = random_string
+
+    # make sure new value is consisten across each element.
+    assert my_list.data == [random_string] * arbitrary_list_len
+
+
+def test_commonattributelist_update_all(random_string):
+    arbitrary_list_len = random.randint(1, 10)  # Anything > 0 is fine.
+    my_list = qecommon_tools.CommonAttributeList()
+
+    # First set up different data for each item
+    for x in range(arbitrary_list_len):
+        my_list.append(qecommon_tools.ResponseInfo(data=x))
+
+    my_list.update_all(data=random_string, data2=random_string + random_string)
+
+    # make sure new values are consisten across each element.
+    assert my_list.data == [random_string] * arbitrary_list_len
+    assert my_list.data2 == [random_string + random_string] * arbitrary_list_len
+
+
+def test_responselist_set():
+    arbitrary_list_len = random.randint(1, 10)  # Anything > 0 is fine.
+    my_list = qecommon_tools.ResponseList()
+    my_list.extend(range(arbitrary_list_len))
+    assert len(my_list) == arbitrary_list_len
+    my_list.set([])
+    assert len(my_list) == 0
+    my_list.set([-1, -2])
+    assert len(my_list) == 2
+    assert my_list == [-1, -2]
+
+
+def test_responselist_single_item():
+    my_list = qecommon_tools.ResponseList()
+    with pytest.raises(AssertionError):
+        my_list.single_item
+
+    my_list.append(3)
+    assert my_list.single_item == 3
+
+    my_list.append(4)
+    with pytest.raises(AssertionError):
+        my_list.single_item
+
+
+def test_response_list_build_and_set(random_string):
+    response_list = qecommon_tools.ResponseList()
+
+    assert len(response_list) == 0
+    response_list.build_and_set(response=random_string)
+    assert len(response_list) == 1
+    assert isinstance(response_list.single_item, qecommon_tools.ResponseInfo)
+
+
+def test_response_list_run_response_callbacks():
+    arbitrary_list_len = random.randint(1, 10)  # Anything > 0 is fine.
+    response_list = qecommon_tools.ResponseList()
+
+    response_list.extend(qecommon_tools.ResponseInfo(response_callback=arbitrary_callback)
+                         for x in range(arbitrary_list_len))
+    arbitrary_callback_counter[0] = 0
+    response_list.run_response_callbacks()
+    assert arbitrary_callback_counter[0] == arbitrary_list_len
