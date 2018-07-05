@@ -7,6 +7,7 @@ VERSION = None
 
 CONSOLE_SCRIPTS = [
     'qe_jira=qe_jira:create_qe_jira_from',
+    'jira-comment=qe_jira:cli_add_comment',
 ]
 
 INSTALL_REQUIRES = [
