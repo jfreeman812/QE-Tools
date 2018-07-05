@@ -20,3 +20,10 @@ Usage Examples
   assign to ``bobm5523``
 * ``qe_jira JIRA-1234 -w sall9987 -w benj4444`` -- will create the JIRA and assign
   ``sall9987`` and ``benj4444`` as watchers instead of your default watcher list
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+* ``add_comment(jira_id, comment_text)`` -- will add a comment containing the ``comment_text`` to
+  the given ``jira_id``.
+* ``format_as_code_block(text_to_wrap)`` -- will return the ``text_to_wrap`` in a jira code block.

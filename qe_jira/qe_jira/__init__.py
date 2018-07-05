@@ -33,6 +33,33 @@ def get_client():
     return client
 
 
+def format_as_code_block(text_to_wrap):
+    '''
+    Wrap the text in a JIRA code block.
+
+    Args:
+        text_to_wrap (str): The text to wrap.
+
+    Returns:
+        str: A JIRA formatted code block.
+    '''
+    return ''.join(['{code:java}', '{}'.format(text_to_wrap), '{code}'])
+
+
+def add_comment(jira_id, comment_text):
+    '''
+    Add a comment to the JIRA ID.
+
+    Args:
+        jira_id (str): The JIRA ID to comment on.
+        comment_text (str): The text to add as the comment body.
+
+    Returns:
+        A jira comment.
+    '''
+    return get_client().add_comment(jira_id, comment_text)
+
+
 def link_jiras(client, from_jira, to_jira):
     return client.create_issue_link('relates to', from_jira, to_jira)
 
