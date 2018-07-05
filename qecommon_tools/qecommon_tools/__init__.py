@@ -450,11 +450,11 @@ def retry_on_exceptions(max_retry_count, exceptions, max_retry_sleep=DEFAULT_MAX
     return wrapper
 
 
-def single_item_from(item_list, list_name=''):
-    '''Assert item_list has one item, and return that item.'''
-    label = '{} list'.format(list_name) if list_name else 'List'
-    assert len(item_list) == 1, '{} was not of length 1: "{}"'.format(label, item_list)
-    return item_list[0]
+def only_item_of(item_sequence, label=''):
+    '''Assert item_sequence has only one item, and return that item.'''
+    label = label or item_sequence.__class__.__name__
+    assert len(item_sequence) == 1, '{} was not of length 1: "{}"'.format(label, item_sequence)
+    return item_sequence[0]
 
 
 class NotEmptyList(list):
@@ -609,7 +609,7 @@ class ResponseList(NotEmptyList, CommonAttributeList):
     @property
     def single_item(self):
         '''Property - Assert this list has one item, and return that item.'''
-        return single_item_from(self, list_name=self.__class__.__name__)
+        return only_item_of(self)
 
     def build_and_set(self, *args, **kwargs):
         '''Create ResponseInfo object with args & kwargs, then ``.set`` it on this ResponseList.'''
