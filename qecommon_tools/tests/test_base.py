@@ -381,13 +381,13 @@ def test_retry_on_exception_error_handling():
     assert 'max_retry_count must be' in str(e)
 
 
-def test_single_item_from():
+def test_only_item_of():
     bad_lists = [[], list(range(100))]
     for bad_list in bad_lists:
         with pytest.raises(AssertionError):
-            qecommon_tools.single_item_from(bad_list)
+            qecommon_tools.only_item_of(bad_list)
 
-    assert qecommon_tools.single_item_from([1]) == 1
+    assert qecommon_tools.only_item_of([1]) == 1
 
 
 def test_simple_responseinfo_data():
