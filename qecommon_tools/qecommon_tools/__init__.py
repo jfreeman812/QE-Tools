@@ -593,11 +593,11 @@ class ResponseList(NotEmptyList, CommonAttributeList):
 
     def set(self, resp):
         '''
-        Clear and set the contents of this to single object or an iterator of objects.
+        Clear and set the contents of this list to single object or an iterator of objects.
 
         Generators will be converted into a list to allow access more than once.
 
-        This method can be handy/useful when transforming a this list's contents
+        This method can be handy/useful when transforming this list's contents
         from one form to another, such as:
 
         >>> x = CommonAttributeList()
