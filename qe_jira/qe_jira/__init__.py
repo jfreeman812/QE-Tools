@@ -1,3 +1,59 @@
+'''
+Some simple API functions and command-line tools for interacting with JIRA.
+
+
+Setup
+-----
+All the tools and functions here need your specific information from
+a ``jira.config`` file in your home directory, so you have to do this setup
+before anything can be used.
+
+* Copy ``jira.config.example`` to your home directory as ``jira.config``
+* Fill out the config values with your appropriate data
+  (see the comments in that file for guidance)
+
+
+Command-Line Tools
+------------------
+
+``jira-make-linked-issue`` makes a new JIRA issue that is linked to an exisiting issue;
+the new issue's fields can be set from defaults in your ``jira.config``
+or those values can be overridden on the command line.
+See ``--help`` on this command for all the command line options,
+and the comments in ``jira.config`` for setting the defaults.
+
+``jira-add-comment`` adds a comment to a JIRA issue.
+The ``jira.config`` file is needed to authenticate to JIRA.
+No other data from the ``jira.config`` file is used by this commmand.
+See ``--help`` on this command for details.
+
+.. note::
+    ``qe_jira`` is deprecated, please use ``jira-make-linked-issue`` instead.
+    ``qe_jira`` will be removed in a future release.
+
+Examples
+~~~~~~~~
+
+* ``jira-add-comment JIRA-1234 "Work in Progress. PR delayed by network problems."``
+  -- Add the comment to JIRA-1234 using the user/password from your ``jira.config``
+  Note that the command has to be just one command line argument surrounded by quotes
+  if it contains spaces, etc.
+* ``jira-make-linked-issue JIRA-1234``
+  -- will create a JIRA in your ``TEST_PROJECT`` to test JIRA-1234,
+  and link the two, assigning it to you and
+  adding any watchers specified in your default watchers list.
+* ``jira-make-linked-issue JIRA-1234 --project OTHER``
+  -- will create a test JIRA as above, but in ``OTHER``
+* ``jira-make-linked-issue JIRA-1234 --user bobm5523``
+  -- will create the JIRA as above, but assign to ``bobm5523``
+* ``jira-make-linked-issue JIRA-1234 -w sall9987 -w benj4444``
+  -- will create the JIRA and assign ``sall9987`` and ``benj4444`` as watchers
+  instead of your default watcher list
+
+API Documentation
+-----------------
+'''
+
 from __future__ import print_function
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter, RawDescriptionHelpFormatter
 from configparser import ConfigParser
@@ -11,7 +67,14 @@ import jira
 REQUIRED_KEYS = ('JIRA_URL', 'USERNAME', 'PASSWORD', 'DEFAULT_ASSIGNEE', 'TEST_PROJECT')
 
 
-def get_configs():
+CONFIG = None
+
+
+def _load_config():
+    global CONFIG
+    if CONFIG is not None:
+        return
+
     config = ConfigParser()
     config_path = os.path.join(os.path.expanduser('~'), 'jira.config')
     message = 'Config file "{}" {{}}'.format(config_path)
@@ -23,13 +86,10 @@ def get_configs():
     missing_keys = [key for key in REQUIRED_KEYS if key not in config[section_name]]
     missing_message = message.format('section "{}" missing keys: {{}}'.format(section_name))
     qecommon_tools.error_if(missing_keys, status=1, message=missing_message)
-    return config[section_name]
+    CONFIG = config[section_name]
 
 
-CONFIG = get_configs()
-
-
-def get_client():
+def _get_client():
     client = jira.JIRA(CONFIG['JIRA_URL'], basic_auth=(CONFIG['USERNAME'], CONFIG['PASSWORD']))
     return client
 
@@ -58,10 +118,11 @@ def add_comment(jira_id, comment_text):
     Returns:
         A jira comment.
     '''
-    return get_client().add_comment(jira_id, comment_text)
+    _load_config()
+    return _get_client().add_comment(jira_id, comment_text)
 
 
-def link_jiras(client, from_jira, to_jira):
+def _link_jiras(client, from_jira, to_jira):
     return client.create_issue_link('relates to', from_jira, to_jira)
 
 
@@ -77,6 +138,7 @@ def _component_id_from_name(project_components, component_name):
 
 
 def _get_args():
+    _load_config()
     parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter)
     parser.add_argument('jira_id')
     parser.set_defaults(assign=bool(CONFIG['DEFAULT_ASSIGNEE']))
@@ -110,14 +172,15 @@ def _get_args():
     return args
 
 
-def cli_add_comment():
+def _cli_add_comment():
     '''
     Quick "add a short comment to a JIRA" command line tool.
 
     If 'message' is '-' then stdin will be read.
     '''
+    _load_config()
     parser = ArgumentParser(formatter_class=RawDescriptionHelpFormatter,
-                            description=cli_add_comment.__doc__)
+                            description=_cli_add_comment.__doc__)
     parser.add_argument('jira_id')
     parser.add_argument('message', help='Comment to add to the given JIRA.')
     args = parser.parse_args()
@@ -133,9 +196,9 @@ def cli_add_comment():
         print('ERROR: "{}" for "{}"!'.format(e.text, args.jira_id))
 
 
-def create_qe_jira_from():
+def _create_qe_jira_from():
     args = _get_args()
-    client = get_client()
+    client = _get_client()
     try:
         dev_jira = client.issue(args.jira_id)
     except jira.exceptions.JIRAError:
@@ -157,11 +220,7 @@ def create_qe_jira_from():
         issue_data.update(components=[{'id': _component_id_from_name(project_components, x)}
                                       for x in args.components])
     qe_jira = client.create_issue(**issue_data)
-    link_jiras(client, qe_jira.key, dev_jira.key)
+    _link_jiras(client, qe_jira.key, dev_jira.key)
     for to_watch in args.watchers:
         client.add_watcher(qe_jira.key, to_watch)
     print('QE JIRA Created: {}'.format(qe_jira.permalink()))
-
-
-if __name__ == '__main__':
-    create_qe_jira_from()
