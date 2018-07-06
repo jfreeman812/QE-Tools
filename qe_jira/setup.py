@@ -12,7 +12,6 @@ CONSOLE_SCRIPTS = [
 ]
 
 INSTALL_REQUIRES = [
-    'pbr',  # jira library has a bug where it does not install this one library
     'jira',
     'qecommon_tools>=1.0.2',
     'configparser ; python_version<"3.5"',  # backport required for py2 compatibility
