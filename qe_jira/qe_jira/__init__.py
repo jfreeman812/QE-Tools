@@ -1,7 +1,8 @@
 from __future__ import print_function
-from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
+from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter, RawDescriptionHelpFormatter
 from configparser import ConfigParser
 import os
+import sys
 
 import qecommon_tools
 import jira
@@ -107,6 +108,29 @@ def _get_args():
                         help='Watchers to add to QE JIRA')
     args = parser.parse_args()
     return args
+
+
+def cli_add_comment():
+    '''
+    Quick "add a short comment to a JIRA" command line tool.
+
+    If 'message' is '-' then stdin will be read.
+    '''
+    parser = ArgumentParser(formatter_class=RawDescriptionHelpFormatter,
+                            description=cli_add_comment.__doc__)
+    parser.add_argument('jira_id')
+    parser.add_argument('message', help='Comment to add to the given JIRA.')
+    args = parser.parse_args()
+
+    if args.message == '-':
+        args.message = sys.stdin.read()
+        print()
+
+    print('Adding comment "{}" to "{}"'.format(args.message, args.jira_id))
+    try:
+        add_comment(args.jira_id, args.message)
+    except jira.exceptions.JIRAError as e:
+        print('ERROR: "{}" for "{}"!'.format(e.text, args.jira_id))
 
 
 def create_qe_jira_from():
