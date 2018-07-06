@@ -22,7 +22,7 @@ Several libraries have been created that can be installed via :doc:`Artifactory<
    :hidden:
    :caption: Libraries
 
-   qe_jira <_docs/qe_jira/README>
+   qe_jira <docs/qe_jira>
    qecommon_tools <docs/qecommon_tools>
    qe_config <docs/qe_config>
    qe_coverage <_docs/reporting/qe_coverage>
@@ -37,7 +37,7 @@ Several libraries have been created that can be installed via :doc:`Artifactory<
 ========================================================  ==============================================================================
 Library Name                                              Description
 ========================================================  ==============================================================================
-:doc:`qe_jira<_docs/qe_jira/README>`                      Quickly creates a JIRA on a QE board for testing of a JIRA from a dev board
+:doc:`qe_jira<docs/qe_jira>`                              A library and CLI tools for interacting with JIRA.
 :doc:`qecommon_tools<docs/qecommon_tools>`                A library for helper functions across QE-Tools designed for larger consumption
 :doc:`qe_config<docs/qe_config>`                          A collection of tools for QE-related configuration processing.
 :doc:`qe_coverage<_docs/reporting/qe_coverage>`           A collection of tools for QE-related reporting
