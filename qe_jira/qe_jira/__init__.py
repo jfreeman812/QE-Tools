@@ -25,7 +25,9 @@ and the comments in ``jira.config`` for setting the defaults.
 ``jira-add-comment`` adds a comment to a JIRA issue.
 The ``jira.config`` file is needed to authenticate to JIRA.
 No other data from the ``jira.config`` file is used by this commmand.
-See ``--help`` on this command for details.
+See ``--help`` on this command for details. You can also use ``-`` as your comment
+and ``jira-add-comment`` will read the comment from stdin instead. Note that if you
+use ``-`` interactively, you cannot edit your comment before it is posted.
 
 .. note::
     ``qe_jira`` is deprecated, please use ``jira-make-linked-issue`` instead.
@@ -36,7 +38,7 @@ Examples
 
 * ``jira-add-comment JIRA-1234 "Work in Progress. PR delayed by network problems."``
   -- Add the comment to JIRA-1234 using the user/password from your ``jira.config``
-  Note that the command has to be just one command line argument surrounded by quotes
+  Note that the comment has to be just one command line argument surrounded by quotes
   if it contains spaces, etc.
 * ``jira-make-linked-issue JIRA-1234``
   -- will create a JIRA in your ``TEST_PROJECT`` to test JIRA-1234,
