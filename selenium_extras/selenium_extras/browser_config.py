@@ -142,8 +142,10 @@ def get_browser(browser_name,
 
     Args:
 
+        browser_name (str): The name of the browser you want to run.
         page_load_timeout (int): passed on the browser setting of the same name
         window_size (2-tuple, None): a 2-tuple for the window size; use None to maximize the window.
+            NOTE: This is ignored when grid_url is supplied.
         firefox_profile (FirefoxProfile): The profile to use for Firefox.
             Any profile can be used; :py:func:`firefox_profile_with_preferences` might be a handy
             way to get one. This only optional if the browser isn't Firefox.
@@ -175,9 +177,13 @@ def get_browser(browser_name,
             raise UnknownBrowserException(browser_name)
 
     browser.set_page_load_timeout(page_load_timeout)
-    if window_size is not None:
-        browser.set_window_size(*window_size)
-    else:
-        browser.maximize_window()
+
+    # Chrome on the grid does not like to be resized, so we'll skip this step
+    # (rather than special case Chrome, let's treat all browsers the same).
+    if not grid_url:
+        if window_size is not None:
+            browser.set_window_size(*window_size)
+        else:
+            browser.maximize_window()
 
     return browser
