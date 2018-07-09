@@ -2,13 +2,14 @@ import os
 import setuptools
 
 NAME = 'qe_jira'
-DESCRIPTION = 'Simple helper to create a QE Test JIRA from a dev JIRA'
+DESCRIPTION = 'Simple helpers to interface to JIRA from an API or command line.'
 VERSION = None
 
 CONSOLE_SCRIPTS = [
     'qe_jira=qe_jira:_create_qe_jira_from',
     'jira-make-linked-issue=qe_jira:_create_qe_jira_from',
     'jira-add-comment=qe_jira:_cli_add_comment',
+    'jira-example-config=qe_jira:_example_config_install',
 ]
 
 INSTALL_REQUIRES = [
