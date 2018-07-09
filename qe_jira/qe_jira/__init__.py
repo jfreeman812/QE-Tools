@@ -73,6 +73,7 @@ CONFIG = None
 
 
 def _load_config():
+    '''Load CONFIG, if not already loaded (call before touching CONFIG)'''
     global CONFIG
     if CONFIG is not None:
         return
@@ -91,7 +92,9 @@ def _load_config():
     CONFIG = config[section_name]
 
 
-def _get_client():
+def get_client():
+    '''Returns a JIRA client configured per the user's home directory ``jira.config`` file.'''
+    _load_config()
     client = jira.JIRA(CONFIG['JIRA_URL'], basic_auth=(CONFIG['USERNAME'], CONFIG['PASSWORD']))
     return client
 
@@ -120,8 +123,7 @@ def add_comment(jira_id, comment_text):
     Returns:
         A jira comment.
     '''
-    _load_config()
-    return _get_client().add_comment(jira_id, comment_text)
+    return get_client().add_comment(jira_id, comment_text)
 
 
 def _link_jiras(client, from_jira, to_jira):
@@ -129,6 +131,7 @@ def _link_jiras(client, from_jira, to_jira):
 
 
 def _list_from_config(key_name):
+    _load_config()
     return list(filter(None, [x.strip() for x in CONFIG.get(key_name, '').split(',')]))
 
 
@@ -180,7 +183,6 @@ def _cli_add_comment():
 
     If 'message' is '-' then stdin will be read.
     '''
-    _load_config()
     parser = ArgumentParser(formatter_class=RawDescriptionHelpFormatter,
                             description=_cli_add_comment.__doc__)
     parser.add_argument('jira_id')
@@ -200,7 +202,7 @@ def _cli_add_comment():
 
 def _create_qe_jira_from():
     args = _get_args()
-    client = _get_client()
+    client = get_client()
     try:
         dev_jira = client.issue(args.jira_id)
     except jira.exceptions.JIRAError:
