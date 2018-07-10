@@ -19,3 +19,4 @@ with any deletions, additions, or modifications being relatively minor:
    Terminology <terminology>
    Code Management <code-management>
    Gherkin Standards <gherkin-standards>
+   Python Standards <python-standards>
