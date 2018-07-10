@@ -6,15 +6,20 @@ Setup
 -----
 All the tools and functions here need your specific information from
 a ``jira.config`` file in your home directory, so you have to do this setup
-before anything can be used.
+before anything can be used:
 
-* Copy ``jira.config.example`` to your home directory as ``jira.config``
-* Fill out the config values with your appropriate data
-  (see the comments in that file for guidance)
+* run ``jira-example-config --install`` to install an example config file
+  (you can run it without ``--install`` to see the contents of what would be
+  installed. (If you already have a ``jira.config`` in your home directory,
+  this script will `not` overwrite it.)
+* Fill out the values in the config file with your appropriate data
+  (see the comments in that file for guidance).
 
 
 Command-Line Tools
 ------------------
+
+``jira-example-config`` can install an example config file for you, see above.
 
 ``jira-make-linked-issue`` makes a new JIRA issue that is linked to an exisiting issue;
 the new issue's fields can be set from defaults in your ``jira.config``
@@ -60,35 +65,38 @@ from __future__ import print_function
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter, RawDescriptionHelpFormatter
 from configparser import ConfigParser
 import os
+import shutil
 import sys
 
-import qecommon_tools
+from qecommon_tools import error_if
 import jira
 
 
 REQUIRED_KEYS = ('JIRA_URL', 'USERNAME', 'PASSWORD', 'DEFAULT_ASSIGNEE', 'TEST_PROJECT')
 
 
+CONFIG_FILENAME = os.path.join(os.path.expanduser('~'), 'jira.config')
+SAMPLE_CONFIG_FILENAME = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                      'jira.config.example')
 CONFIG = None
 
 
 def _load_config():
-    '''Load CONFIG, if not already loaded (call before touching CONFIG)'''
+    '''Load CONFIG_FILENAME into CONFIG, if not already loaded; call before touching CONFIG'''
     global CONFIG
     if CONFIG is not None:
         return
 
     config = ConfigParser()
-    config_path = os.path.join(os.path.expanduser('~'), 'jira.config')
-    message = 'Config file "{}" {{}}'.format(config_path)
-    qecommon_tools.error_if(not os.path.exists(config_path), message=message.format('not found'))
-    config.read(config_path)
+    message = 'Config file "{}" {{}}'.format(CONFIG_FILENAME)
+    error_if(not os.path.exists(CONFIG_FILENAME), message=message.format('not found'))
+    config.read(CONFIG_FILENAME)
     section_name = 'jira'
-    qecommon_tools.error_if(section_name not in config,
-                            message=message.format('missing "{}" section'.format(section_name)))
+    error_if(section_name not in config,
+             message=message.format('missing "{}" section'.format(section_name)))
     missing_keys = [key for key in REQUIRED_KEYS if key not in config[section_name]]
     missing_message = message.format('section "{}" missing keys: {{}}'.format(section_name))
-    qecommon_tools.error_if(missing_keys, status=1, message=missing_message)
+    error_if(missing_keys, status=1, message=missing_message)
     CONFIG = config[section_name]
 
 
@@ -138,7 +146,7 @@ def _list_from_config(key_name):
 def _component_id_from_name(project_components, component_name):
     matches = [x.id for x in project_components if x.name == component_name]
     message = 'More than one component in project with name: {}'
-    qecommon_tools.error_if(len(matches) != 1, message=message.format(component_name))
+    error_if(len(matches) != 1, message=message.format(component_name))
     return matches[0]
 
 
@@ -228,3 +236,26 @@ def _create_qe_jira_from():
     for to_watch in args.watchers:
         client.add_watcher(qe_jira.key, to_watch)
     print('QE JIRA Created: {}'.format(qe_jira.permalink()))
+
+
+def _example_config_install():
+    error_if(not os.path.exists(SAMPLE_CONFIG_FILENAME),
+             message='Missing example config file: {}'.format(SAMPLE_CONFIG_FILENAME))
+
+    parser = ArgumentParser(description='Install example jira.config in your homne directory '
+                                        'unless you have one already. Without any command line '
+                                        'switches, do a dry-run and print the example config file '
+                                        'contents to stdout.')
+    parser.add_argument('--install', action='store_true',
+                        help='Install the example config file unless you have one already')
+    args = parser.parse_args()
+
+    prefix = 'Copying' if args.install else 'Would copy'
+    print('{} {} to {}'.format(prefix, SAMPLE_CONFIG_FILENAME, CONFIG_FILENAME))
+    if args.install:
+        message = 'Not installing, config file already in place: {}'.format(CONFIG_FILENAME)
+        error_if(os.path.exists(CONFIG_FILENAME), message=message)
+        shutil.copy(SAMPLE_CONFIG_FILENAME, CONFIG_FILENAME)
+    else:
+        with open(SAMPLE_CONFIG_FILENAME) as input:
+            shutil.copyfileobj(input, sys.stdout)
