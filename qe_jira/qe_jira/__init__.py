@@ -103,7 +103,9 @@ def _load_config():
 def get_client():
     '''Returns a JIRA client configured per the user's home directory ``jira.config`` file.'''
     _load_config()
-    client = jira.JIRA(CONFIG['JIRA_URL'], basic_auth=(CONFIG['USERNAME'], CONFIG['PASSWORD']))
+    client = jira.JIRA(
+        CONFIG['JIRA_URL'], basic_auth=(CONFIG['USERNAME'], CONFIG.get('PASSWORD', raw=True))
+    )
     return client
 
 
