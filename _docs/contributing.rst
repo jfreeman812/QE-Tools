@@ -29,6 +29,7 @@ Our refinements are a little bit about code and a bit more about the Pull Reques
     * Documentation: A must-have.
       We follow the Google `napolean documentation standard`_.
       See our existing package documentation for examples as well.
+    * flake8-quotes - We enforce single quotes, the same style that Python itself uses for repr().
     * Self-tests: A very-strong-want-to-have.
       PRs with code changes should make a reasonable attempt to add tests for new/revised code.
 

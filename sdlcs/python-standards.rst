@@ -84,16 +84,15 @@ It is recommended, but not required to follow the following guidelines and sugge
   The Google `napolean documentation standard`_
   is recommended and commonly used.
 
-* The use of code linters and validators.
-  In QE Tools we use:
+* The use of code linters and validators:
 
-  *  flake8
-  *  flake8-builtins
-  *  flake8-comprehensions
-  *  flake8-docstrings
-  *  flake8-tuple
-  *  flake8-quotes
-  *  pep8-naming
+  * ``flake8`` - basic PEP-8 compliance checking.
+  * ``flake8-builtins`` - finds overloaded names of built-ins.
+  * ``flake8-comprehensions`` - finds simplifications for generators / comphrehensions.
+  * ``flake8-docstrings`` - finds undocumented code.
+  * ``flake8-quotes`` - finds inconsistent use of quotes, however you configure this.
+  * ``flake8-tuple`` - finds potentially subtle single tuples ``abc,``
+  * ``pep8-naming`` - finds inconsistent class, variable, etc. naming.
 
 .. _napolean documentation standard: http://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html
 .. _Virtualenv: https://virtualenv.pypa.io/en/stable/
