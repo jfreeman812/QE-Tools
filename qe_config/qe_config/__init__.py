@@ -110,7 +110,7 @@ How to use it::
 try:  # Assume Python 3 goodness (shiny gold future!)
     from configparser import ConfigParser, NoOptionError, NoSectionError
     ConfigFileNotFoundError = FileNotFoundError
-except ImportError:
+except (ImportError, NameError):
     from ConfigParser import ConfigParser, NoOptionError, NoSectionError
     ConfigFileNotFoundError = IOError
 
