@@ -8,5 +8,5 @@ if command -v pyenv; then
     pyenv install -s 2.7.13
     pyenv install -s 3.5.4
     pyenv install -s 3.6.4
-    pyenv local 3.6.4 3.5.4 2.7.13
+    pyenv local 3.7.0 3.6.4 3.5.4 2.7.13
 fi

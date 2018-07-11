@@ -19,18 +19,20 @@ Thus, the purpose of coding standards
 is not to impede the development process of individual developers,
 but to help ensure that the code meets a minimum standard of readability.
 
-We follow the PEP-8 coding standard,
+We follow the PEP-8_ coding standard,
 and highly recommend that any other
 QE repositories do the same.
+We use flake8_ (see below) to automatically check
+our PEP-8 compliance.
 
-Outside of ``pep8``, we recommend the following additional standards:
+Outside of those ``flake8`` checks,
+we recommend the following additional standards:
 
-* Variable names should be descriptive.
-  With the exception of loops and comprehensions,
-  there should never be a single letter variable in the code.
+* Names should be descriptive.
+  With the exception of loops, generator expressions, and comprehensions,
+  there should never be single letter variable/class/etc names in the code.
 * The maximum recommend line width is 100 characters.
 * Always use spaces, never tabs.
-* Do not leave trailing white space.
 * Comment code sections that are
   not readily apparent in their purpose.
 * Keep methods small and atomic.
@@ -53,6 +55,8 @@ Outside of ``pep8``, we recommend the following additional standards:
   for strings and values that don’t change.
 * Don't hard-code test data.
 * Follow the DRY_ principle.
+* Raise exceptions,
+  don't return error code values.
 
 
 Naming Test Data
@@ -65,11 +69,13 @@ in any system-in-test should create names:
 * contain a timestamp with sub-second resolution
 * Additional information *can* be added to the name
   to help with traceability
-  and minimizing potential parallel collisions.
+  and minimizing potential parallel test-execution collisions.
 
 By ensuring all created entities share a common prefix,
 test data is easily identifiable,
 easing automated or manual test data cleanup.
+By including a timestamp on all created entities
+old test data is easily identifiable.
 
 
 Recommendations and Best Practices
@@ -94,6 +100,8 @@ It is recommended, but not required to follow the following guidelines and sugge
   * ``flake8-tuple`` - finds potentially subtle single tuples ``abc,``
   * ``pep8-naming`` - finds inconsistent class, variable, etc. naming.
 
-.. _napolean documentation standard: http://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html
-.. _Virtualenv: https://virtualenv.pypa.io/en/stable/
 .. _DRY: https://en.wikipedia.org/wiki/Don%27t_repeat_yourself
+.. _PEP-8: https://www.python.org/dev/peps/pep-0008/
+.. _Virtualenv: https://virtualenv.pypa.io/en/stable/
+.. _flake8: https://pypi.org/project/flake8/
+.. _napolean documentation standard: http://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html
