@@ -74,7 +74,7 @@ in any system-in-test should create names:
 By ensuring all created entities share a common prefix,
 test data is easily identifiable,
 easing automated or manual test data cleanup.
-By including a timestamp on all created entities 
+By including a timestamp on all created entities
 old test data is easily identifiable.
 
 
