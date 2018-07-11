@@ -15,7 +15,7 @@ To maintain standards and ease code review,
 we follow the processes in our very own :doc:`SDLC Documents<../sdlcs/README>`,
 with some refinements.
 "Refinements?
-Wait, if you want everyone else to use that SDLC,
+Wait, if you encourage everyone else to use that SDLC,
 why aren't you using it here?" you may ask.
 To which we say: "We are!"
 The packages in this repo are intended for use by many other teams;
@@ -26,9 +26,11 @@ Our refinements are a little bit about code and a bit more about the Pull Reques
 
   * The Code Itself:
 
+    * We want to support both Python 2.7 (where possible) and Python 3.5+.
+      Our ``self-check.sh`` and PR checker will check Python 2.7, 3.5, 3.6.
+      Python 3.7.0 has just been released and we support testing
+      against it locally, but do not require support for 3.7 at this time.
     * Documentation: A must-have.
-      We follow the Google `napolean documentation standard`_.
-      See our existing package documentation for examples as well.
     * flake8-quotes - We enforce single quotes, the same style that Python itself uses for repr().
     * Self-tests: A very-strong-want-to-have.
       PRs with code changes should make a reasonable attempt to add tests for new/revised code.
