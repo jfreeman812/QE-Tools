@@ -54,7 +54,7 @@ Outside of ``pep8``, we recommend the following additional standards:
 * Don't hard-code test data.
 * Follow the DRY_ principle.
 * Raise exceptions,
-  don't return error code values,
+  don't return error code values.
 
 
 Naming Test Data
