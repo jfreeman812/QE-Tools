@@ -22,15 +22,17 @@ but to help ensure that the code meets a minimum standard of readability.
 We follow the PEP-8_ coding standard,
 and highly recommend that any other
 QE repositories do the same.
+We use flake8_ (see below) to automatically check
+our PEP-8 compliance.
 
-Outside of ``pep8``, we recommend the following additional standards:
+Outside of those ``flake8`` checks,
+we recommend the following additional standards:
 
 * Names should be descriptive.
   With the exception of loops, generator expressions, and comprehensions,
   there should never be single letter variable/class/etc names in the code.
 * The maximum recommend line width is 100 characters.
 * Always use spaces, never tabs.
-* Do not leave trailing white space or trailing blank lines.
 * Comment code sections that are
   not readily apparent in their purpose.
 * Keep methods small and atomic.
@@ -98,7 +100,8 @@ It is recommended, but not required to follow the following guidelines and sugge
   * ``flake8-tuple`` - finds potentially subtle single tuples ``abc,``
   * ``pep8-naming`` - finds inconsistent class, variable, etc. naming.
 
-.. _napolean documentation standard: http://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html
-.. _Virtualenv: https://virtualenv.pypa.io/en/stable/
 .. _DRY: https://en.wikipedia.org/wiki/Don%27t_repeat_yourself
 .. _PEP-8: https://www.python.org/dev/peps/pep-0008/
+.. _Virtualenv: https://virtualenv.pypa.io/en/stable/
+.. _flake8: https://pypi.org/project/flake8/
+.. _napolean documentation standard: http://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html
