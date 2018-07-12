@@ -33,7 +33,7 @@ This script does have an optional parameter, ``--dry-run`` that can be used for 
 
 This script also has the ability to look into a sub-folder to begin parsing, via ``-p, --product-dir``. This can be useful when cloning a repository and feature files are stored in a sub-folder.
 
-When you are ready to push data to the production dashboard, you can do so with ``--production-endpoint``. This will only succeed if all Product Hierarchies you are sending are included in the :doc:`Product Hierarchy Whitelist<../../data_broker/data/whitelist>`.
+When you are ready to push data to the production dashboard, you can do so with ``--production-endpoint``. This will only succeed if all Product Hierarchies you are sending are included in the `Product Hierarchy Whitelist`_.
 
 .. note::
 
@@ -45,3 +45,4 @@ Reviewing the Reports
 When sending data via ``coverage-gherkin``, a URL is returned, when successful, that provides a link to the reporting tool that filters the data to show only the appropriate data. This allows the end user to confirm that the data was successfully uploaded. There is a lag between uploading and data appearing in the reporting tool so allow up to five minutes for the data to appear.
 
 .. _`Cucumber documentation`: https://cucumber.io/docs/reference
+.. _`Product Hierarchy Whitelist`: https://github.rackspace.com/QE-Metrics/data_broker/blob/master/data/whitelist.rst

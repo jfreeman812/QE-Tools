@@ -31,9 +31,6 @@ done
 if [ "$BUILD_CAUSE" = "GHPRBCAUSE" ]; then
     echo "running Docs Link PR Commenter..."
     ./_docs/gh_doc_link.py $PR_COMMENT_TOKEN
-    echo "checking if any sensitive files were changed..."
-    sensitive_files="data_broker/__schema_version__.py"
-    python sensitive_file_checker.py $PR_COMMENT_TOKEN $sensitive_files
     echo "checking to make sure package versions were updated if necessary..."
     python3 version_checker.py $PR_COMMENT_TOKEN
 fi

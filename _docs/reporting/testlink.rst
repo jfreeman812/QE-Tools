@@ -32,9 +32,11 @@ This script does have an optional parameter, ``--dry-run`` that can be used for 
 
 The script also has the ability to skip past categories. For example, if the first category is the product name, that category should be skipped. The optional parameter is ``--leading-categories-to-strip`` and takes an integer for the number of categories to skip.
 
-When you are ready to push data to the production dashboard, you can do so with ``--production-endpoint``. This will only succeed if all Product Hierarchies you are sending are included in the :doc:`Product Hierarchy Whitelist<../../data_broker/data/whitelist>`.
+When you are ready to push data to the production dashboard, you can do so with ``--production-endpoint``. This will only succeed if all Product Hierarchies you are sending are included in the `Product Hierarchy Whitelist`_.
 
 Reviewing the Reports
 ---------------------
 
 When sending data via ``coverage-testlink``, a URL is returned, when successful, that provides a link to the reporting tool that filters the data to show only the appropriate data. This allows the end user to confirm that the data was successfully uploaded. There is a lag between uploading and data appearing in the reporting tool so allow up to five minutes for the data to appear.
+
+.. _`Product Hierarchy Whitelist`: https://github.rackspace.com/QE-Metrics/data_broker/blob/master/data/whitelist.rst
