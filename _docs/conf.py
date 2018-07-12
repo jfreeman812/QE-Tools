@@ -57,6 +57,18 @@ if not base_url:
     base_url = 'https://github.rackspace.com/{}/tree/{}'.format(owner_name, commit_id)
 html_context = {'build_id': commit_id, 'build_url': base_url}
 
+# Next two assignments from:
+# https://rackerlabs.github.io/docs-rackspace/tools/rtd-tables.html
+# in order to keep the terminology table from having a horizontal scroll bar.
+
+html_static_path = ['_static']
+
+html_context = {
+    'css_files': [
+        '_static/theme_overrides.css',  # override wide tables in RTD theme
+    ],
+}
+
 
 def html_page_context_handler(app, pagename, templatename, context, doctree):
     # The coverage documentation was shared, for an extended period, from the root

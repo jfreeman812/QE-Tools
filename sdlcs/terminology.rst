@@ -8,12 +8,19 @@ are commonly used in QE-Tools and the QE org in general.
 Abbreviation  Stands For                Definition
 ============  ========================  ============================================================
 BRB           Be Right Back             |
+DAMP          Descriptive and           | Give variables, classes, functions meaningful
+              Meaningful Phrases        | names. Terse is good, but readable is better.
+                                        | Applies to both test code and to Gherkin source.
+                                        | DAMP is about readability, not an excuse to violate DRY.
 DNCOF         Do Not Code On Fridays    | A phrase used in jest when you realize you made a
                                         | silly mistake on a Friday. Can be adapted to your
                                         | needs: DNCOM (Do Not Code On Monday), DNCDL
                                         | (Do Not Code During Lunch), and the likes.
 DNM           Do Not Merge              | A PR that should not be merged (e.g., may break
                                         | functionality, opened for debugging or discussion)
+DRY           Don't Repeat Yourself     | Most often used when code is cut'n'paste or otherwise
+                                        | copied around: "DRY up the code" - remove the
+                                        | duplication with a common helper, class, etc.
 EB            Ear Burn                  | Request someones attention with a ping usually
                                         | via Slack or Github.
 E>I           Explicit > Implicit       | Being explicit, even when stating the obvious is better

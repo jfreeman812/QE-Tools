@@ -28,7 +28,7 @@ our PEP-8 compliance.
 Outside of those ``flake8`` checks,
 we recommend the following additional standards:
 
-* Names should be descriptive.
+* Names should be descriptive. Follow the DAMP_ principle.
   With the exception of loops, generator expressions, and comprehensions,
   there should never be single letter variable/class/etc names in the code.
 * The maximum recommend line width is 100 characters.
@@ -100,6 +100,7 @@ It is recommended, but not required to follow the following guidelines and sugge
   * ``flake8-tuple`` - finds potentially subtle single tuples ``abc,``
   * ``pep8-naming`` - finds inconsistent class, variable, etc. naming.
 
+.. _DAMP: https://medium.com/mutual-of-omaha-digital-experience-and-design-team/damp-programming-reviving-readability-d84647cc5b2e
 .. _DRY: https://en.wikipedia.org/wiki/Don%27t_repeat_yourself
 .. _PEP-8: https://www.python.org/dev/peps/pep-0008/
 .. _Virtualenv: https://virtualenv.pypa.io/en/stable/
