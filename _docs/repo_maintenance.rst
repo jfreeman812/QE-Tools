@@ -17,3 +17,4 @@ the following are required:
         * add a line for ``pyenv install -s {version}`` so that it is installed if not present
         * add that version number to the ``pyenv local {version} {numbers} {available}`` line
     * add the version nickname to ``tox.ini`` (e.g. ``3.7.0`` would need ``py37`` added to the ``envlist`` key)
+    * update ``_docs/contributing.rst`` to note the additional version
