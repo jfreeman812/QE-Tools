@@ -86,6 +86,7 @@ check-unicode.py                                     Checks a directory structur
    :caption: Contributing
 
    _docs/contributing
+   _docs/repo_maintenance
 
 
 .. toctree::
