@@ -30,7 +30,7 @@ The ``-d`` parameter for ``curl`` allows for a file path to be provided when pre
 httpie
 ~~~~~~
 
-An example call with ``httpie`` (httpie) is::
+An example call with ``httpie`` (httpie_) is::
 
     httpie https://qetoos.rax.io/coverage/staging/ < /path/to/coverage.json
 

@@ -19,7 +19,7 @@ Thus, the purpose of coding standards
 is not to impede the development process of individual developers,
 but to help ensure that the code meets a minimum standard of readability.
 
-We follow the `PEP-8`_ coding standard,
+We follow the PEP-8_ coding standard,
 and highly recommend that any other
 QE repositories do the same.
 We use flake8_ (see below) to automatically check
