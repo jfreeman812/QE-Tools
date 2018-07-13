@@ -78,9 +78,6 @@ check-unicode.py                                     Checks a directory structur
    Coverage Metrics Schema <reporting/qe_coverage/coverage>
    Production Whitelist <data_broker/data/whitelist>
 
-.. _Artifactory: https://artifacts.rackspace.net
-.. _`data_broker/`: https://qetools.rax.io/coverage/doc/
-
 .. toctree::
    :maxdepth: 2
    :caption: Contributing
@@ -92,3 +89,5 @@ check-unicode.py                                     Checks a directory structur
    :caption: Resource Documents
 
    SDLC Documents <sdlcs/README>
+
+.. include:: _docs/xrefs.txt

@@ -399,11 +399,4 @@ back to the author with a comment
 explaining the need for a final update.
 
 
-.. _Git Branches Considered Harmful: http://hintjens.com/blog:24
-.. _A Note About Git Commit Messages: http://tbaggery.com/2008/04/19/a-note-about-git-commit-messages.html
-.. _Fork A Repo: https://help.github.com/enterprise/user/articles/fork-a-repo/
-.. _rebase: https://git-scm.com/book/en/v2/Git-Branching-Rebasing
-.. _Creating a pull request from a fork: https://help.github.com/enterprise/user/articles/creating-a-pull-request-from-a-fork/
-.. _Reviewing proposed changes in a pull request: https://help.github.com/enterprise/user/articles/reviewing-proposed-changes-in-a-pull-request/
-.. _Linux kernel submission guidelines: https://www.kernel.org/doc/Documentation/SubmittingPatches
-.. _this repository: https://github.rackspace.com/QualityEngineering/QE-Tools/
+.. include:: ../_docs/xrefs.txt

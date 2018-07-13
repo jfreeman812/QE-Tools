@@ -91,4 +91,4 @@ The format for the CSV file is as follows::
 Any additional tags provided in the CSV file will be appended to the specific test and reflected in the generated
 coverage data.
 
-.. _`Product Hierarchy Whitelist`: https://github.rackspace.com/QE-Metrics/data_broker/blob/master/data/whitelist.rst
+.. include:: ../xrefs.txt

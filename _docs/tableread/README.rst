@@ -60,4 +60,4 @@ Usage
   Given a list of fields, return a list of only the values associated with those fields.
   A single field returns a list of values, multiple fields returns a list of value tuples.
 
-.. _`simple tables`: http://docutils.sourceforge.net/docs/ref/rst/restructuredtext.html#simple-tables
+.. include:: ../xrefs.txt

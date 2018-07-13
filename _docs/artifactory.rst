@@ -9,7 +9,7 @@ Artifactory is a general repository manager that has functionality for providing
     [global]
     index-url = https://artifacts.rackspace.net/artifactory/api/pypi/pypi/simple
 
-#. Using Artifactory with ``pipenv`` (docs_). The opening section for the ``Pipfile`` in a repository would contain::
+#. Using Artifactory with ``pipenv`` (pipenv_). The opening section for the ``Pipfile`` in a repository would contain::
 
     [[source]]
 
@@ -17,7 +17,7 @@ Artifactory is a general repository manager that has functionality for providing
     verify_ssl = true
     name = "artifactory"
 
-.. _docs: https://docs.pipenv.org
+.. include:: xrefs.txt
 
 
 Adding New Packages

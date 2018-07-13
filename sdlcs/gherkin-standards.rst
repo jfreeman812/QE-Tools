@@ -119,10 +119,4 @@ Additional Resources
 * `Selenium Documentation`_
 
 
-.. _Merlot Best Practices: https://github.rackspace.com/Merlot/merlot/wiki/Best-Practices
-.. _Documentation: https://pages.github.rackspace.com/Merlot/merlot/doc/
-.. _Wiki: https://github.rackspace.com/Merlot/merlot/wiki/Getting-Started
-.. _RSpec Cheat Sheet: https://www.anchor.com.au/wp-content/uploads/rspec_cheatsheet_attributed.pdf
-.. _Selenium Documentation: http://docs.seleniumhq.org/docs/
-.. _Cucumber Anti-Patterns: https://cucumber.io/blog/2016/07/01/cucumber-antipatterns-part-one
-.. _QE Coverage Tagging: https://pages.github.rackspace.com/QualityEngineering/QE-Tools/coverage.html
+.. include:: ../_docs/xrefs.txt

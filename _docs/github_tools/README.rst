@@ -57,4 +57,4 @@ prepare-commit-msg
 
 Prepare a commit message by including an appropriate prefix, when possible, based on the branch name. If the branch name contains a JIRA ID, that is included in the prefix. If the branch name also contains either "FF" or "Spike", that is appended to the prefix. If a branch name, without including a JIRA ID, contains "FF", "Spike", "Enhancement" or "Fix", those phrases are set as the prefix. All searches are case-insensitive.
 
-.. _`A Note About Git Commit Messages`: https://tbaggery.com/2008/04/19/a-note-about-git-commit-messages.html
+.. include:: ../xrefs.txt
