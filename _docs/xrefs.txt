@@ -1,0 +1,36 @@
+.. _`A Note About Git Commit Messages`: https://tbaggery.com/2008/04/19/a-note-about-git-commit-messages.html
+.. _`Artifactory`: https://artifacts.rackspace.net
+.. _`Creating a pull request from a fork`: https://help.github.com/enterprise/user/articles/creating-a-pull-request-from-a-fork/
+.. _`Cucumber Anti-Patterns`: https://cucumber.io/blog/2016/07/01/cucumber-antipatterns-part-one
+.. _`Cucumber documentation`: https://cucumber.io/docs/reference
+.. _`DAMP`: https://medium.com/mutual-of-omaha-digital-experience-and-design-team/damp-programming-reviving-readability-d84647cc5b2e
+.. _`DRY`: https://en.wikipedia.org/wiki/Don%27t_repeat_yourself
+.. _`Data Broker Documentation`: https://github.rackspace.com/QE-Metrics/data_broker/blob/master/README.rst
+.. _`Documentation`: https://pages.github.rackspace.com/Merlot/merlot/doc/
+.. _`Fork A Repo`: https://help.github.com/enterprise/user/articles/fork-a-repo/
+.. _`Git Branches Considered Harmful`: http://hintjens.com/blog:24
+.. _`Linux kernel submission guidelines`: https://www.kernel.org/doc/Documentation/SubmittingPatches
+.. _`Merlot Best Practices`: https://github.rackspace.com/Merlot/merlot/wiki/Best-Practices
+.. _`PEP-8`: https://www.python.org/dev/peps/pep-0008/
+.. _`Product Hierarchy Whitelist`: https://github.rackspace.com/QE-Metrics/data_broker/blob/master/data/whitelist.rst
+.. _`QE Coverage Tagging`: https://pages.github.rackspace.com/QualityEngineering/QE-Tools/coverage.html
+.. _`RSpec Cheat Sheet`: https://www.anchor.com.au/wp-content/uploads/rspec_cheatsheet_attributed.pdf
+.. _`Reviewing proposed changes in a pull request`: https://help.github.com/enterprise/user/articles/reviewing-proposed-changes-in-a-pull-request/
+.. _`SDLC`: https://pages.github.rackspace.com/AutomationServices/RBA-QE-Common/sdlc.html#code-management
+.. _`Selenium Documentation`: http://docs.seleniumhq.org/docs/
+.. _`Virtualenv`: https://virtualenv.pypa.io/en/stable/
+.. _`Wiki`: https://github.rackspace.com/Merlot/merlot/wiki/Getting-Started
+.. _`behave`: https://pypi.org/project/behave/
+.. _`contributing`: https://github.rackspace.com/dcx/dcxqe-common/blob/master/CONTRIBUTING.md
+.. _`data_broker/`: https://qetools.rax.io/coverage/doc/
+.. _`flake8-builtins`: https://pypi.org/project/flake8-builtins/
+.. _`flake8-tuple`: https://pypi.org/project/flake8_tuple/
+.. _`flake8`: https://pypi.org/project/flake8/
+.. _`httpie`: http://httpie.org
+.. _`napolean documentation standard`: http://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html
+.. _`pipenv`: https://docs.pipenv.org
+.. _`rebase`: https://git-scm.com/book/en/v2/Git-Branching-Rebasing
+.. _`requests`: https://pypi.org/project/requests/
+.. _`selenium`: https://pypi.org/project/selenium/
+.. _`simple tables`: http://docutils.sourceforge.net/docs/ref/rst/restructuredtext.html#simple-tables
+.. _`this repository`: https://github.rackspace.com/QualityEngineering/QE-Tools/

@@ -30,7 +30,7 @@ The ``-d`` parameter for ``curl`` allows for a file path to be provided when pre
 httpie
 ~~~~~~
 
-An example call with ``httpie`` (docs_) is::
+An example call with ``httpie`` (httpie_) is::
 
     httpie https://qetoos.rax.io/coverage/staging/ < /path/to/coverage.json
 
@@ -39,6 +39,4 @@ Reviewing the Reports
 
 When sending data to the data broker, a JSON object is returned, when successful, that provides a link to the reporting tool in the ``url`` key, filtered to show all the data uploaded from the same host. This allows the end user to confirm that the data was successfully uploaded. There is a lag between uploading and data appearing in the reporting tool so allow up to five minutes for the data to appear.
 
-.. _docs: http://httpie.org
-.. _`Product Hierarchy Whitelist`: https://github.rackspace.com/QE-Metrics/data_broker/blob/master/data/whitelist.rst
-.. _`Data Broker Documentation`: https://github.rackspace.com/QE-Metrics/data_broker/blob/master/README.rst
+.. include:: ../xrefs.txt

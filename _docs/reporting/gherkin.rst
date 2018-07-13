@@ -44,5 +44,4 @@ Reviewing the Reports
 
 When sending data via ``coverage-gherkin``, a URL is returned, when successful, that provides a link to the reporting tool that filters the data to show only the appropriate data. This allows the end user to confirm that the data was successfully uploaded. There is a lag between uploading and data appearing in the reporting tool so allow up to five minutes for the data to appear.
 
-.. _`Cucumber documentation`: https://cucumber.io/docs/reference
-.. _`Product Hierarchy Whitelist`: https://github.rackspace.com/QE-Metrics/data_broker/blob/master/data/whitelist.rst
+.. include:: ../xrefs.txt

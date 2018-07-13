@@ -63,9 +63,4 @@ We strongly recommend you also install and configure:
 
     * :doc:`github_tools<../../_docs/github_tools/README>` - for local git commit hooks and Jenkins PR Checking Jobs
 
-.. _behave: https://pypi.org/project/behave/
-.. _requests: https://pypi.org/project/requests/
-.. _selenium: https://pypi.org/project/selenium/
-.. _flake8: https://pypi.org/project/flake8/
-.. _flake8-builtins: https://pypi.org/project/flake8-builtins/
-.. _flake8-tuple: https://pypi.org/project/flake8_tuple/
+.. include:: ../xrefs.txt

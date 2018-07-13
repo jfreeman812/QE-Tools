@@ -87,6 +87,4 @@ job to run and just view the documents at the link it posts.
 
 
 
-.. _contributing: https://github.rackspace.com/dcx/dcxqe-common/blob/master/CONTRIBUTING.md
-.. _SDLC: https://pages.github.rackspace.com/AutomationServices/RBA-QE-Common/sdlc.html#code-management
-.. _`napolean documentation standard`: http://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html
+.. include:: xrefs.txt
