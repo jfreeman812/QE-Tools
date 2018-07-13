@@ -31,7 +31,7 @@ we recommend the following additional standards:
 * Names should be descriptive. Follow the DAMP_ principle.
   With the exception of loops, generator expressions, and comprehensions,
   there should never be single letter variable/class/etc names in the code.
-* The maximum recommend line width is 100 characters.
+* The maximum recommended line width is 100 characters.
 * Always use spaces, never tabs.
 * Comment code sections that are
   not readily apparent in their purpose.
