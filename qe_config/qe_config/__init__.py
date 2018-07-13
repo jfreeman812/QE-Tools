@@ -1,4 +1,4 @@
-'''Tools for working with the ``ConfigParser`` (`v2`_, `v3`_) instances.
+'''Tools for working with the ``ConfigParser`` (`configparser_v2`_, `configparser_v3`_) instances.
 
 :py:func:`load_cake` - Load layers of confguration files
 with optional environment variable overrides.
@@ -101,9 +101,7 @@ How to use it::
     # Load a configuration from the master config file for environment 1:
     my_config = load_cake('master.config', 'env1')
 
-.. _munch: https://pypi.org/project/munch/
-.. _v2: https://docs.python.org/2/library/configparser.html
-.. _v3: https://docs.python.org/3/library/configparser.html
+.. include:: ../_docs/xrefs.txt
 '''
 
 # Track version 2 / 3 differences without all the weight of six.

@@ -21,12 +21,15 @@
 .. _`Virtualenv`: https://virtualenv.pypa.io/en/stable/
 .. _`Wiki`: https://github.rackspace.com/Merlot/merlot/wiki/Getting-Started
 .. _`behave`: https://pypi.org/project/behave/
+.. _`configparser_v2`: https://docs.python.org/2/library/configparser.html
+.. _`configparser_v3`: https://docs.python.org/3/library/configparser.html
 .. _`contributing`: https://github.rackspace.com/dcx/dcxqe-common/blob/master/CONTRIBUTING.md
 .. _`data_broker/`: https://qetools.rax.io/coverage/doc/
 .. _`flake8-builtins`: https://pypi.org/project/flake8-builtins/
 .. _`flake8-tuple`: https://pypi.org/project/flake8_tuple/
 .. _`flake8`: https://pypi.org/project/flake8/
 .. _`httpie`: http://httpie.org
+.. _`munch`: https://pypi.org/project/munch/
 .. _`napolean documentation standard`: http://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html
 .. _`pipenv`: https://docs.pipenv.org
 .. _`rebase`: https://git-scm.com/book/en/v2/Git-Branching-Rebasing
