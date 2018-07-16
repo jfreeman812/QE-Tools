@@ -5,6 +5,7 @@ from tempfile import mkdtemp
 
 import pytest
 from qecommon_tools import generate_random_string
+from qecommon_tools.assert_ import not_in
 import requests
 import requests_mock
 
@@ -282,8 +283,7 @@ def test_no_response_content_logger(test_request, test_resp):
     _verify_request(test_request, log_contents)
     _verify_response(test_resp, log_contents)
 
-    msg = 'Log info:\n\n{}\n\n Should not have contained {}'.format(log_contents, test_resp.text)
-    assert test_resp.text not in log_contents, msg
+    not_in(test_resp.text, log_contents, msg='Value should not have been logged. ')
 
 
 @pytest.mark.parametrize('test_request,test_resp', product(requests_to_test(), responses_to_test()))
@@ -300,10 +300,8 @@ def test_no_request_data_no_response_content_logger(test_request, test_resp):
     _verify_request(test_request, log_contents)
     _verify_response(test_resp, log_contents)
 
-    msg = 'Log info:\n\n{}\n\n Should not have contained {}'.format(log_contents, test_resp.text)
-
     for value in [test_resp.text, str(request_data)]:
-        assert value not in log_contents, msg
+        not_in(value, log_contents, msg='Value should not have been logged. ')
 
 
 @pytest.mark.parametrize('test_request,test_resp', product(requests_to_test(), responses_to_test()))
@@ -330,8 +328,7 @@ def test_silent_logger_does_not_log_external_calls(found_before, found_after, no
     with open(log_file, 'r') as f:
         log_contents = f.read()
 
-    msg = '{} Should not have been logged in :\n\n{}'.format(not_found, log_contents)
-    assert not_found not in log_contents, msg
+    not_in(not_found, log_contents, msg='Value should not have been logged. ')
 
     msg = '{}Logged value '.format(ROOT_MSG.format(log_contents))
     for value in [found_before, found_after]:
