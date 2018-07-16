@@ -15,6 +15,7 @@ from qe_logging.requests_logging import (
     RequestAndResponseLogger,
     NoResponseContentLogger,
     NoRequestDataNoResponseContentLogger,
+    SilentLogger,
 )
 
 
@@ -303,3 +304,35 @@ def test_no_request_data_no_response_content_logger(test_request, test_resp):
 
     for value in [test_resp.text, str(request_data)]:
         assert value not in log_contents, msg
+
+
+@pytest.mark.parametrize('test_request,test_resp', product(requests_to_test(), responses_to_test()))
+def test_silent_logger_does_not_log_requests_or_responses(test_request, test_resp):
+    log_contents = _setup_log_and_get_contents(
+        test_request, test_resp, log_class=SilentLogger
+    )
+
+    assert not log_contents, 'Log info found when None was expected:\n\n{}'.format(log_contents)
+
+
+@pytest.mark.parametrize(
+    'found_before,found_after,not_found',
+    [[generate_random_string() for _ in range(3)] for _ in range(2)]
+)
+def test_silent_logger_does_not_log_external_calls(found_before, found_after, not_found):
+    log_file = _setup_logging()
+    test_logger = logging.getLogger('test logger')
+    test_logger.debug(found_before)
+
+    SilentLogger(logger=test_logger).logger.debug(not_found)
+    test_logger.debug(found_after)
+
+    with open(log_file, 'r') as f:
+        log_contents = f.read()
+
+    msg = '{} Should not have been logged in :\n\n{}'.format(not_found, log_contents)
+    assert not_found not in log_contents, msg
+
+    msg = '{}Logged value '.format(ROOT_MSG.format(log_contents))
+    for value in [found_before, found_after]:
+        assert value in log_contents, '{}{}'.format(msg, value)

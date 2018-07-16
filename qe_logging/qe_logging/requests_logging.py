@@ -226,3 +226,18 @@ class NoRequestDataNoResponseContentLogger(NoResponseContentLogger):
         super(NoRequestDataNoResponseContentLogger, self).__init__(
             logger=logger, exclude_request_params='data'
         )
+
+
+class SilentLogger(RequestAndResponseLogger):
+    '''
+    For use when logging anything is undesirable.
+    '''
+
+    def __init__(self, *_, **__):
+        # Accept, but ignore any parameters that are passed in.
+        logger = logging.getLogger('No-op')
+        # Silence the actual logger itself, this is done so that even any calls to the logger
+        # attribute on an instance of this class would not log any data.
+        logger.setLevel('CRITICAL')
+        logger.critical = lambda *args, **kwargs: None
+        super(SilentLogger, self).__init__(logger=logger)
