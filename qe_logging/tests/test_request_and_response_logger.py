@@ -11,7 +11,10 @@ import requests_mock
 
 from qe_logging import setup_logging
 from qe_logging.requests_logging import (
-    IdentityLogger, RequestAndResponseLogger, NoResponseContentLogger
+    IdentityLogger,
+    RequestAndResponseLogger,
+    NoResponseContentLogger,
+    NoRequestDataNoResponseContentLogger,
 )
 
 
@@ -280,3 +283,23 @@ def test_no_response_content_logger(test_request, test_resp):
 
     msg = 'Log info:\n\n{}\n\n Should not have contained {}'.format(log_contents, test_resp.text)
     assert test_resp.text not in log_contents, msg
+
+
+@pytest.mark.parametrize('test_request,test_resp', product(requests_to_test(), responses_to_test()))
+def test_no_request_data_no_response_content_logger(test_request, test_resp):
+    # make sure we don't mutate the original test data.
+    test_request = deepcopy(test_request)
+
+    test_request['kwargs'] = {'data': single_item_random_dict()}
+    log_contents = _setup_log_and_get_contents(
+        test_request, test_resp, log_class=NoRequestDataNoResponseContentLogger
+    )
+
+    request_data = test_request.pop('kwargs')['data']
+    _verify_request(test_request, log_contents)
+    _verify_response(test_resp, log_contents)
+
+    msg = 'Log info:\n\n{}\n\n Should not have contained {}'.format(log_contents, test_resp.text)
+
+    for value in [test_resp.text, str(request_data)]:
+        assert value not in log_contents, msg

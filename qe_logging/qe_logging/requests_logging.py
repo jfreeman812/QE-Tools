@@ -215,3 +215,14 @@ class NoResponseContentLogger(RequestAndResponseLogger):
     def log_response_content(self, *args, **kwargs):
         '''Do not log any Response Content'''
         pass
+
+
+class NoRequestDataNoResponseContentLogger(NoResponseContentLogger):
+    '''
+    For use when logging the request data and the response content is undesirable.
+    '''
+
+    def __init__(self, logger=None):
+        super(NoRequestDataNoResponseContentLogger, self).__init__(
+            logger=logger, exclude_request_params='data'
+        )
