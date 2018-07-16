@@ -149,7 +149,8 @@ def get_browser(browser_name,
         browser_name (str): The name of the browser you want to run.
         page_load_timeout (int): passed on the browser setting of the same name
         window_size (2-tuple, None): a 2-tuple for the window size; use None to maximize the window.
-            NOTE: This is ignored when grid_url is supplied.
+            If the maximize fails, a debug message is logged, but the code keeps running.
+            (This is because sometimes a browser on the grid cannot maximize.)
         firefox_profile (FirefoxProfile): The profile to use for Firefox.
             Any profile can be used; :py:func:`firefox_profile_with_preferences` might be a handy
             way to get one. This only optional if the browser isn't Firefox.
