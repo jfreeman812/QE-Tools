@@ -205,3 +205,13 @@ class IdentityLogger(RequestAndResponseLogger):
             super(IdentityLogger, self).log_response_content(response)
         else:
             self.logger.debug('-->Response content: <SUPPRESSED FOR SECURITY>')
+
+
+class NoResponseContentLogger(RequestAndResponseLogger):
+    '''
+    For use when logging the response content is undesirable.
+    '''
+
+    def log_response_content(self, *args, **kwargs):
+        '''Do not log any Response Content'''
+        pass
