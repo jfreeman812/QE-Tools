@@ -58,7 +58,7 @@ def any_in(a_sequence, b_sequence, msg=''):
 
 def not_in(item, sequence, msg=''):
     assert item not in sequence, _msg_concat(
-        msg, "did not expected Element: '{}' to be in '{}'".format(item, sequence))
+        msg, "Did NOT Expect: '{}' to be in '{}'".format(item, sequence))
 
 
 def is_not_none(a, msg=''):
