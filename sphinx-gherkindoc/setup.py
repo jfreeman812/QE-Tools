@@ -12,7 +12,7 @@ CONSOLE_SCRIPTS = [
 ]
 
 INSTALL_REQUIRES = [
-    'Sphinx>=1.3,<1.7',
+    'Sphinx>=1.6.5',
     'sphinx_rtd_theme>=0.3.1',
     'behave>=1.2.6',
     'qecommon_tools>=1.0.0',
