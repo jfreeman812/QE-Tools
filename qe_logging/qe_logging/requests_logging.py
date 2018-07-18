@@ -205,3 +205,39 @@ class IdentityLogger(RequestAndResponseLogger):
             super(IdentityLogger, self).log_response_content(response)
         else:
             self.logger.debug('-->Response content: <SUPPRESSED FOR SECURITY>')
+
+
+class NoResponseContentLogger(RequestAndResponseLogger):
+    '''
+    For use when logging the response content is undesirable.
+    '''
+
+    def log_response_content(self, *args, **kwargs):
+        '''Do not log any Response Content'''
+        pass
+
+
+class NoRequestDataNoResponseContentLogger(NoResponseContentLogger):
+    '''
+    For use when logging the request data and the response content is undesirable.
+    '''
+
+    def __init__(self, logger=None):
+        super(NoRequestDataNoResponseContentLogger, self).__init__(
+            logger=logger, exclude_request_params='data'
+        )
+
+
+class SilentLogger(RequestAndResponseLogger):
+    '''
+    For use when logging anything is undesirable.
+    '''
+
+    def __init__(self, *_, **__):
+        # Accept, but ignore any parameters that are passed in.
+        logger = logging.getLogger('No-op')
+        # Silence the actual logger itself, this is done so that even any calls to the logger
+        # attribute on an instance of this class would not log any data.
+        logger.setLevel('CRITICAL')
+        logger.critical = lambda *args, **kwargs: None
+        super(SilentLogger, self).__init__(logger=logger)

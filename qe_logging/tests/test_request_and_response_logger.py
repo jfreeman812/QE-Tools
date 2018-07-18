@@ -5,12 +5,19 @@ from tempfile import mkdtemp
 
 import pytest
 from qecommon_tools import generate_random_string
+from qecommon_tools.assert_ import not_in
 import requests
 import requests_mock
 
 
 from qe_logging import setup_logging
-from qe_logging.requests_logging import IdentityLogger, RequestAndResponseLogger
+from qe_logging.requests_logging import (
+    IdentityLogger,
+    RequestAndResponseLogger,
+    NoResponseContentLogger,
+    NoRequestDataNoResponseContentLogger,
+    SilentLogger,
+)
 
 
 ###########################
@@ -125,10 +132,10 @@ def _verify_request(test_request, log_contents):
         assert value in log_contents, '{}{}'.format(msg, value)
 
 
-def _verify_response(test_resp, log_contents):
+def _verify_response(test_resp, log_contents, resp_text=''):
     msg = '{}Response value '.format(ROOT_MSG.format(log_contents))
 
-    for value in [_resp_status_logged_as(test_resp), str(test_resp.headers), test_resp.text]:
+    for value in [_resp_status_logged_as(test_resp), str(test_resp.headers), resp_text]:
         assert value in log_contents, '{}{}'.format(msg, value)
 
 
@@ -137,7 +144,7 @@ def test_request_and_response_are_logged(test_request, test_resp, **kwargs):
     log_contents = _setup_log_and_get_contents(test_request, test_resp, **kwargs)
 
     _verify_request(test_request, log_contents)
-    _verify_response(test_resp, log_contents)
+    _verify_response(test_resp, log_contents, resp_text=test_resp.text)
 
     return log_contents
 
@@ -172,7 +179,7 @@ def test_request_params_are_excluded(test_param, test_request, test_resp):
     # The request value is removed so we can verify the other request data is present in the log.
     excluded_value = test_request.pop(test_param)
 
-    _verify_response(test_resp, log_contents)
+    _verify_response(test_resp, log_contents, resp_text=test_resp.text)
     _verify_request(test_request, log_contents)
 
     msg = 'Log info:\n\n{}\n\n Contained an excluded parameter: {} with a value of: {}'.format(
@@ -210,7 +217,7 @@ def test_custom_request_logger(test_request, test_resp):
         test_request, test_resp, log_class=AlternateRequestLogger
     )
 
-    _verify_response(test_resp, log_contents)
+    _verify_response(test_resp, log_contents, resp_text=test_resp.text)
 
     # Verify request data isn't present.
     msg = 'Log info:\n\n{}\n\n Should not have contained Request data: '.format(log_contents)
@@ -265,3 +272,64 @@ def test_identity_logger_log_response_when_response_has_errors():
 
     log_contents = _setup_log_and_get_contents(request, response, log_class=IdentityLogger)
     assert BAD_SECRET_RESPONSE_DATA in log_contents
+
+
+@pytest.mark.parametrize('test_request,test_resp', product(requests_to_test(), responses_to_test()))
+def test_no_response_content_logger(test_request, test_resp):
+    log_contents = _setup_log_and_get_contents(
+        test_request, test_resp, log_class=NoResponseContentLogger
+    )
+
+    _verify_request(test_request, log_contents)
+    _verify_response(test_resp, log_contents)
+
+    not_in(test_resp.text, log_contents, msg='Value should not have been logged. ')
+
+
+@pytest.mark.parametrize('test_request,test_resp', product(requests_to_test(), responses_to_test()))
+def test_no_request_data_no_response_content_logger(test_request, test_resp):
+    # make sure we don't mutate the original test data.
+    test_request = deepcopy(test_request)
+
+    test_request['kwargs'] = {'data': single_item_random_dict()}
+    log_contents = _setup_log_and_get_contents(
+        test_request, test_resp, log_class=NoRequestDataNoResponseContentLogger
+    )
+
+    request_data = test_request.pop('kwargs')['data']
+    _verify_request(test_request, log_contents)
+    _verify_response(test_resp, log_contents)
+
+    for value in [test_resp.text, str(request_data)]:
+        not_in(value, log_contents, msg='Value should not have been logged. ')
+
+
+@pytest.mark.parametrize('test_request,test_resp', product(requests_to_test(), responses_to_test()))
+def test_silent_logger_does_not_log_requests_or_responses(test_request, test_resp):
+    log_contents = _setup_log_and_get_contents(
+        test_request, test_resp, log_class=SilentLogger
+    )
+
+    assert not log_contents, 'Log info found when None was expected:\n\n{}'.format(log_contents)
+
+
+@pytest.mark.parametrize(
+    'found_before,found_after,not_found',
+    [[generate_random_string() for _ in range(3)] for _ in range(2)]
+)
+def test_silent_logger_does_not_log_external_calls(found_before, found_after, not_found):
+    log_file = _setup_logging()
+    test_logger = logging.getLogger('test logger')
+    test_logger.debug(found_before)
+
+    SilentLogger(logger=test_logger).logger.debug(not_found)
+    test_logger.debug(found_after)
+
+    with open(log_file, 'r') as f:
+        log_contents = f.read()
+
+    not_in(not_found, log_contents, msg='Value should not have been logged. ')
+
+    msg = '{}Logged value '.format(ROOT_MSG.format(log_contents))
+    for value in [found_before, found_after]:
+        assert value in log_contents, '{}{}'.format(msg, value)
