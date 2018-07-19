@@ -319,7 +319,7 @@ class ReportWriter(object):
 
         # Even when we get an error from the data broker,
         # it should have a JSON payload with the uploaded data URL in it.
-        # If it doesn't, something went more wrogn than we can handle here,
+        # If it doesn't, something went more wrong than we can handle here,
         # so we will let any json decoding error propagate up.
         data_url = safe_json_from(response).get('url')
         validate_response_status_code('CREATED', response,
