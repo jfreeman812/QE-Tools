@@ -267,13 +267,14 @@ def check_response_status_code(expected_status_description, response, call_descr
     return err_msg
 
 
-def validate_response_status_code(expected_status_description, response, **kwargs):
+def validate_response_status_code(expected_status_description, response, err_prefix='', **kwargs):
     '''
     Assert that a response's status code matches an expected status code.
 
     Args:
         expected_status_description (str, int): The expected HTTP response status reason or code.
         response (Response): The python requests library response to validate.
+        err_prefix (str): Prefix, if any, to the error message, when an assertion is raised.
         kwargs: additional keyword args to be passed on to check_response_status_code.
 
     Raises:
@@ -281,7 +282,7 @@ def validate_response_status_code(expected_status_description, response, **kwarg
     '''
     err_msg = check_response_status_code(expected_status_description, response, **kwargs)
     if err_msg:
-        raise AssertionError(err_msg)
+        raise AssertionError(err_prefix + err_msg)
 
 
 def response_if_status_check(call_description, response, target_status='a successful response'):

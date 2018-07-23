@@ -24,7 +24,7 @@ from requests.packages.urllib3.exceptions import InsecureRequestWarning
 from tableread import SimpleRSTReader
 
 from qecommon_tools import cleanup_and_exit, padded_list
-from qecommon_tools.http_helpers import validate_response_status_code
+from qecommon_tools.http_helpers import safe_json_from, validate_response_status_code
 
 
 # Silence requests complaining about insecure connections; needed for our internal certificates
@@ -316,8 +316,15 @@ class ReportWriter(object):
         params = {'timestamp': self.timestamp} if self.timestamp else {}
         coverage_url = COVERAGE_PRODUCTION_URL if self.production_endpoint else COVERAGE_STAGING_URL
         response = requests.post(coverage_url, json=self.data, params=params, verify=False)
-        validate_response_status_code('CREATED', response)
-        return response.json().get('url', '')
+
+        # Even when we get an error from the data broker,
+        # it should have a JSON payload with the uploaded data URL in it.
+        # If it doesn't, something went more wrong than we can handle here,
+        # so we will let any json decoding error propagate up.
+        data_url = safe_json_from(response).get('url')
+        validate_response_status_code('CREATED', response,
+                                      err_prefix='Data URL: {}\n'.format(data_url))
+        return data_url
 
 
 class CoverageReport(ReportWriter):
