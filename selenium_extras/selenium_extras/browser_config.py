@@ -15,13 +15,17 @@ use just the parts that are helpful.
 '''
 
 from configparser import ConfigParser
+import logging
 import os
 
 from selenium import webdriver
+from selenium.common.exceptions import WebDriverException
 from selenium.webdriver import FirefoxProfile
 
 from .exceptions import UnknownBrowserException
 
+
+debug = logging.getLogger(__name__).debug
 
 DEFAULT_DOWNLOAD_DIRECTORY = 'downloads'
 DEFAULT_HOME_PAGE_URL = 'about:about'
@@ -145,7 +149,8 @@ def get_browser(browser_name,
         browser_name (str): The name of the browser you want to run.
         page_load_timeout (int): passed on the browser setting of the same name
         window_size (2-tuple, None): a 2-tuple for the window size; use None to maximize the window.
-            NOTE: This is ignored when grid_url is supplied.
+            If the maximize fails, a debug message is logged, but the code keeps running.
+            (This is because sometimes a browser on the grid cannot maximize.)
         firefox_profile (FirefoxProfile): The profile to use for Firefox.
             Any profile can be used; :py:func:`firefox_profile_with_preferences` might be a handy
             way to get one. This only optional if the browser isn't Firefox.
@@ -178,12 +183,16 @@ def get_browser(browser_name,
 
     browser.set_page_load_timeout(page_load_timeout)
 
-    # Chrome on the grid does not like to be resized, so we'll skip this step
-    # (rather than special case Chrome, let's treat all browsers the same).
-    if not grid_url:
-        if window_size is not None:
-            browser.set_window_size(*window_size)
-        else:
+    if window_size is not None:
+        browser.set_window_size(*window_size)
+        debug('Set window size: {}'.format(window_size))
+    else:
+        # Some versions of some browsers, when run on the grid, cannot maximize.
+        # Since maximize is the default, protect against it failing and keep going.
+        try:
             browser.maximize_window()
+            debug('Maximized window')
+        except WebDriverException as e:
+            debug('Maximize browser attempt failed: {}'.format(e))
 
     return browser
