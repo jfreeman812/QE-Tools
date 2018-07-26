@@ -148,8 +148,7 @@ class RequestsLoggingClient(class_lookup.get('requests.Session', requests.Sessio
                 of the parent class.
 
         Returns:
-            response (requests.Response): The result from the parent request call
-            (unless an exception is raised).
+            response (requests.Response): The result from the parent request call.
         '''
         # If headers are provided by both, headers "wins" over default_headers
         kwargs['headers'] = dict(self.default_headers, **(kwargs.get('headers', {})))
@@ -174,17 +173,24 @@ class RequestsLoggingClient(class_lookup.get('requests.Session', requests.Sessio
 
 class IdentityRequestsLoggingClient(RequestsLoggingClient):
 
-    def __init__(self, token, **requests_logging_client_kwargs):
+    def __init__(self, token, base_url=None, curl_logger=None, content_type='application/json'):
         '''
         A requests logging client specifically designed for authenticating with Identity.
 
         Args:
             token (str): The authentication token from Identity to be used as the ``X-Auth-Token``
                 header in all requests.
-            **requests_logging_client_kwargs: Additional keyword arguments to be passed to the
-                ``RequestsLoggingClient``'s ``__init__`` method.
+            base_url (str, optional): Used as a prefix for all the request methods' URL parameters,
+                so that client code does not need to constantly join.
+                If a fully qualified URL is passed to a verb method instead, it will be used,
+                overriding the join with this value. If this is not set,
+                then each method must be passed a full URL.
+            curl_logger (RequestAndResponseLogger, optional): class (or instance) to log requests
+                and responses.
+                Defaults to ``RequestAndResponseLogger``.
+            content_type (str, optional):  The default content type to include in the headers.
         '''
-        super(IdentityRequestsLoggingClient, self).__init__(**requests_logging_client_kwargs)
+        super(IdentityRequestsLoggingClient, self).__init__(base_url, curl_logger, content_type)
         self.token = token
 
     @property
@@ -223,22 +229,45 @@ class QERequestsLoggingClient(IdentityRequestsLoggingClient):
 
 class BasicAuthRequestsLoggingClient(RequestsLoggingClient):
 
-    def __init__(self, username, password, **requests_logging_client_kwargs):
+    def __init__(self, username, password, base_url=None, curl_logger=None,
+                 content_type='application/json'):
         '''
         A requests logging client specifically designed for authenticating with Basic Auth.
 
         Args:
             username (str): The username to be used in the basic authentication for all requests.
             password (str): The password to be used in the basic authentication for all requests.
-            **requests_logging_client_kwargs: Additional keyword arguments to be passed to the
-                ``RequestsLoggingClient``'s ``__init__`` method.
+            base_url (str, optional): Used as a prefix for all the request methods' URL parameters,
+                so that client code does not need to constantly join.
+                If a fully qualified URL is passed to a verb method instead, it will be used,
+                overriding the join with this value. If this is not set,
+                then each method must be passed a full URL.
+            curl_logger (RequestAndResponseLogger, optional): class (or instance) to log requests
+                and responses.
+                Defaults to ``RequestAndResponseLogger``.
+            content_type (str, optional):  The default content type to include in the headers.
         '''
-        super(BasicAuthRequestsLoggingClient, self).__init__(**requests_logging_client_kwargs)
+        super(BasicAuthRequestsLoggingClient, self).__init__(base_url, curl_logger, content_type)
         self.username = username
         self.password = password
 
-    def request(self, **request_kwargs):
-        '''Make a request using Basic Authentication.'''
+    def request(self, method, url, curl_logger=None, **kwargs):
+        '''
+        Make a request using Basic Authentication.
 
+        Args:
+            method (str): The request method (see requests.Session)
+            url (str):  The url part/extension for the specific request.
+                A fully qualified URL will suppress prefixing with the ``base_url`` value.
+            curl_logger (RequestAndResponseLogger): A class (or instance) to use to log
+                the request and response.
+                If not supplied, the curl_logger supplied at the class level (or the default) will
+                be used.
+            **kwargs: Arbitrary keyword arguments that are passed through to the ``request`` method
+                of the parent class.
+
+        Returns:
+            response (requests.Response): The result from the parent request call.
+        '''
         return super(BasicAuthRequestsLoggingClient, self).request(
-            auth=(self.username, self.password), **request_kwargs)
+            method, url, curl_logger, auth=(self.username, self.password), **kwargs)
