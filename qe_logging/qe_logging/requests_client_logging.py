@@ -39,6 +39,14 @@ logging.getLogger('urllib3.connectionpool').setLevel(logging.ERROR)
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
 
+_show_warnings = True
+
+
+def suppress_warnings():
+    global _show_warnings
+    _show_warnings = False
+
+
 def _url_sanitize(url):
     if not url:
         return url
@@ -68,7 +76,7 @@ def _full_url(base_url, url=None):
     return urljoin(base_url, _url_sanitize(url))
 
 
-class QERequestsLoggingClient(class_lookup.get('requests.Session', requests.Session)):
+class RequestsLoggingClient(class_lookup.get('requests.Session', requests.Session)):
     _logger = logging.getLogger(__name__)
 
     base_url = None
@@ -76,7 +84,7 @@ class QERequestsLoggingClient(class_lookup.get('requests.Session', requests.Sess
     The base_url from the constructor is a public field, for inspection or update.
     '''
 
-    def __init__(self, base_url=None, token=None, curl_logger=None,
+    def __init__(self, base_url=None, curl_logger=None,
                  content_type='application/json'):
         '''
         A logging client based on ``requests.Session``.
@@ -88,7 +96,6 @@ class QERequestsLoggingClient(class_lookup.get('requests.Session', requests.Sess
                 If a fully qualified URL is passed to a verb method instead, it will be used,
                 overriding the join with this value. If this is not set,
                 then each method must be passed a full URL.
-            token (str, optional): Used as the value for the `X-Auth-Token` key in request headers.
             curl_logger (RequestAndResponseLogger, optional): class (or instance) to log requests
                 and responses.
                 Defaults to ``RequestAndResponseLogger``.
@@ -96,33 +103,17 @@ class QERequestsLoggingClient(class_lookup.get('requests.Session', requests.Sess
         '''
         self.default_headers = {'Content-Type': content_type}
         self.base_url = base_url
-        self.token = token
         self.curl_logger = self._initialized_logger(curl_logger or RequestAndResponseLogger)
 
         # Although requests.Sessions does not take any parameters, it is possible to register
         # a different parent class that may take parameters as well as not accept *args or **kwargs,
         # we need to dynamically build the call
         if sys.version_info > (3, 2):
-            sig = inspect.signature(super(QERequestsLoggingClient, self).__init__)
+            sig = inspect.signature(super(RequestsLoggingClient, self).__init__)
             kwargs = {x: y for x, y in locals().items() if x in sig.parameters}
         else:
             kwargs = {}
-        super(QERequestsLoggingClient, self).__init__(**kwargs)
-
-    @property
-    def token(self):
-        '''
-        Property that gets/sets/deletes the ``X-Auth-Token`` in request headers.
-        '''
-        return self.default_headers.get('X-Auth-Token')
-
-    @token.setter
-    def token(self, token):
-        self.default_headers['X-Auth-Token'] = token
-
-    @token.deleter
-    def token(self):
-        del self.default_headers['X-Auth-Token']
+        super(RequestsLoggingClient, self).__init__(**kwargs)
 
     def _initialized_logger(self, curl_logger):
         return curl_logger(self._logger) if isinstance(curl_logger, type) else curl_logger
@@ -173,9 +164,9 @@ class QERequestsLoggingClient(class_lookup.get('requests.Session', requests.Sess
         full_url = _full_url(self.base_url, url)
         request_kwargs = {'method': method, 'url': full_url, 'kwargs': kwargs}
         try:
-            response = super(QERequestsLoggingClient, self).request(method, full_url,
-                                                                    verify=False, **kwargs)
-        except:
+            response = super(RequestsLoggingClient, self).request(method, full_url,
+                                                                  verify=False, **kwargs)
+        except Exception:
             # If the request fails for any reason log the request data causing the failure.
             self._get_logger(curl_logger).log_request(request_kwargs)
             raise
@@ -186,3 +177,90 @@ class QERequestsLoggingClient(class_lookup.get('requests.Session', requests.Sess
         # so that we can log early and not eat-up/expire the data is yet to come.
         self._get_logger(curl_logger).log(request_kwargs, response)
         return response
+
+
+class IdentityRequestsLoggingClient(RequestsLoggingClient):
+
+    def __init__(self, token, **requests_logging_client_kwargs):
+        '''
+        A requests logging client specifically designed for authenticating with Identity.
+
+        Args:
+            token (str): The authentication token from Identity to be used as the ``X-Auth-Token``
+                header in all requests.
+            **requests_logging_client_kwargs: Additional keyword arguments to be passed to the
+                RequestsLoggingClient ``__init__`` method.
+        '''
+        super(IdentityRequestsLoggingClient, self).__init__(**requests_logging_client_kwargs)
+        self.token = token
+
+    @property
+    def token(self):
+        '''
+        Property that gets/sets/deletes the ``X-Auth-Token`` in request headers.
+        '''
+        return self.default_headers.get('X-Auth-Token')
+
+    @token.setter
+    def token(self, token):
+        self.default_headers['X-Auth-Token'] = token
+
+    @token.deleter
+    def token(self):
+        del self.default_headers['X-Auth-Token']
+
+
+class QERequestsLoggingClient(IdentityRequestsLoggingClient):
+
+    def __init__(self, token=None, **identity_requests_logging_client_kwargs):
+        '''
+        Essentially alias for the IdentityRequestsLoggingClient client.
+
+        The only difference between this and IdentityRequestsLoggingClient
+        is that the token parameter is optional for this class.
+        This is done in order to avoid a breaking change.
+
+        Previously, QERequestsLoggingClient was the only logging client,
+        and it had the Identity X-Auth-Token logic built it,
+        though the token parameter and thus the Identity authentication logic was optional.
+
+        Use of the IdentityRequestsLoggingClient is preferred
+        if the user needs the Identity authentication logic.
+        If not, the base RequestsLoggingClient is preferred.
+
+        Perhaps at some point this alias can be removed.
+
+        Args:
+            **identity_requests_logging_client_kwargs: Additional keyword arguments
+                to be passed to the RequestsLoggingClient ``__init__`` method.
+        '''
+        super(QERequestsLoggingClient, self).__init__(token=token,
+                                                      **identity_requests_logging_client_kwargs)
+
+        if _show_warnings:
+            warning = ("Warning: The QERequestsLoggingClient will be depreciated. "
+                       "Please use IdentityRequestsLoggingClient if you need Identity authentication "
+                       "logic, or RequestsLoggingClient if you do not need any authentication.")
+            print(warning)
+            self.log(warning)
+
+
+class BasicAuthRequestsLoggingClient(RequestsLoggingClient):
+
+    def __init__(self, username, password, **requests_logging_client_kwargs):
+        '''
+        A requests logging client specifically designed for authenticating with Basic Auth.
+
+        Args:
+            username (str): The username to be used in the basic authentication for all requests.
+            password (str): The password to be used in the basic authentication for all requests.
+            **requests_logging_client_kwargs: Additional keyword arguments to be passed to the
+                RequestsLoggingClient ``__init__`` method.
+        '''
+        super(BasicAuthRequestsLoggingClient, self).__init__(**requests_logging_client_kwargs)
+        self._auth = (username, password)
+
+    def request(self, **request_kwargs):
+        '''Make a request using the initialized Basic Authentication.'''
+        return super(BasicAuthRequestsLoggingClient, self).request(auth=self._auth,
+                                                                   **request_kwargs)

@@ -19,6 +19,11 @@ from qe_logging.requests_client_logging import QERequestsLoggingClient
 from qe_logging.requests_logging import RequestAndResponseLogger
 
 
+# Suppress warnings from this module to ensure an empty log file
+from qe_logging.requests_client_logging import suppress_warnings
+suppress_warnings()
+
+
 def teardown_function():
     # Handlers must be cleared or they will cause interference with other tests.
     del logging.getLogger('').handlers[:]
@@ -75,7 +80,7 @@ def assert_not_in(part, whole, prefix):
 
 
 def _make_request(request_item, log_message=None, url_prefix=None, **kwargs):
-    '''Make a request and return the lof file contents and meta-data about the request made'''
+    '''Make a request and return the log file contents and meta-data about the request made'''
     log_file = _setup_logging()
     method = request_item.method.lower()
     url = request_item.url
