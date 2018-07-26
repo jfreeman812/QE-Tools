@@ -238,9 +238,10 @@ class QERequestsLoggingClient(IdentityRequestsLoggingClient):
                                                       **identity_requests_logging_client_kwargs)
 
         if _show_warnings:
-            warning = ("Warning: The QERequestsLoggingClient will be depreciated. "
-                       "Please use IdentityRequestsLoggingClient if you need Identity authentication "
-                       "logic, or RequestsLoggingClient if you do not need any authentication.")
+            warning = ('Warning: The QERequestsLoggingClient will be depreciated. '
+                       'Please use IdentityRequestsLoggingClient if you need Identity '
+                       'authentication logic, '
+                       'or RequestsLoggingClient if you do not need any authentication.')
             print(warning)
             self.log(warning)
 
