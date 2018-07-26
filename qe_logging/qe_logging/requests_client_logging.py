@@ -258,9 +258,11 @@ class BasicAuthRequestsLoggingClient(RequestsLoggingClient):
                 RequestsLoggingClient ``__init__`` method.
         '''
         super(BasicAuthRequestsLoggingClient, self).__init__(**requests_logging_client_kwargs)
-        self._auth = (username, password)
+        self.username = username
+        self.password = password
 
     def request(self, **request_kwargs):
         '''Make a request using the initialized Basic Authentication.'''
-        return super(BasicAuthRequestsLoggingClient, self).request(auth=self._auth,
-                                                                   **request_kwargs)
+
+        return super(BasicAuthRequestsLoggingClient, self).request(
+            auth=(self.username, self.password), **request_kwargs)
