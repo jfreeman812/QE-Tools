@@ -19,7 +19,7 @@ from qe_logging.requests_logging import RequestAndResponseLogger
 
 
 # Suppress warnings while we are still testing QERequestsLoggingClient
-warnings.filterwarnings("ignore", ".*QERequestsLoggingClient.*")
+warnings.filterwarnings('ignore', '.*QERequestsLoggingClient.*')
 
 
 def teardown_function():
