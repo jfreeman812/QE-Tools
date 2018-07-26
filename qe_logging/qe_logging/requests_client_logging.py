@@ -189,7 +189,7 @@ class IdentityRequestsLoggingClient(RequestsLoggingClient):
             token (str): The authentication token from Identity to be used as the ``X-Auth-Token``
                 header in all requests.
             **requests_logging_client_kwargs: Additional keyword arguments to be passed to the
-                RequestsLoggingClient ``__init__`` method.
+                ``RequestsLoggingClient``'s ``__init__`` method.
         '''
         super(IdentityRequestsLoggingClient, self).__init__(**requests_logging_client_kwargs)
         self.token = token
@@ -214,19 +214,19 @@ class QERequestsLoggingClient(IdentityRequestsLoggingClient):
 
     def __init__(self, token=None, **identity_requests_logging_client_kwargs):
         '''
-        Essentially alias for the IdentityRequestsLoggingClient client.
+        Essentially an alias for the ``IdentityRequestsLoggingClient`` client.
 
-        The only difference between this and IdentityRequestsLoggingClient
+        The only difference between this and ``IdentityRequestsLoggingClient``
         is that the token parameter is optional for this class.
         This is done in order to avoid a breaking change.
 
-        Previously, QERequestsLoggingClient was the only logging client,
-        and it had the Identity X-Auth-Token logic built it,
+        Previously, ``QERequestsLoggingClient`` was the only logging client,
+        and it had the Identity X-Auth-Token logic built in,
         though the token parameter and thus the Identity authentication logic was optional.
 
-        Use of the IdentityRequestsLoggingClient is preferred
+        Use of the ``IdentityRequestsLoggingClient`` is preferred
         if the user needs the Identity authentication logic.
-        If not, the base RequestsLoggingClient is preferred.
+        If not, the base ``RequestsLoggingClient`` is preferred.
 
         Perhaps at some point this alias can be removed.
 
@@ -256,14 +256,14 @@ class BasicAuthRequestsLoggingClient(RequestsLoggingClient):
             username (str): The username to be used in the basic authentication for all requests.
             password (str): The password to be used in the basic authentication for all requests.
             **requests_logging_client_kwargs: Additional keyword arguments to be passed to the
-                RequestsLoggingClient ``__init__`` method.
+                ``RequestsLoggingClient``'s ``__init__`` method.
         '''
         super(BasicAuthRequestsLoggingClient, self).__init__(**requests_logging_client_kwargs)
         self.username = username
         self.password = password
 
     def request(self, **request_kwargs):
-        '''Make a request using the initialized Basic Authentication.'''
+        '''Make a request using Basic Authentication.'''
 
         return super(BasicAuthRequestsLoggingClient, self).request(
             auth=(self.username, self.password), **request_kwargs)
