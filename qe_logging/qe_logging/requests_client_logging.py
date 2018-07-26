@@ -211,29 +211,13 @@ class IdentityRequestsLoggingClient(RequestsLoggingClient):
 
 
 class QERequestsLoggingClient(IdentityRequestsLoggingClient):
+    '''
+    Legacy Logging Client.
+
+    Use ``IdentityRequestsLoggingClient`` or ``RequestsLoggingClient`` instead.
+    '''
 
     def __init__(self, token=None, **identity_requests_logging_client_kwargs):
-        '''
-        Essentially an alias for the ``IdentityRequestsLoggingClient`` client.
-
-        The only difference between this and ``IdentityRequestsLoggingClient``
-        is that the token parameter is optional for this class.
-        This is done in order to avoid a breaking change.
-
-        Previously, ``QERequestsLoggingClient`` was the only logging client,
-        and it had the Identity X-Auth-Token logic built in,
-        though the token parameter and thus the Identity authentication logic was optional.
-
-        Use of the ``IdentityRequestsLoggingClient`` is preferred
-        if the user needs the Identity authentication logic.
-        If not, the base ``RequestsLoggingClient`` is preferred.
-
-        Perhaps at some point this alias can be removed.
-
-        Args:
-            **identity_requests_logging_client_kwargs: Additional keyword arguments
-                to be passed to the RequestsLoggingClient ``__init__`` method.
-        '''
         super(QERequestsLoggingClient, self).__init__(token=token,
                                                       **identity_requests_logging_client_kwargs)
 
