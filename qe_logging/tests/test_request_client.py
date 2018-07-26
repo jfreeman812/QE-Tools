@@ -1,8 +1,7 @@
 from collections import namedtuple
-from copy import deepcopy
-from itertools import product
 import logging
 from tempfile import mkdtemp
+import warnings
 
 try:
     from urllib.parse import urljoin
@@ -19,9 +18,8 @@ from qe_logging.requests_client_logging import QERequestsLoggingClient
 from qe_logging.requests_logging import RequestAndResponseLogger
 
 
-# Suppress warnings from this module to ensure an empty log file
-from qe_logging.requests_client_logging import suppress_warnings
-suppress_warnings()
+# Suppress warnings while we are still testing QERequestsLoggingClient
+warnings.filterwarnings("ignore", ".*QERequestsLoggingClient.*")
 
 
 def teardown_function():

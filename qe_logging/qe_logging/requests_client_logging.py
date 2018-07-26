@@ -25,6 +25,7 @@ except ImportError:
     from urllib import quote, quote_plus
 import inspect
 import sys
+import warnings
 
 import requests
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
@@ -37,14 +38,6 @@ from qecommon_tools import class_lookup, dict_strip_value
 logging.getLogger('urllib3.connectionpool').setLevel(logging.ERROR)
 # Silence requests complaining about insecure connections; needed for our internal certificates
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
-
-
-_show_warnings = True
-
-
-def suppress_warnings():
-    global _show_warnings
-    _show_warnings = False
 
 
 def _url_sanitize(url):
@@ -220,14 +213,12 @@ class QERequestsLoggingClient(IdentityRequestsLoggingClient):
     def __init__(self, token=None, **identity_requests_logging_client_kwargs):
         super(QERequestsLoggingClient, self).__init__(token=token,
                                                       **identity_requests_logging_client_kwargs)
-
-        if _show_warnings:
-            warning = ('Warning: The QERequestsLoggingClient will be depreciated. '
-                       'Please use IdentityRequestsLoggingClient if you need Identity '
-                       'authentication logic, '
-                       'or RequestsLoggingClient if you do not need any authentication.')
-            print(warning)
-            self.log(warning)
+        # A specific DeprecationWarning is not used here because it is ignored by default.
+        # We want people to be bothered by our deprecation warnings :)
+        warnings.warn('Warning: The QERequestsLoggingClient will be depreciated. '
+                      'Please use IdentityRequestsLoggingClient if you need Identity '
+                      'authentication logic, '
+                      'or RequestsLoggingClient if you do not need any authentication.')
 
 
 class BasicAuthRequestsLoggingClient(RequestsLoggingClient):
