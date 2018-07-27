@@ -441,13 +441,13 @@ class Table(Locator):
             if (search_text is None) or (search_text in row.text):
                 yield row
 
-    def get_row_count(self, row_locator=None, search_text=False):
+    def get_row_count(self, row_locator=None, search_text=None):
         '''the number of rows found by ``get_rows`` with the same parameters.
 
         Args:
             row_locator (Locator): The locator object for finding rows.
             search_text (str, optional): text to be searched for within each row.
-                Ir None, then all rows found are counted.
+                If None, then all rows found are counted.
 
         Returns:
             int: the number of rows matching the criteria given.
