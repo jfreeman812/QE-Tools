@@ -447,7 +447,7 @@ class Table(Locator):
         Args:
             row_locator (Locator): The locator object for finding rows.
             search_text (str, optional): text to be searched for within each row.
-                Ir None, then all rows found are counted.
+                If None, then all rows found are counted.
 
         Returns:
             int: the number of rows matching the criteria given.
