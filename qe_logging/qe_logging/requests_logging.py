@@ -241,3 +241,33 @@ class SilentLogger(RequestAndResponseLogger):
         logger.setLevel('CRITICAL')
         logger.critical = lambda *args, **kwargs: None
         super(SilentLogger, self).__init__(logger=logger)
+
+
+class LastOnlyLogger(RequestAndResponseLogger):
+    '''
+    For use when logging only the last of a series of requests is desired.
+    '''
+    def __init__(self, *args, **kwargs):
+        super(LastOnlyLogger, self).__init__(*args, **kwargs)
+        self._last_log = None
+
+    def log(self, request_kwargs, response):
+        '''
+        Holds the request_kwargs and response data provided.
+
+        This can be called many times and it will retain the last request / response data that it
+        was called with.  The ``done`` method can then be called to record this data.
+
+        Args:
+            request_kwargs (dict): Eventually passed to ``RequestAndResponseLogger.log_request``,
+                see that doc for info.
+            response (requests.models.Response): Eventually passed to
+                ``RequestAndResponseLogger.log_response``, see that doc for info.
+        '''
+        self._last_log = (request_kwargs, response)
+
+    def done(self):
+        '''
+        Logs the last request / response data received by the ``log`` method.
+        '''
+        super(LastOnlyLogger, self).log(*self._last_log)
