@@ -171,11 +171,11 @@ class RequestsLoggingClient(class_lookup.get('requests.Session', requests.Sessio
         return response
 
 
-class IdentityRequestsLoggingClient(RequestsLoggingClient):
+class XAuthTokenRequestsLoggingClient(RequestsLoggingClient):
 
     def __init__(self, token, base_url=None, curl_logger=None, content_type='application/json'):
         '''
-        A requests logging client specifically designed for authenticating with Identity.
+        A requests logging client that adds an ``X-Auth-Token`` header to all requests.
 
         Args:
             token (str): The authentication token from Identity to be used as the ``X-Auth-Token``
@@ -190,7 +190,7 @@ class IdentityRequestsLoggingClient(RequestsLoggingClient):
                 Defaults to ``RequestAndResponseLogger``.
             content_type (str, optional):  The default content type to include in the headers.
         '''
-        super(IdentityRequestsLoggingClient, self).__init__(base_url, curl_logger, content_type)
+        super(XAuthTokenRequestsLoggingClient, self).__init__(base_url, curl_logger, content_type)
         self.token = token
 
     @property
@@ -209,11 +209,11 @@ class IdentityRequestsLoggingClient(RequestsLoggingClient):
         del self.default_headers['X-Auth-Token']
 
 
-class QERequestsLoggingClient(IdentityRequestsLoggingClient):
+class QERequestsLoggingClient(XAuthTokenRequestsLoggingClient):
     '''
     Legacy Logging Client.
 
-    Use ``IdentityRequestsLoggingClient`` or ``RequestsLoggingClient`` instead.
+    Use ``XAuthTokenRequestsLoggingClient`` or ``RequestsLoggingClient`` instead.
     '''
 
     def __init__(self, token=None, **identity_requests_logging_client_kwargs):
@@ -222,8 +222,8 @@ class QERequestsLoggingClient(IdentityRequestsLoggingClient):
         # A specific DeprecationWarning is not used here because it is ignored by default.
         # We want people to be bothered by our deprecation warnings :)
         warnings.warn('Warning: The QERequestsLoggingClient will be depreciated. '
-                      'Please use IdentityRequestsLoggingClient if you need Identity '
-                      'authentication logic, '
+                      'Please use XAuthTokenRequestsLoggingClient if you need to '
+                      'authenticate with an X-Auth-Token, '
                       'or RequestsLoggingClient if you do not need any authentication.')
 
 
