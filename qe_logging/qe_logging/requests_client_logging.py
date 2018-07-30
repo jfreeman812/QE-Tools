@@ -1,9 +1,8 @@
 '''
 Human friendly logging of requests library request/response objects.
 
-``QERequestsLoggingClient`` is a drop-in replacement for the
-``requests.Session`` class that provides human-friendly logging,
-default URL handling, and a ``.token`` property for the ``X-Auth-Token`` header.
+``RequestsLoggingClient`` is a drop-in replacement for the ``requests.Session`` class
+that provides human-friendly logging, default URL handling, and default headers capability.
 
 This module uses ``class_lookup`` from ``qecommon_tools`` with the key
 ``requests.Session`` instead of hardcoding that class name, which is just the default
@@ -15,6 +14,9 @@ if no value set.  If you need to change the class used, update ``class_lookup``
     class_lookup['requests.Session'] = MyClassToUseInstead
 
     import qe_logging.requests_client_logging  # noqa  (comment is for flake8)
+
+This module also includes additional requests logging clients
+that control specific types of API authentication.
 '''
 
 import logging
@@ -81,7 +83,6 @@ class RequestsLoggingClient(class_lookup.get('requests.Session', requests.Sessio
                  content_type='application/json'):
         '''
         A logging client based on ``requests.Session``.
-
 
         Args:
             base_url (str, optional): Used as a prefix for all the request methods' URL parameters,
