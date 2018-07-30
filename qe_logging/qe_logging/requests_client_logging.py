@@ -16,7 +16,7 @@ if no value set.  If you need to change the class used, update ``class_lookup``
     import qe_logging.requests_client_logging  # noqa  (comment is for flake8)
 
 This module also includes additional requests logging clients
-that control specific types of API authentication.
+that support specific types of authentication.
 '''
 
 import logging
