@@ -82,6 +82,18 @@ layers = no_such.config, layer1.config
 [Expanduser Nonexistant File]
 layers = ~/no_such_{}.config, %(common)s
 '''.format(MASTER_CONFIG_SIGNATURE, str(uuid4())),
+    'master_without_env_override_section.config': '''
+[L3]
+layers = layer_with_env_override.config
+''',
+    'layer_with_env_override.config': '''
+[ENVIRONMENT VARIABLE OVERRIDE INFO]
+prefix = FROM_LAYER
+separator = ~
+
+[section_1]
+key1=key1 from layer with env override section
+'''
 }
 
 
@@ -152,6 +164,14 @@ def test_env_var_can_override_config_value(sample_configs, monkeypatch):
     monkeypatch.setenv('CONFIG+Foundation+key1', new_value)
     config = load_cake(sample_configs, 'L1')
     assert config.get('Foundation', 'key1') == new_value
+
+
+def test_env_var_override_section_can_be_defined_in_a_layer(sample_configs, monkeypatch):
+    master = path.join(path.dirname(sample_configs), 'master_without_env_override_section.config')
+    new_value = 'key1 from environment override'
+    monkeypatch.setenv('FROM_LAYER~section_1~key1', new_value)
+    config = load_cake(master, 'L3')
+    assert config.get('section_1', 'key1') == new_value
 
 
 def test_env_var_can_define_new_section(sample_configs, monkeypatch):

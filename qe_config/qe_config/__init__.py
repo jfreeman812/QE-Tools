@@ -4,7 +4,7 @@
 with optional environment variable overrides.
 
 :py:func:`munchify_config` - copy a ``ConfigParser`` instance to a `munch`_ to support
-attribute access to configuration data.
+attribute access to configuration data. (Note: ``qe-config[munch]`` must be installed)
 
 Layers of configuration files?  Yes! Read on!
 
@@ -35,15 +35,17 @@ as you would with any ``ConfigParser`` instance.
 ``load_cake`` merges configuration files just as the ``ConfigParser.read()`` method does,
 but, unlike ``read()``, all the files must exist.
 
-The 'master' config file has a section for defining how environment variable overrides work.
-If this section is missing, environment variables are ignored and cannot override values from
-the configuration file(s) in the cakes.
-The rest of the sections in the 'master' config file define your various cakes.
-Each cake section must have a ``layers`` key defining the configuration files to be loaded,
+The 'master' config file has sections that represent your various cakes.
+Each cake section must have a ``layers`` key defining the relative paths
+of configuration files to be loaded,
 from left to right.
 All the keys and their values from the cake's section of the 'master' config file will be
 set in the ``defaults`` dictionary of the ``ConfigParser`` instance `before` the config files
 from the ``layers`` key are loaded.
+
+If a section for defining how environment variable overrides work is included in the 'master'
+config file, or any of the the config files from the layers,
+then config values can be overridden with environment variables.
 
 
 Here is a simple example.
@@ -73,7 +75,7 @@ master.config::
     # Override configuration data by setting environment variables with this prefix;
     prefix=MyPrefix
 
-    # Environemnt variable overrides will be of the form:
+    # Environment variable overrides will be of the form:
     #     <prefix><separator><section name><separator><option name>
     # In this example:
     #     MyPrefix__Section-A__key3=env_var_value_here
@@ -140,14 +142,14 @@ def _new_config_from(config_file):
     return c
 
 
-def _env_override(config, master_config, environment):
+def _env_override(config, environment):
     '''Process environment overrides, if any are configured.'''
 
-    if not master_config.has_section(ENV_VAR_SECTION_NAME):
+    if not config.has_section(ENV_VAR_SECTION_NAME):
         return
 
-    prefix = master_config.get(ENV_VAR_SECTION_NAME, 'prefix')
-    separator = master_config.get(ENV_VAR_SECTION_NAME, 'separator')
+    prefix = config.get(ENV_VAR_SECTION_NAME, 'prefix')
+    separator = config.get(ENV_VAR_SECTION_NAME, 'separator')
 
     env_prefix = prefix + separator
     for key, value in environment.items():
@@ -162,7 +164,7 @@ def _env_override(config, master_config, environment):
         config.set(section, option, value)
 
 
-def load_cake(master_config, cake_name, into_config=None):
+def load_cake(master_config_path, cake_name, into_config=None):
     '''
     Load a layered configuration cake by name from a master config file.
 
@@ -172,7 +174,7 @@ def load_cake(master_config, cake_name, into_config=None):
     files are loaded.
 
     Args:
-        master_config (str): the name of the master configuration file.
+        master_config_path (str): the file path for the master configuration file.
         cake_name (str): the particular configuration to load as described
             in the master configuration file.
             This is the name of a section of the master configuration file.
@@ -190,12 +192,12 @@ def load_cake(master_config, cake_name, into_config=None):
         NoOptionError: If any required options are missing, either from the
             environment override section, or any individual CAKE section.
     '''
-    master_config = os.path.expanduser(master_config)
-    c = _new_config_from(master_config)
+    master_config_path = os.path.expanduser(master_config_path)
+    master_config = _new_config_from(master_config_path)
     section_name = cake_name
 
-    filename_list = string_to_list(c.get(section_name, CONFIG_FILE_LIST_KEY))
-    filename_list = _filenames_relative_to(master_config, filename_list)
+    filename_list = string_to_list(master_config.get(section_name, CONFIG_FILE_LIST_KEY))
+    filename_list = _filenames_relative_to(master_config_path, filename_list)
 
     result_config = ConfigParser() if into_config is None else into_config
 
@@ -205,12 +207,24 @@ def load_cake(master_config, cake_name, into_config=None):
     # Since Python 2 doesn't have .read_dict() and since a pre-existing
     # config parser may have been passed in, this avoids any Python version
     # specific code, but does require keys to be lower-cased to make them findable.
-    result_config.defaults().update([(k.lower(), v) for k, v in c.items(section_name)])
+    result_config.defaults().update([(k.lower(), v) for k, v in master_config.items(section_name)])
+
+    # Transfer over the environment variable override information section (if it exists)
+    # from the master config to the newly created or passed in 'result' config,
+    # since the result config will be used for determining if and how
+    # environment variable overrides will work.
+    if master_config.has_section(ENV_VAR_SECTION_NAME):
+        result_config.add_section(ENV_VAR_SECTION_NAME)
+        for k, v in master_config.items(ENV_VAR_SECTION_NAME):
+            result_config.set(ENV_VAR_SECTION_NAME, k.lower(), v)
 
     for filename in filename_list:
         _must_read(result_config, filename)
 
-    _env_override(result_config, c, os.environ)
+    # The result config is used for environment variable override information
+    # so that the environment variable override section can be defined
+    # in any of the layers or in the master config file.
+    _env_override(result_config, os.environ)
 
     return result_config
 
