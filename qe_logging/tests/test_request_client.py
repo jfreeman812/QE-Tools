@@ -1,8 +1,7 @@
 from collections import namedtuple
-from copy import deepcopy
-from itertools import product
 import logging
 from tempfile import mkdtemp
+import warnings
 
 try:
     from urllib.parse import urljoin
@@ -17,6 +16,10 @@ from qecommon_tools import generate_random_string, get_file_contents
 from qe_logging import setup_logging
 from qe_logging.requests_client_logging import QERequestsLoggingClient
 from qe_logging.requests_logging import RequestAndResponseLogger
+
+
+# Suppress warnings while we are still testing QERequestsLoggingClient
+warnings.filterwarnings('ignore', '.*QERequestsLoggingClient.*')
 
 
 def teardown_function():
@@ -75,7 +78,7 @@ def assert_not_in(part, whole, prefix):
 
 
 def _make_request(request_item, log_message=None, url_prefix=None, **kwargs):
-    '''Make a request and return the lof file contents and meta-data about the request made'''
+    '''Make a request and return the log file contents and meta-data about the request made'''
     log_file = _setup_logging()
     method = request_item.method.lower()
     url = request_item.url
