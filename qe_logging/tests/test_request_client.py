@@ -112,7 +112,7 @@ def assert_not_in(part, whole, prefix):
 
 def _make_request(client_class, client_class_kwargs, request_item, log_message=None,
                   url_prefix=None, **kwargs):
-    '''Make a request and return the log file contents and meta-data about the request made'''
+    '''Make a request and return the log contents, info about the request, and the response.'''
     log_file = _setup_logging()
     method = request_item.method.lower()
     url = request_item.url
@@ -125,11 +125,13 @@ def _make_request(client_class, client_class_kwargs, request_item, log_message=N
     outgoing_text = generate_random_string()
     response = session_method(url, data=outgoing_text)
     log_contents = get_file_contents(log_file)
-    return log_contents, {'request URL': url,
-                          'outgoing text': outgoing_text,
-                          'status_code': str(response.status_code),
-                          'response text': request_item.text,
-                          }
+    fields = {
+        'request URL': url,
+        'outgoing text': outgoing_text,
+        'status_code': str(response.status_code),
+        'response text': request_item.text,
+    }
+    return log_contents, fields, response
 
 
 @pytest.mark.parametrize('client_class, client_class_kwargs, request_item',
@@ -140,8 +142,8 @@ def test_logs_are_written(client_class, client_class_kwargs, request_item):
     Checking that the data makes it to the log in some form,
     we have other tests that cover the formatting in detail.
     '''
-    log_contents, fields = _make_request(client_class, client_class_kwargs, request_item,
-                                         log_message='logs are written')
+    log_contents, fields, _ = _make_request(client_class, client_class_kwargs, request_item,
+                                            log_message='logs are written')
     for field_name, value in fields.items():
         assert_in(value, log_contents, field_name)
 
@@ -155,8 +157,8 @@ def test_logs_can_be_suppressed(client_class, client_class_kwargs, request_item)
     be individually suppressed as well.
     This is making sure the basic pathways are covered.
     '''
-    log_contents, _ = _make_request(client_class, client_class_kwargs, request_item,
-                                    with_logger=NoLogging)
+    log_contents, _, _ = _make_request(client_class, client_class_kwargs, request_item,
+                                       with_logger=NoLogging)
     assert log_contents == '', "Expected empty log, got '{}'".format(log_contents)
 
 
@@ -173,9 +175,27 @@ def test_with_no_base_url(client_class, client_class_kwargs, request_item):
                          _clients_and_requests_combinations)
 def test_base_url_override(client_class, client_class_kwargs, request_item):
     '''Individual requests full URLs can override a base_url setting.'''
-    log_contents, fields = _make_request(client_class, client_class_kwargs, request_item,
-                                         base_url='https://example.org',
-                                         url_prefix=MOCK_BASE,
-                                         log_message='url override')
+    log_contents, fields, _ = _make_request(client_class, client_class_kwargs, request_item,
+                                            base_url='https://example.org',
+                                            url_prefix=MOCK_BASE,
+                                            log_message='url override')
     for field_name, value in fields.items():
         assert_in(value, log_contents, field_name)
+
+
+@pytest.mark.parametrize('request_item', REQUESTS_TO_TEST)
+def test_x_auth_token_client_includes_x_auth_token_in_request(request_item):
+    _, _, response = _make_request(XAuthTokenRequestsLoggingClient,
+                                   {'token': TOKEN},
+                                   request_item)
+    assert 'X-Auth-Token' in response.request.headers
+    assert response.request.headers['X-Auth-Token'] == TOKEN
+
+
+@pytest.mark.parametrize('request_item', REQUESTS_TO_TEST)
+def test_basic_auth_client_includes_basic_auth_in_request(request_item):
+    _, _, response = _make_request(BasicAuthRequestsLoggingClient,
+                                   {'username': USERNAME, 'password': PASSWORD},
+                                   request_item)
+    assert 'Authorization' in response.request.headers
+    assert response.request.headers['Authorization'].startswith('Basic')
