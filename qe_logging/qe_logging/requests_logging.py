@@ -243,20 +243,22 @@ class SilentLogger(RequestAndResponseLogger):
         super(SilentLogger, self).__init__(logger=logger)
 
 
-class LastOnlyLogger(RequestAndResponseLogger):
+class LastOnlyRequestAndResponseLogger(RequestAndResponseLogger):
     '''
     For use when logging only the last of a series of requests is desired.
     '''
     def __init__(self, *args, **kwargs):
-        super(LastOnlyLogger, self).__init__(*args, **kwargs)
+        super(LastOnlyRequestAndResponseLogger, self).__init__(*args, **kwargs)
         self._last_log = None
 
     def log(self, request_kwargs, response):
         '''
         Holds the request_kwargs and response data provided.
 
-        This can be called many times and it will retain the last request / response data that it
-        was called with.  The ``done`` method can then be called to record this data.
+        Keep track of the latest request/response to be logged, but don't actually log them until
+        'done' is called.  In this way, this logger can be passed to any client and intermediate
+        request/response '.log' calls will work, but the master puppet master can then call 'done'
+        to log just the last request/response pair handled.
 
         Args:
             request_kwargs (dict): Eventually passed to ``RequestAndResponseLogger.log_request``,
@@ -270,4 +272,4 @@ class LastOnlyLogger(RequestAndResponseLogger):
         '''
         Logs the last request / response data received by the ``log`` method.
         '''
-        super(LastOnlyLogger, self).log(*self._last_log)
+        super(LastOnlyRequestAndResponseLogger, self).log(*self._last_log)

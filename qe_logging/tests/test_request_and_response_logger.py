@@ -4,7 +4,7 @@ import logging
 from tempfile import mkdtemp
 
 import pytest
-from qecommon_tools import generate_random_string
+from qecommon_tools import generate_random_string, get_file_contents
 from qecommon_tools.assert_ import not_in
 import requests
 import requests_mock
@@ -14,7 +14,7 @@ from qe_logging import setup_logging
 from qe_logging.requests_logging import (
     IdentityLogger,
     RequestAndResponseLogger,
-    LastOnlyLogger,
+    LastOnlyRequestAndResponseLogger,
     NoResponseContentLogger,
     NoRequestDataNoResponseContentLogger,
     SilentLogger,
@@ -139,15 +139,10 @@ def teardown_function():
     del logging.getLogger('').handlers[:]
 
 
-def _get_file_contents(log_file):
-    with open(log_file, 'r') as f:
-        return f.read()
-
-
 def _setup_log_and_get_contents(req, resp, log_class=RequestAndResponseLogger, **init_kwargs):
     log_file = _setup_logging()
     log_class(**init_kwargs).log(req, resp)
-    return _get_file_contents(log_file)
+    return get_file_contents(log_file)
 
 
 def _resp_status_logged_as(response):
@@ -369,7 +364,7 @@ def test_silent_logger_does_not_log_external_calls(found_before, found_after, no
 @pytest.mark.parametrize('test_request,test_resp', product(requests_to_test(), responses_to_test()))
 def test_last_only_logger(test_request, test_resp):
     log_file = _setup_logging()
-    last_only_logger = LastOnlyLogger()
+    last_only_logger = LastOnlyRequestAndResponseLogger()
     requests_and_responses_that_should_not_be_logged = list(product(
         requests_that_should_not_be_logged(), responses_that_should_not_be_logged()
     ))
@@ -379,7 +374,7 @@ def test_last_only_logger(test_request, test_resp):
     last_only_logger.log(test_request, test_resp)
     last_only_logger.done()
 
-    log_contents = _get_file_contents(log_file)
+    log_contents = get_file_contents(log_file)
     _verify_request(test_request, log_contents)
     _verify_response(test_resp, log_contents)
 
