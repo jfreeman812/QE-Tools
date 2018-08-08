@@ -4,7 +4,7 @@ import logging
 from tempfile import mkdtemp
 
 import pytest
-from qecommon_tools import generate_random_string
+from qecommon_tools import generate_random_string, get_file_contents
 from qecommon_tools.assert_ import not_in
 import requests
 import requests_mock
@@ -14,6 +14,7 @@ from qe_logging import setup_logging
 from qe_logging.requests_logging import (
     IdentityLogger,
     RequestAndResponseLogger,
+    LastOnlyRequestAndResponseLogger,
     NoResponseContentLogger,
     NoRequestDataNoResponseContentLogger,
     SilentLogger,
@@ -78,6 +79,18 @@ adapter.register_uri(
     headers=single_item_random_dict(),
     json={'reponse_data': BAD_SECRET_RESPONSE_DATA},
 )
+adapter.register_uri(
+    'PATCH',
+    'mock://test.com/things-that-should-not-be-found',
+    status_code=404,
+    json=single_item_random_dict(),
+)
+adapter.register_uri(
+    'DELETE',
+    'mock://test.com/other-things-that-should-not-be-found',
+    status_code=209,
+    json=single_item_random_dict(),
+)
 
 
 def requests_to_test():
@@ -92,6 +105,20 @@ def responses_to_test():
         session.get('mock://test.com/ok'),
         session.post('mock://test.com/created'),
         session.put('mock://test.com/accepted'),
+    ]
+
+
+def requests_that_should_not_be_logged():
+    return [
+        {'url': 'mock://test.com/things-that-should-not-be-found', 'method': 'PATCH'},
+        {'url': 'mock://test.com/other-things-that-should-not-be-found', 'method': 'DELETE'},
+    ]
+
+
+def responses_that_should_not_be_logged():
+    return [
+        session.patch('mock://test.com/things-that-should-not-be-found'),
+        session.delete('mock://test.com/other-things-that-should-not-be-found'),
     ]
 
 
@@ -115,8 +142,7 @@ def teardown_function():
 def _setup_log_and_get_contents(req, resp, log_class=RequestAndResponseLogger, **init_kwargs):
     log_file = _setup_logging()
     log_class(**init_kwargs).log(req, resp)
-    with open(log_file, 'r') as f:
-        return f.read()
+    return get_file_contents(log_file)
 
 
 def _resp_status_logged_as(response):
@@ -333,3 +359,25 @@ def test_silent_logger_does_not_log_external_calls(found_before, found_after, no
     msg = '{}Logged value '.format(ROOT_MSG.format(log_contents))
     for value in [found_before, found_after]:
         assert value in log_contents, '{}{}'.format(msg, value)
+
+
+@pytest.mark.parametrize('test_request,test_resp', product(requests_to_test(), responses_to_test()))
+def test_last_only_logger(test_request, test_resp):
+    log_file = _setup_logging()
+    last_only_logger = LastOnlyRequestAndResponseLogger()
+    requests_and_responses_that_should_not_be_logged = list(product(
+        requests_that_should_not_be_logged(), responses_that_should_not_be_logged()
+    ))
+
+    for request_data, response in requests_and_responses_that_should_not_be_logged:
+        last_only_logger.log(request_data, response)
+    last_only_logger.log(test_request, test_resp)
+    last_only_logger.done()
+
+    log_contents = get_file_contents(log_file)
+    _verify_request(test_request, log_contents)
+    _verify_response(test_resp, log_contents)
+
+    for request_data, response in requests_and_responses_that_should_not_be_logged:
+        for value in [response.text, request_data['url'], request_data['method']]:
+            not_in(value, log_contents, msg='Value should not have been logged. ')
