@@ -152,6 +152,20 @@ class RequestsLoggingClient(class_lookup.get('requests.Session', requests.Sessio
         return response
 
 
+class _XAuthTokenNoAuthContextManager(object):
+    '''A context manager for disabling auth for an ``XAuthTokenRequestsLoggingClient``.'''
+
+    def __init__(self, client):
+        self.client = client
+
+    def __enter__(self):
+        self.original_token = self.client.token
+        del self.client.token
+
+    def __exit__(self, type, value, traceback):
+        self.client.token = self.original_token
+
+
 class XAuthTokenRequestsLoggingClient(RequestsLoggingClient):
 
     def __init__(self, token, base_url=None, curl_logger=None, content_type='application/json'):
@@ -173,6 +187,20 @@ class XAuthTokenRequestsLoggingClient(RequestsLoggingClient):
         '''
         super(XAuthTokenRequestsLoggingClient, self).__init__(base_url, curl_logger, content_type)
         self.token = token
+
+    @property
+    def no_auth(self):
+        '''
+        Return a context manager that will temporarily disable authentication for this client.
+
+        Example Usage::
+
+            client = XAuthTokenRequestsLoggingClient('<token>')
+            with client.no_auth:
+                # This request will not include an X-Auth-Token header
+                client.get('<url>')
+        '''
+        return _XAuthTokenNoAuthContextManager(client=self)
 
     @property
     def token(self):
@@ -208,6 +236,23 @@ class QERequestsLoggingClient(XAuthTokenRequestsLoggingClient):
                       'or RequestsLoggingClient if you do not need any authentication.')
 
 
+class _BasicAuthNoAuthContextManager(object):
+    '''A context manager for disabling auth for an ``BasicAuthRequestsLoggingClient``.'''
+
+    def __init__(self, client):
+        self.client = client
+
+    def __enter__(self):
+        self.original_username = self.client.username
+        self.original_password = self.client.password
+        self.client.username = None
+        self.client.password = None
+
+    def __exit__(self, type, value, traceback):
+        self.client.username = self.original_username
+        self.client.password = self.original_password
+
+
 class BasicAuthRequestsLoggingClient(RequestsLoggingClient):
 
     def __init__(self, username, password, base_url=None, curl_logger=None,
@@ -232,6 +277,20 @@ class BasicAuthRequestsLoggingClient(RequestsLoggingClient):
         self.username = username
         self.password = password
 
+    @property
+    def no_auth(self):
+        '''
+        Return a context manager that will temporarily disable authentication for this client.
+
+        Example Usage::
+
+            client = BasicAuthRequestsLoggingClient('<username>', '<password>')
+            with client.no_auth:
+                # This request will not include an Authentication header
+                client.get('<url>')
+        '''
+        return _BasicAuthNoAuthContextManager(client=self)
+
     def request(self, method, url, curl_logger=None, **kwargs):
         '''
         Make a request using Basic Authentication.
@@ -250,5 +309,8 @@ class BasicAuthRequestsLoggingClient(RequestsLoggingClient):
         Returns:
             response (requests.Response): The result from the parent request call.
         '''
-        return super(BasicAuthRequestsLoggingClient, self).request(
-            method, url, curl_logger, auth=(self.username, self.password), **kwargs)
+        # The self.no_auth context manager sets the username and password values to None,
+        # so the auth needs to be disabled here if neither of those values are set.
+        auth = (self.username, self.password) if self.username and self.password else None
+        return super(BasicAuthRequestsLoggingClient, self).request(method, url, curl_logger,
+                                                                   auth=auth, **kwargs)
