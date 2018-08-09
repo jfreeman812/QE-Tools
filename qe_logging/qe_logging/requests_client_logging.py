@@ -162,7 +162,7 @@ class _XAuthTokenNoAuthContextManager(object):
         self.original_token = self.client.token
         del self.client.token
 
-    def __exit__(self, type, value, traceback):
+    def __exit__(self, type_, value, traceback):
         self.client.token = self.original_token
 
 
@@ -248,7 +248,7 @@ class _BasicAuthNoAuthContextManager(object):
         self.client.username = None
         self.client.password = None
 
-    def __exit__(self, type, value, traceback):
+    def __exit__(self, type_, value, traceback):
         self.client.username = self.original_username
         self.client.password = self.original_password
 
