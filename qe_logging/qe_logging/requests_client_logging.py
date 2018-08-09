@@ -21,10 +21,9 @@ that support specific types of authentication.
 
 import logging
 try:
-    from urllib.parse import quote, quote_plus, urljoin, urlsplit, urlunsplit
+    from urllib.parse import urljoin
 except ImportError:
-    from urlparse import urljoin, urlsplit, urlunsplit
-    from urllib import quote, quote_plus
+    from urlparse import urljoin
 import inspect
 import sys
 import warnings
@@ -40,35 +39,6 @@ from qecommon_tools import class_lookup, dict_strip_value
 logging.getLogger('urllib3.connectionpool').setLevel(logging.ERROR)
 # Silence requests complaining about insecure connections; needed for our internal certificates
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
-
-
-def _url_sanitize(url):
-    if not url:
-        return url
-
-    if '://' not in url:
-        return quote(url.encode('utf-8'))
-
-    parts = urlsplit(url)
-    return urlunsplit(
-        (
-            parts.scheme,
-            parts.netloc,
-            quote(parts.path),
-            quote_plus(parts.query),
-            quote(parts.fragment)
-        )
-    )
-
-
-def _full_url(base_url, url=None):
-    if not url:
-        return base_url
-    if not base_url:
-        return url
-    if not base_url.endswith('/'):
-        base_url += '/'
-    return urljoin(base_url, _url_sanitize(url))
 
 
 class RequestsLoggingClient(class_lookup.get('requests.Session', requests.Session)):
@@ -117,6 +87,16 @@ class RequestsLoggingClient(class_lookup.get('requests.Session', requests.Sessio
             return self._initialized_logger(curl_logger)
         return self.curl_logger
 
+    @staticmethod
+    def _full_url(base_url, url=None):
+        if not url:
+            return base_url
+        if not base_url:
+            return url
+        if not base_url.endswith('/'):
+            base_url += '/'
+        return urljoin(base_url, url)
+
     def log(self, data):
         '''
         Logs (DEBUG level) the provided data using our logger.
@@ -154,7 +134,7 @@ class RequestsLoggingClient(class_lookup.get('requests.Session', requests.Sessio
         # If headers are provided by both, headers "wins" over default_headers
         kwargs['headers'] = dict(self.default_headers, **(kwargs.get('headers', {})))
         kwargs['headers'] = dict_strip_value(kwargs['headers'])
-        full_url = _full_url(self.base_url, url)
+        full_url = self._full_url(self.base_url, url)
         request_kwargs = {'method': method, 'url': full_url, 'kwargs': kwargs}
         try:
             response = super(RequestsLoggingClient, self).request(method, full_url,
