@@ -21,10 +21,9 @@ that support specific types of authentication.
 
 import logging
 try:
-    from urllib.parse import quote, quote_plus, urljoin, urlsplit, urlunsplit
+    from urllib.parse import urljoin
 except ImportError:
-    from urlparse import urljoin, urlsplit, urlunsplit
-    from urllib import quote, quote_plus
+    from urlparse import urljoin
 import inspect
 import sys
 import warnings
@@ -42,25 +41,6 @@ logging.getLogger('urllib3.connectionpool').setLevel(logging.ERROR)
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
 
-def _url_sanitize(url):
-    if not url:
-        return url
-
-    if '://' not in url:
-        return quote(url.encode('utf-8'))
-
-    parts = urlsplit(url)
-    return urlunsplit(
-        (
-            parts.scheme,
-            parts.netloc,
-            quote(parts.path),
-            quote_plus(parts.query),
-            quote(parts.fragment)
-        )
-    )
-
-
 def _full_url(base_url, url=None):
     if not url:
         return base_url
@@ -68,7 +48,7 @@ def _full_url(base_url, url=None):
         return url
     if not base_url.endswith('/'):
         base_url += '/'
-    return urljoin(base_url, _url_sanitize(url))
+    return urljoin(base_url, url)
 
 
 class RequestsLoggingClient(class_lookup.get('requests.Session', requests.Session)):
