@@ -88,6 +88,8 @@ class SimpleRSTTable(BaseRSTDataObject):
         for row in self._rows:
             if self._stop_checker(row):
                 break
+            if '\t' in row:
+                raise TabError('Tabs are not supported in tables - use spaces only!')
             row = row.split(' {} '.format(self.comment_char))[0]
             if row.count(self.column_divider):
                 row = self._row_splitter(row)
