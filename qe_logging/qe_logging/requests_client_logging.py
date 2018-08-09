@@ -41,16 +41,6 @@ logging.getLogger('urllib3.connectionpool').setLevel(logging.ERROR)
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
 
-def _full_url(base_url, url=None):
-    if not url:
-        return base_url
-    if not base_url:
-        return url
-    if not base_url.endswith('/'):
-        base_url += '/'
-    return urljoin(base_url, url)
-
-
 class RequestsLoggingClient(class_lookup.get('requests.Session', requests.Session)):
     _logger = logging.getLogger(__name__)
 
@@ -97,6 +87,16 @@ class RequestsLoggingClient(class_lookup.get('requests.Session', requests.Sessio
             return self._initialized_logger(curl_logger)
         return self.curl_logger
 
+    @staticmethod
+    def _full_url(base_url, url=None):
+        if not url:
+            return base_url
+        if not base_url:
+            return url
+        if not base_url.endswith('/'):
+            base_url += '/'
+        return urljoin(base_url, url)
+
     def log(self, data):
         '''
         Logs (DEBUG level) the provided data using our logger.
@@ -134,7 +134,7 @@ class RequestsLoggingClient(class_lookup.get('requests.Session', requests.Sessio
         # If headers are provided by both, headers "wins" over default_headers
         kwargs['headers'] = dict(self.default_headers, **(kwargs.get('headers', {})))
         kwargs['headers'] = dict_strip_value(kwargs['headers'])
-        full_url = _full_url(self.base_url, url)
+        full_url = self._full_url(self.base_url, url)
         request_kwargs = {'method': method, 'url': full_url, 'kwargs': kwargs}
         try:
             response = super(RequestsLoggingClient, self).request(method, full_url,
