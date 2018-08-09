@@ -291,7 +291,11 @@ class BasicAuthRequestsLoggingClient(RequestsLoggingClient):
             response (requests.Response): The result from the parent request call.
         '''
         # The self.no_auth context manager sets the username and password values to None,
-        # so the auth needs to be disabled here if neither of those values are set.
-        auth = (self.username, self.password) if self.username and self.password else None
+        # so the auth needs to be disabled here if both of these values are None.
+        if self.username is None and self.password is None:
+            auth = None
+        else:
+            auth = (self.username, self.password)
+
         return super(BasicAuthRequestsLoggingClient, self).request(method, url, curl_logger,
                                                                    auth=auth, **kwargs)
