@@ -189,9 +189,11 @@ class XAuthTokenRequestsLoggingClient(RequestsLoggingClient):
                 client.get('<url>')
         '''
         original_token = self.token
-        del self.token
-        yield
-        self.token = original_token
+        try:
+            del self.token
+            yield
+        finally:
+            self.token = original_token
 
     @property
     def token(self):
@@ -272,11 +274,13 @@ class BasicAuthRequestsLoggingClient(RequestsLoggingClient):
         '''
         original_username = self.username
         original_password = self.password
-        self.username = None
-        self.password = None
-        yield
-        self.username = original_username
-        self.password = original_password
+        try:
+            self.username = None
+            self.password = None
+            yield
+        finally:
+            self.username = original_username
+            self.password = original_password
 
     def request(self, method, url, curl_logger=None, **kwargs):
         '''
