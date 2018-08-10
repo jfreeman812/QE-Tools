@@ -50,7 +50,7 @@ class RequestsLoggingClient(class_lookup.get('requests.Session', requests.Sessio
     '''
 
     def __init__(self, base_url=None, curl_logger=None,
-                 content_type='application/json'):
+                 accept='application/json', content_type='application/json'):
         '''
         A logging client based on ``requests.Session``.
 
@@ -63,9 +63,10 @@ class RequestsLoggingClient(class_lookup.get('requests.Session', requests.Sessio
             curl_logger (RequestAndResponseLogger, optional): class (or instance) to log requests
                 and responses.
                 Defaults to ``RequestAndResponseLogger``.
+            accept (str, optional):  The default accept value to include in the headers.
             content_type (str, optional):  The default content type to include in the headers.
         '''
-        self.default_headers = {'Content-Type': content_type}
+        self.default_headers = {'Accept': accept, 'Content-Type': content_type}
         self.base_url = base_url
         self.curl_logger = self._initialized_logger(curl_logger or RequestAndResponseLogger)
 
