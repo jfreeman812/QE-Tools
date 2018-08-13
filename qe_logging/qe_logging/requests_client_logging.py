@@ -196,6 +196,29 @@ class XAuthTokenRequestsLoggingClient(RequestsLoggingClient):
         finally:
             self.token = original_token
 
+    @contextmanager
+    def other_auth(self, token):
+        '''
+        Temporarily use a different authentication for this client.
+
+        Example Usage::
+
+            client = XAuthTokenRequestsLoggingClient('<token>')
+            with client.other_auth('<other-token>'):
+                # <other-token> will be in the X-Auth-Token header
+                client.get('<url>')
+
+        Args:
+            token (str): The new Identity authentication token to temporarily use
+                as the ``X-Auth-Token`` header.
+        '''
+        original_token = self.token
+        try:
+            self.token = token
+            yield
+        finally:
+            self.token = original_token
+
     @property
     def token(self):
         '''
@@ -283,6 +306,31 @@ class BasicAuthRequestsLoggingClient(RequestsLoggingClient):
         original_auth = self._auth
         try:
             self._auth = (None, None)
+            yield
+        finally:
+            self._auth = original_auth
+
+    @contextmanager
+    def other_auth(self, username, password):
+        '''
+        Temporarily use a different authentication for this client.
+
+        Example Usage::
+
+            client = BasicAuthRequestsLoggingClient('<username>', '<password>')
+            with client.other_auth('<username-2>', '<password-2>'):
+                # <username-2> and <password-2> will be used to build the basic auth
+                client.get('<url>')
+
+        Args:
+            username (str): The username to be temporarily used
+                in the basic authentication for all requests.
+            password (str): The password to be temporarily used
+                in the basic authentication for all requests.
+        '''
+        original_auth = self._auth
+        try:
+            self._auth = (username, password)
             yield
         finally:
             self._auth = original_auth
