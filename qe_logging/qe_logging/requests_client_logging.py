@@ -256,9 +256,16 @@ class BasicAuthRequestsLoggingClient(RequestsLoggingClient):
 
     @property
     def _auth(self):
+        # This property is used as the `auth` parameter value for all requests.
+        # In order to disable authentication when the username and password are both None,
+        # None must be returned instead of a tuple.
         if self.username is None and self.password is None:
             return None
         return self.username, self.password
+
+    @_auth.setter
+    def _auth(self, _auth):
+        self.username, self.password = _auth
 
     @property
     @contextmanager
@@ -273,15 +280,12 @@ class BasicAuthRequestsLoggingClient(RequestsLoggingClient):
                 # This request will not include an Authentication header
                 client.get('<url>')
         '''
-        original_username = self.username
-        original_password = self.password
+        original_auth = self._auth
         try:
-            self.username = None
-            self.password = None
+            self._auth = (None, None)
             yield
         finally:
-            self.username = original_username
-            self.password = original_password
+            self._auth = original_auth
 
     def request(self, method, url, curl_logger=None, **kwargs):
         '''
