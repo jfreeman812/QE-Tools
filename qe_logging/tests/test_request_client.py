@@ -111,7 +111,7 @@ def assert_not_in(part, whole, prefix):
 
 
 def _make_request(client_class, client_class_kwargs, request_item, log_message=None,
-                  url_prefix=None, **kwargs):
+                  url_prefix=None, no_auth=False, **kwargs):
     '''Make a request and return the log contents, info about the request, and the response.'''
     log_file = _setup_logging()
     method = request_item.method.lower()
@@ -121,9 +121,16 @@ def _make_request(client_class, client_class_kwargs, request_item, log_message=N
     session = _make_session(client_class, client_class_kwargs, **kwargs)
     if log_message:
         session.log(log_message)
+
     session_method = getattr(session, method)
     outgoing_text = generate_random_string()
-    response = session_method(url, data=outgoing_text)
+
+    if no_auth:
+        with session.no_auth:
+            response = session_method(url, data=outgoing_text)
+    else:
+        response = session_method(url, data=outgoing_text)
+
     log_contents = get_file_contents(log_file)
     fields = {
         'request URL': url,
@@ -193,9 +200,25 @@ def test_x_auth_token_client_includes_x_auth_token_in_request(request_item):
 
 
 @pytest.mark.parametrize('request_item', REQUESTS_TO_TEST)
+def test_x_auth_token_client_with_no_auth_does_not_include_x_auth_token_in_request(request_item):
+    _, _, response = _make_request(XAuthTokenRequestsLoggingClient,
+                                   {'token': TOKEN},
+                                   request_item, no_auth=True)
+    assert 'X-Auth-Token' not in response.request.headers
+
+
+@pytest.mark.parametrize('request_item', REQUESTS_TO_TEST)
 def test_basic_auth_client_includes_basic_auth_in_request(request_item):
     _, _, response = _make_request(BasicAuthRequestsLoggingClient,
                                    {'username': USERNAME, 'password': PASSWORD},
                                    request_item)
     assert 'Authorization' in response.request.headers
     assert response.request.headers['Authorization'].startswith('Basic')
+
+
+@pytest.mark.parametrize('request_item', REQUESTS_TO_TEST)
+def test_basic_auth_client_with_no_auth_does_not_include_basic_auth_in_request(request_item):
+    _, _, response = _make_request(BasicAuthRequestsLoggingClient,
+                                   {'username': USERNAME, 'password': PASSWORD},
+                                   request_item, no_auth=True)
+    assert 'Authorization' not in response.request.headers

@@ -19,6 +19,7 @@ This module also includes additional requests logging clients
 that support specific types of authentication.
 '''
 
+from contextlib import contextmanager
 import logging
 try:
     from urllib.parse import urljoin
@@ -176,6 +177,26 @@ class XAuthTokenRequestsLoggingClient(RequestsLoggingClient):
         self.token = token
 
     @property
+    @contextmanager
+    def no_auth(self):
+        '''
+        Temporarily disable authentication for this client.
+
+        Example Usage::
+
+            client = XAuthTokenRequestsLoggingClient('<token>')
+            with client.no_auth:
+                # This request will not include an X-Auth-Token header
+                client.get('<url>')
+        '''
+        original_token = self.token
+        try:
+            del self.token
+            yield
+        finally:
+            self.token = original_token
+
+    @property
     def token(self):
         '''
         Property that gets/sets/deletes the ``X-Auth-Token`` in request headers.
@@ -233,6 +254,35 @@ class BasicAuthRequestsLoggingClient(RequestsLoggingClient):
         self.username = username
         self.password = password
 
+    @property
+    def _auth(self):
+        if self.username is None and self.password is None:
+            return None
+        return self.username, self.password
+
+    @property
+    @contextmanager
+    def no_auth(self):
+        '''
+        Temporarily disable authentication for this client.
+
+        Example Usage::
+
+            client = BasicAuthRequestsLoggingClient('<username>', '<password>')
+            with client.no_auth:
+                # This request will not include an Authentication header
+                client.get('<url>')
+        '''
+        original_username = self.username
+        original_password = self.password
+        try:
+            self.username = None
+            self.password = None
+            yield
+        finally:
+            self.username = original_username
+            self.password = original_password
+
     def request(self, method, url, curl_logger=None, **kwargs):
         '''
         Make a request using Basic Authentication.
@@ -252,4 +302,4 @@ class BasicAuthRequestsLoggingClient(RequestsLoggingClient):
             response (requests.Response): The result from the parent request call.
         '''
         return super(BasicAuthRequestsLoggingClient, self).request(
-            method, url, curl_logger, auth=(self.username, self.password), **kwargs)
+            method, url, curl_logger, auth=self._auth, **kwargs)
