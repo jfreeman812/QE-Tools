@@ -23,6 +23,7 @@ class BaseRSTDataObject(object):
     # The full set of potential ReStructuredText section markers is sourced from
     # http://docutils.sourceforge.net/docs/ref/rst/restructuredtext.html#sections
     header_markers = set(r'!"#$%&\'()*+,-./:;<=>?@[]^_`{|}~')
+    col_default_separator = '='
     comment_char = '#'
     data_format = None
 
@@ -82,8 +83,13 @@ class SimpleRSTTable(BaseRSTDataObject):
             words.append(word.strip().replace('..', ''))
         return words
 
+    def _set_header_names_and_defaults(self, fields):
+        name_sets = [x.split(self.col_default_separator, 1) for x in fields]
+        self.fields = [_safe_name(x[0].strip()) for x in name_sets]
+        self.defaults = [x[1].strip() if len(x) > 1 else '' for x in name_sets]
+
     def _build_data(self):
-        self.fields = [_safe_name(x) for x in self._row_splitter(self._header)]
+        self._set_header_names_and_defaults(self._row_splitter(self._header))
         row_class = attr.make_class('Row', self.fields, hash=True)
         for row in self._rows:
             if self._stop_checker(row):
@@ -95,7 +101,10 @@ class SimpleRSTTable(BaseRSTDataObject):
                 row = self._row_splitter(row)
                 message = "Row '{}' does not match field list '{}' length."
                 assert len(row) == len(self.fields), message.format(row, self.fields)
-                self.data.append(row_class(*row))
+                row_data = (
+                    value if value else default for default, value in zip(self.defaults, row)
+                )
+                self.data.append(row_class(*row_data))
 
     def _filter_data(self, data, filter_kwargs, filter_func):
         filters = [v if callable(v) else get_specific_attr_matcher(k, v)
