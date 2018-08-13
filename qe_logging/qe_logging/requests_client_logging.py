@@ -288,6 +288,8 @@ class BasicAuthRequestsLoggingClient(RequestsLoggingClient):
 
     @_auth.setter
     def _auth(self, _auth):
+        if _auth is None:
+            _auth = (None, None)
         self.username, self.password = _auth
 
     @property
@@ -305,7 +307,7 @@ class BasicAuthRequestsLoggingClient(RequestsLoggingClient):
         '''
         original_auth = self._auth
         try:
-            self._auth = (None, None)
+            self._auth = None
             yield
         finally:
             self._auth = original_auth
