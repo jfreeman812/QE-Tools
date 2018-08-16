@@ -50,9 +50,12 @@ REQUESTS_TO_TEST = [
     RequestItem(url='created', method='POST', status_code=202, text=generate_random_string()),
 ]
 
-TOKEN = '123abc'
-USERNAME = 'qetools'
-PASSWORD = 'qetools-password'
+TOKEN = generate_random_string(prefix='token-', size=25)
+USERNAME = generate_random_string(prefix='username-', size=25)
+PASSWORD = generate_random_string(prefix='password', size=25)
+
+X_AUTH_CLIENT_KWARGS = {'token': TOKEN}
+BASIC_AUTH_CLIENT_KWARGS = {'username': USERNAME, 'password': PASSWORD}
 
 CLIENTS_TO_TEST = [
     {
@@ -65,11 +68,11 @@ CLIENTS_TO_TEST = [
     },
     {
         'client_class': XAuthTokenRequestsLoggingClient,
-        'kwargs': {'token': TOKEN}
+        'kwargs': X_AUTH_CLIENT_KWARGS
     },
     {
         'client_class': BasicAuthRequestsLoggingClient,
-        'kwargs': {'username': USERNAME, 'password': PASSWORD}
+        'kwargs': BASIC_AUTH_CLIENT_KWARGS
     }
 ]
 
@@ -110,26 +113,21 @@ def assert_not_in(part, whole, prefix):
     assert part not in whole, "{} '{}' should not have been in '{}'".format(prefix, part, whole)
 
 
-def _make_request(client_class, client_class_kwargs, request_item, log_message=None,
-                  url_prefix=None, no_auth=False, **kwargs):
+def _make_request(session, request_item, log_message=None, url_prefix=None):
     '''Make a request and return the log contents, info about the request, and the response.'''
     log_file = _setup_logging()
     method = request_item.method.lower()
     url = request_item.url
+
     if url_prefix:
         url = urljoin(url_prefix, url)
-    session = _make_session(client_class, client_class_kwargs, **kwargs)
+
     if log_message:
         session.log(log_message)
 
     session_method = getattr(session, method)
     outgoing_text = generate_random_string()
-
-    if no_auth:
-        with session.no_auth:
-            response = session_method(url, data=outgoing_text)
-    else:
-        response = session_method(url, data=outgoing_text)
+    response = session_method(url, data=outgoing_text)
 
     log_contents = get_file_contents(log_file)
     fields = {
@@ -138,6 +136,7 @@ def _make_request(client_class, client_class_kwargs, request_item, log_message=N
         'status_code': str(response.status_code),
         'response text': request_item.text,
     }
+
     return log_contents, fields, response
 
 
@@ -149,7 +148,8 @@ def test_logs_are_written(client_class, client_class_kwargs, request_item):
     Checking that the data makes it to the log in some form,
     we have other tests that cover the formatting in detail.
     '''
-    log_contents, fields, _ = _make_request(client_class, client_class_kwargs, request_item,
+    session = _make_session(client_class, client_class_kwargs)
+    log_contents, fields, _ = _make_request(session, request_item,
                                             log_message='logs are written')
     for field_name, value in fields.items():
         assert_in(value, log_contents, field_name)
@@ -164,8 +164,8 @@ def test_logs_can_be_suppressed(client_class, client_class_kwargs, request_item)
     be individually suppressed as well.
     This is making sure the basic pathways are covered.
     '''
-    log_contents, _, _ = _make_request(client_class, client_class_kwargs, request_item,
-                                       with_logger=NoLogging)
+    session = _make_session(client_class, client_class_kwargs, with_logger=NoLogging)
+    log_contents, _, _ = _make_request(session, request_item)
     assert log_contents == '', "Expected empty log, got '{}'".format(log_contents)
 
 
@@ -173,17 +173,17 @@ def test_logs_can_be_suppressed(client_class, client_class_kwargs, request_item)
                          _clients_and_requests_combinations)
 def test_with_no_base_url(client_class, client_class_kwargs, request_item):
     '''The request will error out with partial URLs and no base to prefix.'''
+    session = _make_session(client_class, client_class_kwargs, base_url=None)
     with pytest.raises(MissingSchema):
-        _make_request(client_class, client_class_kwargs, request_item,
-                      base_url=None, log_message='no base url')
+        _make_request(session, request_item, log_message='no base url')
 
 
 @pytest.mark.parametrize('client_class, client_class_kwargs, request_item',
                          _clients_and_requests_combinations)
 def test_base_url_override(client_class, client_class_kwargs, request_item):
     '''Individual requests full URLs can override a base_url setting.'''
-    log_contents, fields, _ = _make_request(client_class, client_class_kwargs, request_item,
-                                            base_url='https://example.org',
+    session = _make_session(client_class, client_class_kwargs, base_url='https://example.org')
+    log_contents, fields, _ = _make_request(session, request_item,
                                             url_prefix=MOCK_BASE,
                                             log_message='url override')
     for field_name, value in fields.items():
@@ -192,33 +192,31 @@ def test_base_url_override(client_class, client_class_kwargs, request_item):
 
 @pytest.mark.parametrize('request_item', REQUESTS_TO_TEST)
 def test_x_auth_token_client_includes_x_auth_token_in_request(request_item):
-    _, _, response = _make_request(XAuthTokenRequestsLoggingClient,
-                                   {'token': TOKEN},
-                                   request_item)
+    session = _make_session(XAuthTokenRequestsLoggingClient, X_AUTH_CLIENT_KWARGS)
+    _, _, response = _make_request(session, request_item)
     assert 'X-Auth-Token' in response.request.headers
     assert response.request.headers['X-Auth-Token'] == TOKEN
 
 
 @pytest.mark.parametrize('request_item', REQUESTS_TO_TEST)
 def test_x_auth_token_client_with_no_auth_does_not_include_x_auth_token_in_request(request_item):
-    _, _, response = _make_request(XAuthTokenRequestsLoggingClient,
-                                   {'token': TOKEN},
-                                   request_item, no_auth=True)
+    session = _make_session(XAuthTokenRequestsLoggingClient, X_AUTH_CLIENT_KWARGS)
+    with session.no_auth:
+        _, _, response = _make_request(session, request_item)
     assert 'X-Auth-Token' not in response.request.headers
 
 
 @pytest.mark.parametrize('request_item', REQUESTS_TO_TEST)
 def test_basic_auth_client_includes_basic_auth_in_request(request_item):
-    _, _, response = _make_request(BasicAuthRequestsLoggingClient,
-                                   {'username': USERNAME, 'password': PASSWORD},
-                                   request_item)
+    session = _make_session(BasicAuthRequestsLoggingClient, BASIC_AUTH_CLIENT_KWARGS)
+    _, _, response = _make_request(session, request_item)
     assert 'Authorization' in response.request.headers
     assert response.request.headers['Authorization'].startswith('Basic')
 
 
 @pytest.mark.parametrize('request_item', REQUESTS_TO_TEST)
 def test_basic_auth_client_with_no_auth_does_not_include_basic_auth_in_request(request_item):
-    _, _, response = _make_request(BasicAuthRequestsLoggingClient,
-                                   {'username': USERNAME, 'password': PASSWORD},
-                                   request_item, no_auth=True)
+    session = _make_session(BasicAuthRequestsLoggingClient, BASIC_AUTH_CLIENT_KWARGS)
+    with session.no_auth:
+        _, _, response = _make_request(session, request_item)
     assert 'Authorization' not in response.request.headers
