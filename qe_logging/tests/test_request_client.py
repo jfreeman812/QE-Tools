@@ -54,6 +54,10 @@ TOKEN = generate_random_string(prefix='token-', size=25)
 USERNAME = generate_random_string(prefix='username-', size=25)
 PASSWORD = generate_random_string(prefix='password', size=25)
 
+OVERRIDE_TOKEN = generate_random_string(prefix='other-token-', size=25)
+OVERRIDE_USERNAME = generate_random_string(prefix='other-username-', size=25)
+OVERRIDE_PASSWORD = generate_random_string(prefix='other-password-', size=25)
+
 X_AUTH_CLIENT_KWARGS = {'token': TOKEN}
 BASIC_AUTH_CLIENT_KWARGS = {'username': USERNAME, 'password': PASSWORD}
 
@@ -98,7 +102,17 @@ def _make_session(client_class, client_class_kwargs, with_logger=RequestAndRespo
 
 
 def _setup_logging():
-    logging.getLogger().setLevel(logging.DEBUG)
+    root_log = logging.getLogger('')
+    root_log.setLevel(logging.DEBUG)
+
+    # If this function has already been called before in the current test,
+    # just return the original first log file path.
+    current_log_file_paths = [x.baseFilename for x in root_log.handlers
+                              if isinstance(x, logging.FileHandler)]
+    if current_log_file_paths:
+        return current_log_file_paths[0]
+
+    # Otherwise create one for the current test.
     log_dir = mkdtemp()
     # Only one log file path is needed.  Testing that data is written to both log file paths is
     # covered in another test suite.  Taking the first file is arbitrary.
@@ -138,6 +152,14 @@ def _make_request(session, request_item, log_message=None, url_prefix=None):
     }
 
     return log_contents, fields, response
+
+
+def _get_x_auth_token_header(response):
+    return response.request.headers['X-Auth-Token']
+
+
+def _get_basic_auth_header(response):
+    return response.request.headers['Authorization']
 
 
 @pytest.mark.parametrize('client_class, client_class_kwargs, request_item',
@@ -195,7 +217,7 @@ def test_x_auth_token_client_includes_x_auth_token_in_request(request_item):
     session = _make_session(XAuthTokenRequestsLoggingClient, X_AUTH_CLIENT_KWARGS)
     _, _, response = _make_request(session, request_item)
     assert 'X-Auth-Token' in response.request.headers
-    assert response.request.headers['X-Auth-Token'] == TOKEN
+    assert _get_x_auth_token_header(response) == TOKEN
 
 
 @pytest.mark.parametrize('request_item', REQUESTS_TO_TEST)
@@ -207,11 +229,19 @@ def test_x_auth_token_client_with_no_auth_does_not_include_x_auth_token_in_reque
 
 
 @pytest.mark.parametrize('request_item', REQUESTS_TO_TEST)
+def test_x_auth_token_client_can_use_overridden_authentication(request_item):
+    session = _make_session(XAuthTokenRequestsLoggingClient, X_AUTH_CLIENT_KWARGS)
+    with session.this_auth(OVERRIDE_TOKEN):
+        _, _, response = _make_request(session, request_item)
+    assert _get_x_auth_token_header(response) == OVERRIDE_TOKEN
+
+
+@pytest.mark.parametrize('request_item', REQUESTS_TO_TEST)
 def test_basic_auth_client_includes_basic_auth_in_request(request_item):
     session = _make_session(BasicAuthRequestsLoggingClient, BASIC_AUTH_CLIENT_KWARGS)
     _, _, response = _make_request(session, request_item)
     assert 'Authorization' in response.request.headers
-    assert response.request.headers['Authorization'].startswith('Basic')
+    assert _get_basic_auth_header(response).startswith('Basic')
 
 
 @pytest.mark.parametrize('request_item', REQUESTS_TO_TEST)
@@ -220,3 +250,19 @@ def test_basic_auth_client_with_no_auth_does_not_include_basic_auth_in_request(r
     with session.no_auth:
         _, _, response = _make_request(session, request_item)
     assert 'Authorization' not in response.request.headers
+
+
+@pytest.mark.parametrize('request_item', REQUESTS_TO_TEST)
+def test_basic_auth_client_can_use_overridden_authentication(request_item):
+    session = _make_session(BasicAuthRequestsLoggingClient, BASIC_AUTH_CLIENT_KWARGS)
+
+    with session.this_auth(OVERRIDE_USERNAME, OVERRIDE_PASSWORD):
+        # First make sure that the _auth property is what is expected
+        # since that is what gets passed into the request as the auth param.
+        assert session._auth == (OVERRIDE_USERNAME, OVERRIDE_PASSWORD)
+        _, _, override_response = _make_request(session, request_item)
+
+    # Then make a call with the original credentials
+    # and make sure the auth values are different.
+    _, _, response = _make_request(session, request_item)
+    assert _get_basic_auth_header(response) != _get_basic_auth_header(override_response)
