@@ -87,8 +87,9 @@ class TestCoverage(object):
         found_tags = set(self.tags + self.parent_tags) & set(valid_tags)
         # Validate the tags
         if len(found_tags) > 1:
+            found_string = ', '.join(found_tags)
             message = '{}:{}:Multiple tags for prescriptive attribute {} ({})'
-            self.errors.append(message.format(self.file_path, self.name, attribute, found_tags))
+            self.errors.append(message.format(self.file_path, self.name, attribute, found_string))
         if not found_tags and not default_value:
             message = '{}:{}:No tag for prescriptive attribute {}. Must be one of {}'
             self.errors.append(message.format(self.file_path, self.name, attribute, valid_tags))
