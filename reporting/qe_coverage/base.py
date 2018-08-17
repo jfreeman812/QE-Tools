@@ -106,6 +106,18 @@ class TestCoverage(object):
         if len(tag_categories) > 1:
             message = '{}:{}:There can only be one category tag per test'
             self.errors.append(message.format(self.file_path, self.name))
+
+        # For any test with no explicit category tag, self.categories will be a
+        # list which ends with a class name or feature name, etc.
+        # For any test with an explicit category tag, the tag's categories does not
+        # have a last element as described above.
+        # In the explicit category case, this can cause test id collisions when
+        # data driven tests (and probably in other cases) are used.
+        # This code will append the last element of the self.categories to the
+        # explicitly  declared categories so that we don't force our users
+        # to do that in their source.
+        if self.categories and tag_categories:
+            tag_categories[0] += self.categories[-1:]
         self.attributes['Categories'] = tag_categories[0] if tag_categories else self.categories
         self.attributes['Projects'] = self.structured_tag('project')
 
