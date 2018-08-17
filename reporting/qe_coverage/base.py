@@ -47,6 +47,7 @@ COVERAGE_PRODUCTION_URL = COVERAGE_URL_TEMPLATE.format('production')
 coverage_tables = SimpleRSTReader(TAG_DEFINITION_FILE)
 status_table = coverage_tables['Status'].exclude_by(tag='')
 TICKET_STATUS_DISPLAY_NAMES = [NO_STATUS_TICKET_KEY] + sorted(status_table.get_fields('report_as'))
+STATUS_TAGS = set(status_table.get_fields('tag'))
 
 
 @attr.s

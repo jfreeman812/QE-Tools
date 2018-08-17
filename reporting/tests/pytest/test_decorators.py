@@ -9,6 +9,10 @@ class TestCaseDecoratorsThatWork:
     def test_succeeds_with_tags(self):
         assert True
 
+    @pytest.mark.tags('positive', 'smoke', 'unstable', 'JIRA-123')
+    def test_succeeds_with_unstable_tag(self):
+        assert True
+
     @pytest.mark.tags('smoke', 'positive', 'quarantined', 'JIRA-111', 'JIRA-1234')
     def test_passes_with_multiple_tickets(self):
         # This test may be run as part of a special quarantined-tests run
