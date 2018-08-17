@@ -47,6 +47,7 @@ COVERAGE_PRODUCTION_URL = COVERAGE_URL_TEMPLATE.format('production')
 coverage_tables = SimpleRSTReader(TAG_DEFINITION_FILE)
 status_table = coverage_tables['Status'].exclude_by(tag='')
 TICKET_STATUS_DISPLAY_NAMES = [NO_STATUS_TICKET_KEY] + sorted(status_table.get_fields('report_as'))
+STATUS_TAGS = set(status_table.get_fields('tag'))
 
 
 @attr.s
@@ -86,8 +87,9 @@ class TestCoverage(object):
         found_tags = set(self.tags + self.parent_tags) & set(valid_tags)
         # Validate the tags
         if len(found_tags) > 1:
+            found_string = ', '.join(sorted(found_tags))
             message = '{}:{}:Multiple tags for prescriptive attribute {} ({})'
-            self.errors.append(message.format(self.file_path, self.name, attribute, found_tags))
+            self.errors.append(message.format(self.file_path, self.name, attribute, found_string))
         if not found_tags and not default_value:
             message = '{}:{}:No tag for prescriptive attribute {}. Must be one of {}'
             self.errors.append(message.format(self.file_path, self.name, attribute, valid_tags))

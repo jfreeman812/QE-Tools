@@ -14,3 +14,12 @@ Feature: Example of Good Gherkin
         Given a quarantined test
         When I run the coverage tool
         Then I return without any errors
+
+
+    @p0 @positive
+    @unstable @JIRA-1234
+    Scenario: Unstable Test
+
+        Given an unstable test
+        When I run the coverage tool
+        Then I return without any errors

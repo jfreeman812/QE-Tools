@@ -110,6 +110,7 @@ nyi          not yet implemented  Test has been targeted for implementation, but
 not-tested   pending              Test is ready, but the service / subject is not ready.
 needs-work   needs work           Test is offline due to a problem with the test; QE needs to fix.
 quarantined  quarantined          Test is offline due to bug in application / system / etc. Outside of QE's scope to fix.
+unstable     unstable             Test is online but the test is not consistently passing.
 ..           operational          Test is online and being executed.
 ===========  ===================  =======================================================================================
 

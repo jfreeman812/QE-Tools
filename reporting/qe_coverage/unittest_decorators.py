@@ -72,7 +72,7 @@ from unittest import skip, SkipTest
 
 import wrapt
 
-from qe_coverage.base import TICKET_RE
+from qe_coverage.base import STATUS_TAGS, TICKET_RE
 
 _cafe_tags = None
 TAGS_DECORATOR_TAG_LIST_NAME = PARALLEL_TAGS_LIST_ATTR = ''
@@ -157,10 +157,6 @@ A number of a methods will always run during a test run, such as ``setUp``, ``se
 ``tearDown``, and ``tearDownClass``. The logic in these methods is not necessary during
 a coverage run, so use ``unless_coverage`` to save time (and possibly prevent some errors).
 '''
-
-# INTERIM LIST!
-# This *must* come from coverage.rst and table read as a FF on this code.
-STATUS_TAGS = set('nyi not-tested needs-work quarantined'.split())
 
 ############
 # SETTINGS #

@@ -28,6 +28,10 @@ class TestCaseDecoratorsThatWork(DecoratorsTestsFixture):
         # if the test is actually selected to be run.
         pass
 
+    @tags('smoke', 'positive', 'unstable', 'JIRA-123')
+    def test_ok_unstable_but_runnable(self):
+        pass
+
     @quarantined('JIRA-111', environment_affected='staging')
     def test_skipped_quarantined_in_staging(self):
         self.fail('This test should have been skipped!')
