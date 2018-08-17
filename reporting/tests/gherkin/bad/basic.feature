@@ -21,6 +21,14 @@ Feature: Bad Feature File
         When the coverage tool runs
         Then the tool completes with an error
 
+    @p0 @negative
+    @unstable
+    Scenario: Missing Ticket Tag
+
+        Given a test with an unstable status and no ticket tag
+        When the coverage tool runs
+        Then the tool completes with an error
+
     @positive @negative
     Scenario: Multiple Prescriptive Tags
 
