@@ -196,6 +196,29 @@ class XAuthTokenRequestsLoggingClient(RequestsLoggingClient):
         finally:
             self.token = original_token
 
+    @contextmanager
+    def this_auth(self, token):
+        '''
+        Temporarily use a different authentication for this client.
+
+        Example Usage::
+
+            client = XAuthTokenRequestsLoggingClient('<token>')
+            with client.this_auth('<other-token>'):
+                # <other-token> will be in the X-Auth-Token header
+                client.get('<url>')
+
+        Args:
+            token (str): The new Identity authentication token to temporarily use
+                as the ``X-Auth-Token`` header.
+        '''
+        original_token = self.token
+        try:
+            self.token = token
+            yield
+        finally:
+            self.token = original_token
+
     @property
     def token(self):
         '''
@@ -256,9 +279,18 @@ class BasicAuthRequestsLoggingClient(RequestsLoggingClient):
 
     @property
     def _auth(self):
+        # This property is used as the `auth` parameter value for all requests.
+        # In order to disable authentication when the username and password are both None,
+        # None must be returned instead of a tuple.
         if self.username is None and self.password is None:
             return None
         return self.username, self.password
+
+    @_auth.setter
+    def _auth(self, _auth):
+        if _auth is None:
+            _auth = (None, None)
+        self.username, self.password = _auth
 
     @property
     @contextmanager
@@ -273,15 +305,37 @@ class BasicAuthRequestsLoggingClient(RequestsLoggingClient):
                 # This request will not include an Authentication header
                 client.get('<url>')
         '''
-        original_username = self.username
-        original_password = self.password
+        original_auth = self._auth
         try:
-            self.username = None
-            self.password = None
+            self._auth = None
             yield
         finally:
-            self.username = original_username
-            self.password = original_password
+            self._auth = original_auth
+
+    @contextmanager
+    def this_auth(self, username, password):
+        '''
+        Temporarily use a different authentication for this client.
+
+        Example Usage::
+
+            client = BasicAuthRequestsLoggingClient('<username>', '<password>')
+            with client.this_auth('<username-2>', '<password-2>'):
+                # <username-2> and <password-2> will be used to build the basic auth
+                client.get('<url>')
+
+        Args:
+            username (str): The username to be temporarily used
+                in the basic authentication for all requests.
+            password (str): The password to be temporarily used
+                in the basic authentication for all requests.
+        '''
+        original_auth = self._auth
+        try:
+            self._auth = (username, password)
+            yield
+        finally:
+            self._auth = original_auth
 
     def request(self, method, url, curl_logger=None, **kwargs):
         '''
