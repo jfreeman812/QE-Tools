@@ -25,6 +25,13 @@ Quick overview of the modules in this package:
     * :py:mod:`selenium_extras.locators` - Meat and potatoes for finding things in the browser.
     * :py:mod:`selenium_extras.page` - Base level Page object for Page-Object-Module users.
     * :py:mod:`selenium_extras.popups` - Helpers for dealing with Popups.
+
+
+Class inheritance diagram for each module, all together here.
+Clicking on a class name will take you to its documentation:
+
+.. inheritance-diagram:: browser_config client constants exceptions locators page popups
+   :parts: 1
 '''
 
 from .__version__ import __version__
