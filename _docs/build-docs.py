@@ -1,5 +1,6 @@
 #! /usr/bin/env python
 import argparse
+import distutils
 import os
 import shutil
 import subprocess
@@ -26,6 +27,12 @@ def main():
     parser.add_argument('--clean', action='store_true',
                         help='Delete the output directory before starting to build documents')
     args = parser.parse_args()
+
+    if distutils.spawn.find_executable('dot') is None:
+        print("Cannot find 'dot', the graphviz utility we use to draw class inheritance diagrams.")
+        print('Please install graphviz and try again.')
+        sys.exit(1)
+
     # Run necessary commands
     if args.clean:
         shutil.rmtree('docs', ignore_errors=True)

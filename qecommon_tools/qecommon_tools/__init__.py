@@ -1,3 +1,8 @@
+'''
+.. inheritance-diagram:: qecommon_tools
+   :parts: 1
+'''
+
 from __future__ import print_function
 import ast
 from collections import Iterable
@@ -36,6 +41,7 @@ default values need to be changed.
 (Motivation: the requests client logging code needs to be able to use a custom
 class instead of just ``requests.Session`` when being used by testing code
 with the Locust test runner, and it uses this dictionary to accomplish this.)
+
 '''
 
 
