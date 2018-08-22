@@ -174,9 +174,11 @@ class TestGroup(object):
     def _check_duplicates(self):
         id_counts = Counter(['{}.{}'.format(test.categories[-1], test.name) for test in self.tests])
         duplicates = {name: count for name, count in id_counts.items() if count > 1}
-        message = 'These test IDs appeared more than once: {}'
+        message = 'These test IDs appeared more than once:\n{}'
         if duplicates:
-            self.errors.append(message.format(duplicates))
+            pretty_dups = '\n'.join('{}x: {}'.format(count, name)
+                                    for name, count in sorted(duplicates.items()))
+            self.errors.append(message.format(pretty_dups))
 
     def validate(self):
         self._check_duplicates()
