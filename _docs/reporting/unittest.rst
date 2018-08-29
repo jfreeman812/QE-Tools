@@ -30,7 +30,7 @@ Unittest Decorators
 Tips and Need-To-Knows
 ~~~~~~~~~~~~~~~~~~~~~~
 
-1. Don't decorate test classes.
+1. Don't decorate test classes unless the decorator documentation specifies that it can or should be used on classes.
 
    Classes decorated with ``unittest_decorators`` will function as expected during a normal test run, but the tests will not be included in coverage reports. In order to generate the correct coverage data, you must decorate each test (e.g., ``def test_...``, ``def ddtest_...``) individually.
 

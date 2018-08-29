@@ -1,6 +1,7 @@
 {"doc": "<No docstring provided> (Only tested in staging)", "provenance": ["test_decorators", "TestCaseDecoratorsThatWork"], "tags": ["deploy", "negative"], "test": "test_ok_only_in_staging"}
 {"doc": null, "provenance": ["test_decorators", "TestCaseDecoratorsThatWork"], "tags": ["smoke", "positive", "quarantined", "JIRA-111"], "test": "test_ok_quarantined_but_runnable"}
 {"doc": "<No docstring provided> (Only tested in Staging)", "provenance": ["test_decorators", "TestCaseDecoratorsThatWork"], "tags": ["load", "positive", "p0"], "test": "test_ok_staging_only"}
+{"doc": null, "provenance": ["test_decorators", "TestCaseDecoratorsThatWork"], "tags": ["smoke", "positive", "unstable", "JIRA-123"], "test": "test_ok_unstable_but_runnable"}
 {"doc": "<No docstring provided> (Needs Work: JIRA-222)", "provenance": ["test_decorators", "TestCaseDecoratorsThatWork"], "tags": ["needs-work", "JIRA-222", "regression", "negative"], "test": "test_skipped_needs_work"}
 {"doc": "<No docstring provided> (Not Tested - Service Not Ready: JIRA-333)", "provenance": ["test_decorators", "TestCaseDecoratorsThatWork"], "tags": ["not-tested", "JIRA-333", "regression", "positive"], "test": "test_skipped_not_tested"}
 {"doc": "<No docstring provided> (Not Implemented: JIRA-444)", "provenance": ["test_decorators", "TestCaseDecoratorsThatWork"], "tags": ["nyi", "JIRA-444", "smoke", "p0", "negative"], "test": "test_skipped_nyi"}
@@ -9,6 +10,7 @@
 {"doc": "<No docstring provided> (Quarantined: JIRA-111)", "provenance": ["test_decorators", "TestCaseDecoratorsThatWork"], "tags": ["quarantined", "JIRA-111", "smoke", "positive"], "test": "test_skipped_quarantined"}
 {"doc": "<No docstring provided> (Quarantined: This description contains JIRA-123, but there is a comma next to it.)", "provenance": ["test_decorators", "TestCaseDecoratorsThatWork"], "tags": ["quarantined", "JIRA-123", "positive"], "test": "test_skipped_quarantined_with_comma_next_to_jira_id"}
 {"doc": null, "provenance": ["test_decorators", "TestUnlessCoverageDecorator"], "tags": ["p0", "positive"], "test": "test_unless_coverage"}
-{"doc": null, "provenance": ["Example Prefix", "TestWithCustomProvenancePrefix"], "tags": ["p0", "positive"], "test": "test_custom_prefix"}
-{"doc": null, "provenance": ["test_decorators", "TestWithCustomProvenancePrefixIgnoreNone"], "tags": ["p0", "positive"], "test": "test_custom_prefix"}
-
+{"doc": null, "provenance": ["test_decorators", "TestWithCustomCategories"], "tags": ["p0", "positive", "category:Test:Class:Custom:Categories"], "test": "test_custom_class_categories_are_set"}
+{"doc": null, "provenance": ["test_decorators", "TestWithCustomCategories"], "tags": ["p0", "positive", "category:Test:Method:Custom:Categories"], "test": "test_custom_method_categories_override_class"}
+{"doc": null, "provenance": ["test_decorators", "TestWithCustomCategoriesIgnoreEmpty"], "tags": ["p0", "positive"], "test": "test_custom_class_categories"}
+{"doc": null, "provenance": ["test_decorators", "TestWithCustomCategoriesIgnoreNone"], "tags": ["p0", "positive"], "test": "test_custom_class_categories"}

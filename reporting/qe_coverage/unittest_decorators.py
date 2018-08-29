@@ -98,10 +98,10 @@ COVERAGE_TAG_DECORATOR_TAG_LIST_NAME = '__coverage_report_tags__'
 See the tags decorator documentation for why we are doing this.
 '''
 
-COVERAGE_PROVENANCE_PREFIX = '__coverage_provenance_prefix__'
-'''Name of the attribute used to override the default provenance prefix for test names,
-which is currently derived from the package name.
+COVERAGE_CLASS_CATEGORIES = '__coverage_class_categories__'
+'''Name of the attribute used to store default category tags defined at the class level.
 '''
+
 
 COVERAGE_REPORT_FILE_NAME = None
 
@@ -144,10 +144,9 @@ else:
         # where as the test_obj name is unique and what we need to report on.
         tags_data['test'] = instance._testMethodName
         tags_data['doc'] = wrapped.__doc__
-        # provenance prefix can be set on the test class or derived from the module name
-        prefix = _get_provenance_prefix(instance)
-        tags_data['provenance'] = (prefix + [instance.__class__.__name__])
+        tags_data['provenance'] = _get_provenance(instance)
         tags_data['tags'] = _get_coverage_tags_from(wrapped)
+        _apply_class_category_tags(instance, tags_data['tags'])
 
         json.dump(tags_data, _coverage_report_file, sort_keys=True)
         _coverage_report_file.write('\n')
@@ -414,21 +413,36 @@ def _clear_special_tags_from(func):
             delattr(func, attr)
 
 
-def _get_provenance_prefix(test_fixture):
+def _get_provenance(test_fixture):
     '''
-    Retrieve custom provenance prefix if set to non-empty value on a class,
-    else return the default prefix derived from the module name.
+    Retrieve provenance derived from the module and class names.
 
     Args:
-        test_fixture: The class or class instance for the test or class that was decorated.
+        test_fixture: The class or class instance
 
     Returns:
-        Prefix as a list of one or more strings
+        provenance as a list of strings
     '''
-    prefix = getattr(test_fixture, COVERAGE_PROVENANCE_PREFIX, None)
-    if prefix:
-        return [prefix]  # return as list to match the return type of the default behavior below
-    return test_fixture.__class__.__module__.split('.')
+    return test_fixture.__class__.__module__.split('.') + [test_fixture.__class__.__name__]
+
+
+def _apply_class_category_tags(test_fixture, existing_tags):
+    '''
+    Add class level categories to the method tags unless no class level categories are defined,
+    or if the method has its own category tag.
+
+    Args:
+        test_fixture: The class or class instance
+        existing_tags: The list of existing tags to be modified
+    '''
+    class_categories = getattr(test_fixture, COVERAGE_CLASS_CATEGORIES, None)
+    if not class_categories:
+        return
+
+    if any(tag.startswith('category:') for tag in existing_tags):
+        return
+
+    existing_tags.append(class_categories)
 
 
 ##############
@@ -642,18 +656,22 @@ def tags(*tags_list):
     return tag_decorator
 
 
-def provenance_prefix(prefix):
+def categories(*category_list):
     '''
-    Set a custom provenance_prefix on a test class. Null or empty values will be ignored.
+    Class decorator that sets a list of default categories for the methods in a test class
+    which do not define their own. Null or empty values will be ignored.
 
     Args:
-        prefix (str): The custom prefix desired for the test class.
+        category_list: The list of categories desired for the test class.
 
     Returns:
         A decorator function to pass the test class into.
     '''
-    def provenance_prefix_decorator(test_class):
-        setattr(test_class, COVERAGE_PROVENANCE_PREFIX, prefix)
+    def categories_decorator(test_class):
+        clean_category_list = list(filter(None, category_list))
+        if clean_category_list:
+            category_tag = 'category:' + ':'.join(clean_category_list)
+            setattr(test_class, COVERAGE_CLASS_CATEGORIES, category_tag)
         return test_class
 
-    return provenance_prefix_decorator
+    return categories_decorator

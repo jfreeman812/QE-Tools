@@ -3,7 +3,7 @@ from __future__ import print_function
 from unittest import TestCase
 from qe_coverage.unittest_decorators import (needs_work, not_tested, nyi, only_in,
                                              quarantined, production_only, staging_only,
-                                             tags, unless_coverage, provenance_prefix)
+                                             tags, unless_coverage, categories)
 
 
 class DecoratorsTestsFixture(TestCase):
@@ -154,17 +154,29 @@ class TestUnlessCoverageDecorator(TestCase):
         pass
 
 
-@provenance_prefix('Example Prefix')
-class TestWithCustomProvenancePrefix(TestCase):
+@categories('Test', 'Class', 'Custom', 'Categories')
+class TestWithCustomCategories(TestCase):
 
     @tags('p0', 'positive')
-    def test_custom_prefix(self):
+    def test_custom_class_categories_are_set(self):
+        pass
+
+    @tags('p0', 'positive', 'category:Test:Method:Custom:Categories')
+    def test_custom_method_categories_override_class(self):
         pass
 
 
-@provenance_prefix(None)
-class TestWithCustomProvenancePrefixIgnoreNone(TestCase):
+@categories(None, '', 0, False)
+class TestWithCustomCategoriesIgnoreNone(TestCase):
 
     @tags('p0', 'positive')
-    def test_custom_prefix(self):
+    def test_custom_class_categories(self):
+        pass
+
+
+@categories()
+class TestWithCustomCategoriesIgnoreEmpty(TestCase):
+
+    @tags('p0', 'positive')
+    def test_custom_class_categories(self):
         pass
