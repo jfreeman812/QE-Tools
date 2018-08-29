@@ -9,3 +9,6 @@
 {"doc": "<No docstring provided> (Quarantined: JIRA-111)", "provenance": ["test_decorators", "TestCaseDecoratorsThatWork"], "tags": ["quarantined", "JIRA-111", "smoke", "positive"], "test": "test_skipped_quarantined"}
 {"doc": "<No docstring provided> (Quarantined: This description contains JIRA-123, but there is a comma next to it.)", "provenance": ["test_decorators", "TestCaseDecoratorsThatWork"], "tags": ["quarantined", "JIRA-123", "positive"], "test": "test_skipped_quarantined_with_comma_next_to_jira_id"}
 {"doc": null, "provenance": ["test_decorators", "TestUnlessCoverageDecorator"], "tags": ["p0", "positive"], "test": "test_unless_coverage"}
+{"doc": null, "provenance": ["Example Prefix", "TestWithCustomProvenancePrefix"], "tags": ["p0", "positive"], "test": "test_custom_prefix"}
+{"doc": null, "provenance": ["test_decorators", "TestWithCustomProvenancePrefixIgnoreNone"], "tags": ["p0", "positive"], "test": "test_custom_prefix"}
+

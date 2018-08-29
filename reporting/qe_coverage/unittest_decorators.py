@@ -98,6 +98,11 @@ COVERAGE_TAG_DECORATOR_TAG_LIST_NAME = '__coverage_report_tags__'
 See the tags decorator documentation for why we are doing this.
 '''
 
+COVERAGE_PROVENANCE_PREFIX = '__coverage_provenance_prefix__'
+'''Name of the attribute used to override the default provenance prefix for test names,
+which is currently derived from the package name.
+'''
+
 COVERAGE_REPORT_FILE_NAME = None
 
 _TAGS_INFO_DIR_NAME = environ.get('COLLECT_TAGS_DATA_INTO', None)
@@ -139,8 +144,9 @@ else:
         # where as the test_obj name is unique and what we need to report on.
         tags_data['test'] = instance._testMethodName
         tags_data['doc'] = wrapped.__doc__
-        tags_data['provenance'] = (instance.__class__.__module__.split('.') +
-                                   [instance.__class__.__name__])
+        # provenance prefix can be set on the test class or derived from the module name
+        prefix = _get_provenance_prefix(instance)
+        tags_data['provenance'] = (prefix + [instance.__class__.__name__])
         tags_data['tags'] = _get_coverage_tags_from(wrapped)
 
         json.dump(tags_data, _coverage_report_file, sort_keys=True)
@@ -408,6 +414,23 @@ def _clear_special_tags_from(func):
             delattr(func, attr)
 
 
+def _get_provenance_prefix(test_fixture):
+    '''
+    Retrieve custom provenance prefix if set to non-empty value on a class,
+    else return the default prefix derived from the module name.
+
+    Args:
+        test_fixture: The class or class instance for the test or class that was decorated.
+
+    Returns:
+        Prefix as a list of one or more strings
+    '''
+    prefix = getattr(test_fixture, COVERAGE_PROVENANCE_PREFIX, None)
+    if prefix:
+        return [prefix]  # return as list to match the return type of the default behavior below
+    return test_fixture.__class__.__module__.split('.')
+
+
 ##############
 # DECORATORS #
 ##############
@@ -617,3 +640,20 @@ def tags(*tags_list):
         return _tags_log_info(func)
 
     return tag_decorator
+
+
+def provenance_prefix(prefix):
+    '''
+    Set a custom provenance_prefix on a test class. Null or empty values will be ignored.
+
+    Args:
+        prefix (str): The custom prefix desired for the test class.
+
+    Returns:
+        A decorator function to pass the test class into.
+    '''
+    def provenance_prefix_decorator(test_class):
+        setattr(test_class, COVERAGE_PROVENANCE_PREFIX, prefix)
+        return test_class
+
+    return provenance_prefix_decorator
