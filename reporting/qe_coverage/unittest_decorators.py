@@ -98,6 +98,11 @@ COVERAGE_TAG_DECORATOR_TAG_LIST_NAME = '__coverage_report_tags__'
 See the tags decorator documentation for why we are doing this.
 '''
 
+COVERAGE_CLASS_CATEGORIES = '__coverage_class_categories__'
+'''Name of the attribute used to store default category tags defined at the class level.
+'''
+
+
 COVERAGE_REPORT_FILE_NAME = None
 
 _TAGS_INFO_DIR_NAME = environ.get('COLLECT_TAGS_DATA_INTO', None)
@@ -139,9 +144,9 @@ else:
         # where as the test_obj name is unique and what we need to report on.
         tags_data['test'] = instance._testMethodName
         tags_data['doc'] = wrapped.__doc__
-        tags_data['provenance'] = (instance.__class__.__module__.split('.') +
-                                   [instance.__class__.__name__])
+        tags_data['provenance'] = _get_provenance(instance)
         tags_data['tags'] = _get_coverage_tags_from(wrapped)
+        _apply_class_category_tags(instance, tags_data['tags'])
 
         json.dump(tags_data, _coverage_report_file, sort_keys=True)
         _coverage_report_file.write('\n')
@@ -408,6 +413,38 @@ def _clear_special_tags_from(func):
             delattr(func, attr)
 
 
+def _get_provenance(test_fixture):
+    '''
+    Retrieve provenance derived from the module and class names.
+
+    Args:
+        test_fixture: The class or class instance
+
+    Returns:
+        provenance as a list of strings
+    '''
+    return test_fixture.__class__.__module__.split('.') + [test_fixture.__class__.__name__]
+
+
+def _apply_class_category_tags(test_fixture, existing_tags):
+    '''
+    Add class level categories to the method tags unless no class level categories are defined,
+    or if the method has its own category tag.
+
+    Args:
+        test_fixture: The class or class instance
+        existing_tags: The list of existing tags to be modified
+    '''
+    class_categories = getattr(test_fixture, COVERAGE_CLASS_CATEGORIES, None)
+    if not class_categories:
+        return
+
+    if any(tag.startswith('category:') for tag in existing_tags):
+        return
+
+    existing_tags.append(class_categories)
+
+
 ##############
 # DECORATORS #
 ##############
@@ -617,3 +654,24 @@ def tags(*tags_list):
         return _tags_log_info(func)
 
     return tag_decorator
+
+
+def categories(*category_list):
+    '''
+    Class decorator that sets a list of default categories for the methods in a test class
+    which do not define their own. Null or empty values will be ignored.
+
+    Args:
+        category_list: The list of categories desired for the test class.
+
+    Returns:
+        A decorator function to pass the test class into.
+    '''
+    def categories_decorator(test_class):
+        clean_category_list = list(filter(None, category_list))
+        if clean_category_list:
+            category_tag = 'category:' + ':'.join(clean_category_list)
+            setattr(test_class, COVERAGE_CLASS_CATEGORIES, category_tag)
+        return test_class
+
+    return categories_decorator
