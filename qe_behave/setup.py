@@ -28,8 +28,7 @@ TESTS_REQUIRE = [
 
 EXTRAS_REQUIRE = {
     'api': ['requests~=2.18.4'],
-    'ui': ['selenium~=3.12.0',
-           'selenium_extras~=0.1.0',
+    'ui': ['selenium_extras~=0.1',
            ],
 }
 

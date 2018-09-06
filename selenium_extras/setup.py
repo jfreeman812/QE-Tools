@@ -22,7 +22,7 @@ CONSOLE_SCRIPTS = [
 ]
 
 INSTALL_REQUIRES = [
-    'selenium~=3.12.0',
+    'selenium~=3.12',
 ]
 
 TESTS_REQUIRE = [
