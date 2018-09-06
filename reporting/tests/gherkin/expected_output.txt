@@ -4,4 +4,5 @@ Missing Ticket Tag:Ticket ID not found for status "quarantined"
 Missing Ticket Tag:Ticket ID not found for status "unstable"
 Multiple Prescriptive Tags:Multiple tags for prescriptive attribute Polarity (negative, positive)
 Multiple Categories:There can only be one category tag per test
- {'Bad Feature File.Missing Ticket Tag': 2}
+
+ Bad Feature File.Missing Ticket Tag

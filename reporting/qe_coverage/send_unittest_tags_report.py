@@ -148,7 +148,7 @@ def run_unittest_reports(coverage_json_file, *args, **kwargs):
     test_group = coverage_json_to_test_group(coverage_json_file, args[0],
                                              kwargs.get('leading_categories_to_strip'),
                                              injection_data)
-    run_reports(test_group, *args, **kwargs)
+    run_reports('unittest', test_group, *args, **kwargs)
 
 
 def main():

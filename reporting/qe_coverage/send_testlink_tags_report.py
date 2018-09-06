@@ -149,7 +149,7 @@ def testlink_xml_to_test_group(xml_file_name, leading_categories_to_strip):
 def run_testlink_reports(testlink_xml_file, *args, **kwargs):
     test_group = testlink_xml_to_test_group(testlink_xml_file,
                                             kwargs.get('leading_categories_to_strip'))
-    run_reports(test_group, *args, **kwargs)
+    run_reports('testlink', test_group, *args, **kwargs)
 
 
 def main():

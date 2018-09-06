@@ -95,7 +95,7 @@ def run_gherkin_reports(product_dir, *args, **kwargs):
                            search_hidden=kwargs.pop('search_hidden', False),
                            exclude_patterns=kwargs.pop('exclude_patterns', None) or [])
     test_list = project.build_coverage()
-    run_reports(test_list, *args, **kwargs)
+    run_reports('gherkin', test_list, *args, **kwargs)
 
 
 def main():
