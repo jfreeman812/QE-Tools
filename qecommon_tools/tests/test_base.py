@@ -5,6 +5,7 @@ import tempfile
 from uuid import uuid4
 from os import path, mkdir
 import random
+import shutil
 import string
 
 import pytest
@@ -23,7 +24,9 @@ def list_for_padding():
 @pytest.fixture
 def temp_dir():
     '''Creates and return a tmpdir for testing'''
-    return tempfile.mkdtemp()
+    log_dir = tempfile.mkdtemp()
+    yield log_dir
+    shutil.rmtree(log_dir)
 
 
 @pytest.fixture
@@ -31,7 +34,8 @@ def temp_dir_with_name_file():
     dir_path = tempfile.mkdtemp()
     with open(path.join(dir_path, 'display_name.txt'), 'w') as f:
         f.write(TEST_MESSAGE)
-    return dir_path
+    yield dir_path
+    shutil.rmtree(dir_path)
 
 
 PACKAGE_NAMES = {None: 'Test Directory', 'test.package.name_for_testing': 'Name For Testing'}
@@ -95,7 +99,7 @@ def test_cleanup_and_exit_without_dir():
 
 
 def test_cleanup_and_exit_with_dir():
-    dir_path = temp_dir()
+    dir_path = tempfile.mkdtemp()
     _cleanup_and_exit(dir_path=dir_path)
     assert not path.exists(dir_path)
 

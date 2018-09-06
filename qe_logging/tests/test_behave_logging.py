@@ -1,6 +1,8 @@
 import os
 import logging
+import shutil
 from tempfile import mkdtemp
+from uuid import uuid4
 
 import pytest
 from qe_logging import behave_logging, setup_logging
@@ -8,11 +10,19 @@ from qe_logging import behave_logging, setup_logging
 
 LOG_FILENAME_PREFIX = 'qe_behave_logging_test'
 BEHAVE_LOGGING_ATTRIBUTE = 'qe_behave_logging_filenames'
+LOG_DIRS_TO_TEST = [mkdtemp(), mkdtemp(dir=os.getcwd()), str(uuid4())]
 
 
 # Python2 doesn't have SimpleNamespace :-(
 class Mock(object):
     pass
+
+
+@pytest.fixture(scope='function', params=LOG_DIRS_TO_TEST)
+def log_dir(request):
+    yield request.param
+    if os.path.exists(request.param):
+        shutil.rmtree(request.param)
 
 
 def teardown_function():
@@ -27,10 +37,8 @@ def _get_file_contents(*paths):
 
 # before_all has different side-effects than the other behave before/after functions
 # as such it has to be tested separately from them.
-def test_behave_before_all():
+def test_behave_before_all(log_dir):
     logging.getLogger().setLevel(logging.DEBUG)
-
-    log_dir = mkdtemp()
 
     mock_context = Mock()
     mock_context.config = Mock()
@@ -57,10 +65,9 @@ def test_behave_before_all():
                behave_logging.after_all
                ]
 )
-def test_log_files_contain_data(method):
+def test_log_files_contain_data(log_dir, method):
     logging.getLogger().setLevel(logging.DEBUG)
 
-    log_dir = mkdtemp()
     log_filenames = setup_logging(LOG_FILENAME_PREFIX, base_log_dir=log_dir)
 
     method_name = method.__name__
