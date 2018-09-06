@@ -1,7 +1,10 @@
 from copy import deepcopy
 from itertools import product
 import logging
+import os
+import shutil
 from tempfile import mkdtemp
+from uuid import uuid4
 
 import pytest
 from qecommon_tools import generate_random_string, get_file_contents
@@ -19,6 +22,15 @@ from qe_logging.requests_logging import (
     NoRequestDataNoResponseContentLogger,
     SilentLogger,
 )
+
+LOG_DIRS_TO_TEST = [mkdtemp(), mkdtemp(dir=os.getcwd()), str(uuid4())]
+
+
+@pytest.fixture(scope='function', params=LOG_DIRS_TO_TEST)
+def log_dir(request):
+    yield request.param
+    if os.path.exists(request.param):
+        shutil.rmtree(request.param)
 
 
 ###########################
@@ -126,9 +138,8 @@ ROOT_MSG = 'Log info:\n\n{}\n\n Did not contain '
 ALTERNATE_LOGGER = logging.getLogger('custom_test_logger')
 
 
-def _setup_logging():
+def _setup_logging(log_dir):
     logging.getLogger().setLevel(logging.DEBUG)
-    log_dir = mkdtemp()
     # Only one log file path is needed.  Testing that data is written to both log file paths is
     # covered in another test suite.  Taking the first file is arbitrary.
     return setup_logging('test_request_and_response_logger', base_log_dir=log_dir)[0]
@@ -139,8 +150,9 @@ def teardown_function():
     del logging.getLogger('').handlers[:]
 
 
-def _setup_log_and_get_contents(req, resp, log_class=RequestAndResponseLogger, **init_kwargs):
-    log_file = _setup_logging()
+def _setup_log_and_get_contents(log_dir, req, resp, log_class=RequestAndResponseLogger,
+                                **init_kwargs):
+    log_file = _setup_logging(log_dir)
     log_class(**init_kwargs).log(req, resp)
     return get_file_contents(log_file)
 
@@ -166,8 +178,8 @@ def _verify_response(test_resp, log_contents, resp_text=''):
 
 
 @pytest.mark.parametrize('test_request,test_resp', product(requests_to_test(), responses_to_test()))
-def test_request_and_response_are_logged(test_request, test_resp, **kwargs):
-    log_contents = _setup_log_and_get_contents(test_request, test_resp, **kwargs)
+def test_request_and_response_are_logged(log_dir, test_request, test_resp, **kwargs):
+    log_contents = _setup_log_and_get_contents(log_dir, test_request, test_resp, **kwargs)
 
     _verify_request(test_request, log_contents)
     _verify_response(test_resp, log_contents, resp_text=test_resp.text)
@@ -183,9 +195,9 @@ def test_request_and_response_are_logged(test_request, test_resp, **kwargs):
         responses_to_test()
     )
 )
-def test_log_can_be_passed(logger_name, test_request, test_resp):
+def test_log_can_be_passed(log_dir, logger_name, test_request, test_resp):
     log_contents = test_request_and_response_are_logged(
-        test_request, test_resp, logger=logging.getLogger(logger_name)
+        log_dir, test_request, test_resp, logger=logging.getLogger(logger_name)
     )
     msg = 'Log info:\n\n{}\n\n Did not contain logger name: {}'.format(log_contents, logger_name)
     assert logger_name in log_contents, msg
@@ -195,9 +207,9 @@ def test_log_can_be_passed(logger_name, test_request, test_resp):
     'test_param,test_request,test_resp',
     product(['url', 'method'], requests_to_test(), responses_to_test())
 )
-def test_request_params_are_excluded(test_param, test_request, test_resp):
+def test_request_params_are_excluded(log_dir, test_param, test_request, test_resp):
     log_contents = _setup_log_and_get_contents(
-        test_request, test_resp, exclude_request_params=test_param
+        log_dir, test_request, test_resp, exclude_request_params=test_param
     )
 
     # make sure we don't mutate the original test data.
@@ -238,9 +250,9 @@ class AlternateResponseLogger(RequestAndResponseLogger):
 
 
 @pytest.mark.parametrize('test_request,test_resp', product(requests_to_test(), responses_to_test()))
-def test_custom_request_logger(test_request, test_resp):
+def test_custom_request_logger(log_dir, test_request, test_resp):
     log_contents = _setup_log_and_get_contents(
-        test_request, test_resp, log_class=AlternateRequestLogger
+        log_dir, test_request, test_resp, log_class=AlternateRequestLogger
     )
 
     _verify_response(test_resp, log_contents, resp_text=test_resp.text)
@@ -256,9 +268,9 @@ def test_custom_request_logger(test_request, test_resp):
 
 
 @pytest.mark.parametrize('test_request,test_resp', product(requests_to_test(), responses_to_test()))
-def test_custom_response_logger(test_request, test_resp):
+def test_custom_response_logger(log_dir, test_request, test_resp):
     log_contents = _setup_log_and_get_contents(
-        test_request, test_resp, log_class=AlternateResponseLogger
+        log_dir, test_request, test_resp, log_class=AlternateResponseLogger
     )
 
     _verify_request(test_request, log_contents)
@@ -274,7 +286,7 @@ def test_custom_response_logger(test_request, test_resp):
 
 
 @pytest.mark.parametrize('log_class', [RequestAndResponseLogger, IdentityLogger])
-def test_identity_secrets_are_safe_with_identity_logger(log_class):
+def test_identity_secrets_are_safe_with_identity_logger(log_dir, log_class):
     # We have other tests that check nitty gritty logging details,
     # so this test is simpler, do secrets show up in the log files (regular logger),
     # or not (IdentityLogger).
@@ -283,7 +295,7 @@ def test_identity_secrets_are_safe_with_identity_logger(log_class):
                'kwargs': {'data': {'username': 'UserName', 'password': request_secret}}}
     response = session.post('mock://test.com/secrets')
 
-    log_contents = _setup_log_and_get_contents(request, response, log_class=log_class)
+    log_contents = _setup_log_and_get_contents(log_dir, request, response, log_class=log_class)
     if log_class == IdentityLogger:
         assert request_secret not in log_contents
         assert SECRET_RESPONSE_VALUE not in log_contents
@@ -292,18 +304,18 @@ def test_identity_secrets_are_safe_with_identity_logger(log_class):
         assert SECRET_RESPONSE_VALUE in log_contents
 
 
-def test_identity_logger_log_response_when_response_has_errors():
+def test_identity_logger_log_response_when_response_has_errors(log_dir):
     request = {'url': 'mock://test.com/bad-secrets', 'method': 'POST'}
     response = session.post('mock://test.com/bad-secrets')
 
-    log_contents = _setup_log_and_get_contents(request, response, log_class=IdentityLogger)
+    log_contents = _setup_log_and_get_contents(log_dir, request, response, log_class=IdentityLogger)
     assert BAD_SECRET_RESPONSE_DATA in log_contents
 
 
 @pytest.mark.parametrize('test_request,test_resp', product(requests_to_test(), responses_to_test()))
-def test_no_response_content_logger(test_request, test_resp):
+def test_no_response_content_logger(log_dir, test_request, test_resp):
     log_contents = _setup_log_and_get_contents(
-        test_request, test_resp, log_class=NoResponseContentLogger
+        log_dir, test_request, test_resp, log_class=NoResponseContentLogger
     )
 
     _verify_request(test_request, log_contents)
@@ -313,13 +325,13 @@ def test_no_response_content_logger(test_request, test_resp):
 
 
 @pytest.mark.parametrize('test_request,test_resp', product(requests_to_test(), responses_to_test()))
-def test_no_request_data_no_response_content_logger(test_request, test_resp):
+def test_no_request_data_no_response_content_logger(log_dir, test_request, test_resp):
     # make sure we don't mutate the original test data.
     test_request = deepcopy(test_request)
 
     test_request['kwargs'] = {'data': single_item_random_dict()}
     log_contents = _setup_log_and_get_contents(
-        test_request, test_resp, log_class=NoRequestDataNoResponseContentLogger
+        log_dir, test_request, test_resp, log_class=NoRequestDataNoResponseContentLogger
     )
 
     request_data = test_request.pop('kwargs')['data']
@@ -331,9 +343,9 @@ def test_no_request_data_no_response_content_logger(test_request, test_resp):
 
 
 @pytest.mark.parametrize('test_request,test_resp', product(requests_to_test(), responses_to_test()))
-def test_silent_logger_does_not_log_requests_or_responses(test_request, test_resp):
+def test_silent_logger_does_not_log_requests_or_responses(log_dir, test_request, test_resp):
     log_contents = _setup_log_and_get_contents(
-        test_request, test_resp, log_class=SilentLogger
+        log_dir, test_request, test_resp, log_class=SilentLogger
     )
 
     assert not log_contents, 'Log info found when None was expected:\n\n{}'.format(log_contents)
@@ -343,8 +355,8 @@ def test_silent_logger_does_not_log_requests_or_responses(test_request, test_res
     'found_before,found_after,not_found',
     [[generate_random_string() for _ in range(3)] for _ in range(2)]
 )
-def test_silent_logger_does_not_log_external_calls(found_before, found_after, not_found):
-    log_file = _setup_logging()
+def test_silent_logger_does_not_log_external_calls(log_dir, found_before, found_after, not_found):
+    log_file = _setup_logging(log_dir)
     test_logger = logging.getLogger('test logger')
     test_logger.debug(found_before)
 
@@ -362,8 +374,8 @@ def test_silent_logger_does_not_log_external_calls(found_before, found_after, no
 
 
 @pytest.mark.parametrize('test_request,test_resp', product(requests_to_test(), responses_to_test()))
-def test_last_only_logger(test_request, test_resp):
-    log_file = _setup_logging()
+def test_last_only_logger(log_dir, test_request, test_resp):
+    log_file = _setup_logging(log_dir)
     last_only_logger = LastOnlyRequestAndResponseLogger()
     requests_and_responses_that_should_not_be_logged = list(product(
         requests_that_should_not_be_logged(), responses_that_should_not_be_logged()
