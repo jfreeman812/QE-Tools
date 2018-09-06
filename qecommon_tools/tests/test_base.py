@@ -98,10 +98,10 @@ def test_cleanup_and_exit_without_dir():
     _cleanup_and_exit()
 
 
-#def test_cleanup_and_exit_with_dir():
-#    dir_path = temp_dir()
-#    _cleanup_and_exit(dir_path=dir_path)
-#    assert not path.exists(dir_path)
+def test_cleanup_and_exit_with_dir():
+    dir_path = tempfile.mkdtemp()
+    _cleanup_and_exit(dir_path=dir_path)
+    assert not path.exists(dir_path)
 
 
 def test_no_virtual_env(monkeypatch):
