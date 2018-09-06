@@ -4,6 +4,7 @@ import tempfile
 from uuid import uuid4
 from os import path, mkdir
 import random
+import shutil
 import string
 
 import pytest
@@ -101,18 +102,20 @@ key1=key1 from layer with env override section
 VALID_CAKE_NAMES = ['L1', 'L2', 'L1L2']
 
 
-master_config_file = None
-
-
-@pytest.fixture
-def sample_configs():
+@pytest.fixture(scope='session')
+def sample_configs(request):
     '''Creates sample configs (once) and returns the filename of the master config file'''
 
-    global master_config_file
-    if master_config_file is not None:
-        return master_config_file
-
     base_dir = tempfile.mkdtemp()
+
+    # Using finalizer to make sure this gets cleaned up even in rest of code
+    # throws. The 'yield' form of cleanup does not guarantee that.
+
+    def cleanup_base_dir():
+        shutil.rmtree(base_dir, ignore_errors=True)
+
+    request.addfinalizer(cleanup_base_dir)
+
     result = None
     for config_name, contents in test_configs.items():
         filename = path.join(base_dir, config_name)
@@ -120,7 +123,6 @@ def sample_configs():
             f.write(contents)
         if contents.startswith(MASTER_CONFIG_SIGNATURE):
             result = filename
-    master_config_file = result
     return result
 
 
