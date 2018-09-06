@@ -108,8 +108,8 @@ def sample_configs(request):
 
     base_dir = tempfile.mkdtemp()
 
-    # Using finalizer to make sure this gets cleaned up even in rest of code
-    # throws. The 'yield' form of cleanup does not guarantee that.
+    # Using finalizer to make sure this gets cleaned up even if following code throws.
+    # The 'yield' form of pytest fixture cleanup does not guarantee that.
 
     def cleanup_base_dir():
         shutil.rmtree(base_dir, ignore_errors=True)
