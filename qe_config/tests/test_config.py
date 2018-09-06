@@ -101,12 +101,6 @@ key1=key1 from layer with env override section
 VALID_CAKE_NAMES = ['L1', 'L2', 'L1L2']
 
 
-@pytest.fixture
-def temp_dir():
-    '''Creates and return a tmpdir for testing'''
-    return tempfile.mkdtemp()
-
-
 master_config_file = None
 
 
@@ -118,7 +112,7 @@ def sample_configs():
     if master_config_file is not None:
         return master_config_file
 
-    base_dir = temp_dir()
+    base_dir = tempfile.mkdtemp()
     result = None
     for config_name, contents in test_configs.items():
         filename = path.join(base_dir, config_name)
