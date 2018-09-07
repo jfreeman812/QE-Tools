@@ -171,10 +171,11 @@ def get_browser(browser_name,
                                    desired_capabilities=capabilities)
     else:
         if browser_name.lower() == 'firefox':
+            if 'log_path' not in kwargs:
+                kwargs['log_path'] = os.devnull
             browser = webdriver.Firefox(
                 capabilities=capabilities,
                 firefox_profile=firefox_profile,
-                log_path=os.devnull,
                 **kwargs)
         elif browser_name.lower() == 'chrome':
             browser = webdriver.Chrome(desired_capabilities=capabilities, **kwargs)
