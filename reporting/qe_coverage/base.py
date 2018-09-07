@@ -161,6 +161,7 @@ class TestCoverage(object):
 @attr.s
 class TestGroup(object):
     # Pre-defined Constants
+    test_framework = attr.ib()
     tests = attr.ib(default=attr.Factory(list), init=False)
     errors = attr.ib(default=attr.Factory(list), init=False)
 
@@ -334,10 +335,10 @@ class ReportWriter(object):
             csv_data.extend(self._csv_cols_from(json_name, value) or [(json_name, value)])
         return csv_data
 
-    def send_report(self, test_framework):
+    def send_report(self):
         params = {'timestamp': self.timestamp} if self.timestamp else {}
         params['host'] = _hostname_from_env() or socket.gethostname()
-        params['test_framework'] = test_framework
+        params['test_framework'] = self.test_group.test_framework
         params['version_number'] = __version__
         coverage_url = COVERAGE_PRODUCTION_URL if self.production_endpoint else COVERAGE_STAGING_URL
         response = requests.post(coverage_url, json=self.data, params=params, verify=False)
@@ -388,12 +389,12 @@ class CSVWriter(object):
         self.file.close()
 
 
-def run_reports(test_framework, test_group, *args, **kwargs):
+def run_reports(test_group, *args, **kwargs):
     report = CoverageReport(test_group, *args, **kwargs)
     report.write_report()
     status = 0 if kwargs.get('validate') is False else test_group.validate()
     if not kwargs.get('dry_run'):
-        print(report.send_report(test_framework))
+        print(report.send_report())
         status = 0
     cleanup_and_exit(dir_name='' if report.preserve_files else report.output_dir, status=status)
 

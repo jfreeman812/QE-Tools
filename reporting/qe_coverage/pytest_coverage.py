@@ -6,7 +6,7 @@ from qe_coverage.base import run_reports, TestGroup, HIERARCHY_FORMAT
 
 # Global variables used in hooks
 options = {}
-test_group = TestGroup()
+test_group = TestGroup('pytest')
 
 
 def pytest_addoption(parser):
@@ -102,7 +102,7 @@ def pytest_terminal_summary(terminalreporter, exitstatus):
     }
     global test_group
     if _get_global_option('qe-coverage'):
-        run_reports('pytest', test_group, _get_global_option('product-hierarchy'),
+        run_reports(test_group, _get_global_option('product-hierarchy'),
                     _get_global_option('default-interface-type'), **kwargs)
 
 
