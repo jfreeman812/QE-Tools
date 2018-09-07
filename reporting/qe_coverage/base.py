@@ -25,7 +25,7 @@ from tableread import SimpleRSTReader
 
 from qecommon_tools import cleanup_and_exit, padded_list
 from qecommon_tools.http_helpers import safe_json_from, validate_response_status_code
-from __version__ import __version__
+from .__version__ import __version__
 
 
 # Silence requests complaining about insecure connections; needed for our internal certificates
