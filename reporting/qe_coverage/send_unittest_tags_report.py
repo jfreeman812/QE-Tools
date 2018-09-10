@@ -114,7 +114,7 @@ def coverage_json_to_test_group(coverage_file_name, default_interface_type,
     Any injection data provided will be appended to a test's coverage data
     before it is added to the TestGroup.
     '''
-    tests = TestGroup()
+    tests = TestGroup('unittest')
 
     with open(coverage_file_name) as json_lines:
         for line in json_lines.readlines():

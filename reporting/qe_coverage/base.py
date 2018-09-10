@@ -25,6 +25,7 @@ from tableread import SimpleRSTReader
 
 from qecommon_tools import cleanup_and_exit, padded_list
 from qecommon_tools.http_helpers import safe_json_from, validate_response_status_code
+from .__version__ import __version__
 
 
 # Silence requests complaining about insecure connections; needed for our internal certificates
@@ -160,6 +161,7 @@ class TestCoverage(object):
 @attr.s
 class TestGroup(object):
     # Pre-defined Constants
+    test_framework = attr.ib()
     tests = attr.ib(default=attr.Factory(list), init=False)
     errors = attr.ib(default=attr.Factory(list), init=False)
 
@@ -198,6 +200,11 @@ def _empty_str_padded_list(list_or_none, pad_to_length):
     '''
     list_to_pad = list_or_none or []
     return padded_list(list_to_pad, pad_to_length, '')
+
+
+def _hostname_from_env():
+    jenkins_url = os.environ.get('JENKINS_URL')
+    return parse.urlparse(jenkins_url).netloc if jenkins_url else None
 
 
 def _product_hierarchy_as_list(product_hierarchy):
@@ -330,6 +337,9 @@ class ReportWriter(object):
 
     def send_report(self):
         params = {'timestamp': self.timestamp} if self.timestamp else {}
+        params['host'] = _hostname_from_env() or socket.gethostname()
+        params['test_framework'] = self.test_group.test_framework
+        params['version_number'] = __version__
         coverage_url = COVERAGE_PRODUCTION_URL if self.production_endpoint else COVERAGE_STAGING_URL
         response = requests.post(coverage_url, json=self.data, params=params, verify=False)
 

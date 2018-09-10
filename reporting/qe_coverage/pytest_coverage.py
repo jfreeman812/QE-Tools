@@ -6,7 +6,7 @@ from qe_coverage.base import run_reports, TestGroup, HIERARCHY_FORMAT
 
 # Global variables used in hooks
 options = {}
-test_group = TestGroup()
+test_group = TestGroup('pytest')
 
 
 def pytest_addoption(parser):

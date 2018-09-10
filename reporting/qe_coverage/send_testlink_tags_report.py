@@ -83,7 +83,7 @@ class TestLinkContentHandler(ContentHandler):
         self.categories = []
         self.testcase = None
         self.last_testcase = '<No Test Case processed yet>'
-        self.tests = TestGroup()
+        self.tests = TestGroup('testlink')
 
     def start_testsuite(self, attrs):
         suite_name = neuter_unicode(attrs.get('name'))

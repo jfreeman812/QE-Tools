@@ -70,7 +70,7 @@ class ParseProject(object):
         Returns a list of TestCoverage objects created by walking a product base directory for any
         feature files and parsing them into TestCoverage objects.
         '''
-        tests = TestGroup()
+        tests = TestGroup('gherkin')
         for dir_path, dir_names, file_names in os.walk(self.project_path):
             # If items are removed from dir_names, os.walk will not search them.
             dir_names[:] = list(filter(self._is_included, dir_names))
