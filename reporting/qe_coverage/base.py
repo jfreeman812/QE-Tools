@@ -63,6 +63,11 @@ class TestCoverage(object):
     attributes = attr.ib(default=attr.Factory(dict), init=False)
     errors = attr.ib(default=attr.Factory(list), init=False)
 
+    @property
+    def all_tags(self):
+        '''Return all tags and parent tags'''
+        return chain(self.tags, self.parent_tags)
+
     def build(self):
         '''Build the necessary objects from the provided tag list(s).'''
         self.organize_prescriptives()
@@ -103,7 +108,7 @@ class TestCoverage(object):
 
     def organize_structureds(self):
         '''Convert structured tags into their appropriate attributes.'''
-        tag_categories = self.structured_tag('category', multiple=True)
+        tag_categories = KnownStructuredTags.categories.retrieve_entry(self.all_tags)
         if len(tag_categories) > 1:
             message = '{}:{}:There can only be one category tag per test'
             self.errors.append(message.format(self.file_path, self.name))
@@ -120,7 +125,7 @@ class TestCoverage(object):
         if self.categories and tag_categories:
             tag_categories[0] += self.categories[-1:]
         self.attributes['Categories'] = tag_categories[0] if tag_categories else self.categories
-        self.attributes['Projects'] = self.structured_tag('project')
+        self.attributes['Projects'] = KnownStructuredTags.projects.retrieve_entry(self.all_tags)
 
     def organize_tickets(self):
         for tag_list in (self.tags, self.parent_tags):
@@ -149,13 +154,69 @@ class TestCoverage(object):
                 continue
             status = None
 
-    def structured_tag(self, tag_key, multiple=False):
-        '''Given a tag key, find the appropriate tag and return the attribute value.'''
-        tag_list = chain(self.tags, self.parent_tags)
-        matches = [x for x in tag_list if x.startswith('{}:'.format(tag_key))]
-        if multiple:
-            return [x.split(':')[1:] for x in matches]
-        return [x.split(':', 1)[1] for x in matches]
+
+class StructuredTag(object):
+    '''
+    This class holds the logic for building and retrieving structured tags.
+
+    Args:
+        tag_key: the prefix which identifies a specific structured tag
+        tag_sep: the separator character for individual item(s) in a structured tag
+        multiple: a boolean flag to indicate if the structured tag may have multiple items
+    '''
+    def __init__(self, tag_key, tag_sep, multiple):
+        self._tag_key = tag_key
+        self._tag_sep = tag_sep
+        self._multiple = multiple
+        self._tag_prefix = '{}{}'.format(self._tag_key, self._tag_sep)
+
+    def retrieve_entry(self, tag_list):
+        '''
+        Find the appropriate tag and return the attribute value.
+
+        Args:
+            tag_list: the list of tags which may contain the structured tag
+
+        Returns:
+            If multiple: a list of lists containing the individual structured tags,
+             preserving ordering
+            If not multiple: a list of individual structured tags
+        '''
+        matching_entries = self._extract_matching_entries(tag_list)
+        if self._multiple:
+            matching_entries = self._expand_multiple_tags(matching_entries)
+        return matching_entries
+
+    def build_entry(self, item_list):
+        '''
+        Given a list of attribute items, build the appropriate structured tag.
+
+        Args:
+            item_list: the list of items to be built into a structured tag entry
+
+        Returns:
+            A formatted structured tag entry
+        '''
+        joined_tags = self._tag_sep.join(item_list)
+        return '{}{}'.format(self._tag_prefix, joined_tags)
+
+    def _extract_matching_entries(self, tag_list):
+        '''Build a list of entries that match the tag prefix, and remove the tag prefix'''
+        return [x[len(self._tag_prefix):] for x in tag_list if x.startswith(self._tag_prefix)]
+
+    def _expand_multiple_tags(self, structured_tags):
+        '''expand multiple tag strings into lists'''
+        return [x.split(self._tag_sep) for x in structured_tags]
+
+
+class KnownStructuredTags(object):
+    '''
+    This is a temporary shim for holding known structured tags for use elsewhere in reporting.
+
+    This class should be eliminated and replaced in QET-117.
+    '''
+    categories = StructuredTag('category', ':', True)
+    projects = StructuredTag('project', ':', False)
 
 
 @attr.s

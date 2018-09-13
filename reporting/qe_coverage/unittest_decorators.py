@@ -72,7 +72,7 @@ from unittest import skip, SkipTest
 
 import wrapt
 
-from qe_coverage.base import STATUS_TAGS, TICKET_RE
+from qe_coverage.base import STATUS_TAGS, TICKET_RE, KnownStructuredTags
 
 _cafe_tags = None
 TAGS_DECORATOR_TAG_LIST_NAME = PARALLEL_TAGS_LIST_ATTR = ''
@@ -426,23 +426,24 @@ def _get_provenance(test_fixture):
     return test_fixture.__class__.__module__.split('.') + [test_fixture.__class__.__name__]
 
 
-def _apply_class_category_tags(test_fixture, existing_tags):
+def _apply_class_category_tags(test_fixture, method_tags):
     '''
     Add class level categories to the method tags unless no class level categories are defined,
     or if the method has its own category tag.
 
     Args:
         test_fixture: The class or class instance
-        existing_tags: The list of existing tags to be modified
+        method_tags: The list of method tags to be modified
     '''
     class_categories = getattr(test_fixture, COVERAGE_CLASS_CATEGORIES, None)
     if not class_categories:
         return
 
-    if any(tag.startswith('category:') for tag in existing_tags):
+    method_categories = KnownStructuredTags.categories.retrieve_entry(method_tags)
+    if method_categories:
         return
 
-    existing_tags.append(class_categories)
+    method_tags.append(class_categories)
 
 
 ##############
@@ -670,7 +671,7 @@ def categories(*category_list):
     def categories_decorator(test_class):
         clean_category_list = list(filter(None, category_list))
         if clean_category_list:
-            category_tag = 'category:' + ':'.join(clean_category_list)
+            category_tag = KnownStructuredTags.categories.build_entry(clean_category_list)
             setattr(test_class, COVERAGE_CLASS_CATEGORIES, category_tag)
         return test_class
 
