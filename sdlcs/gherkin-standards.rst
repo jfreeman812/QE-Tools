@@ -60,6 +60,8 @@ Gherkin Feature File Coding Standard
      Then the search results include the triggered event
 
     See https://jml.io/pages/test-docstrings.html for avoiding ``should`` and other good ideas.
+    See also https://automationpanda.com/2018/01/31/good-gherkin-scenario-titles/ in the
+    "Avoid Assertion Language" section.
 
   * Be specific::
 
