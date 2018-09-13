@@ -168,6 +168,7 @@ class StructuredTag(object):
         self._tag_key = tag_key
         self._tag_sep = tag_sep
         self._multiple = multiple
+        self._tag_prefix = '{}{}'.format(self._tag_key, self._tag_sep)
 
     def retrieve_entry(self, tag_list):
         '''
@@ -181,11 +182,10 @@ class StructuredTag(object):
              preserving ordering
             If not multiple: a list of individual structured tags
         '''
-        tag_indicator = '{}{}'.format(self._tag_key, self._tag_sep)
-        matches = [x for x in tag_list if x.startswith(tag_indicator)]
+        matching_entries = self._extract_matching_entries(tag_list)
         if self._multiple:
-            return [x.split(self._tag_sep)[1:] for x in matches]
-        return [x.split(self._tag_sep, 1)[1] for x in matches]
+            matching_entries = self._expand_multiple_tags(matching_entries)
+        return matching_entries
 
     def build_entry(self, item_list):
         '''
@@ -197,7 +197,16 @@ class StructuredTag(object):
         Returns:
             A formatted structured tag entry
         '''
-        return '{}{}'.format(self._tag_key, self._tag_sep) + self._tag_sep.join(item_list)
+        joined_tags = self._tag_sep.join(item_list)
+        return '{}{}'.format(self._tag_prefix, joined_tags)
+
+    def _extract_matching_entries(self, tag_list):
+        '''Build a list of entries that match the tag prefix, and remove the tag prefix'''
+        return [x[len(self._tag_prefix):] for x in tag_list if x.startswith(self._tag_prefix)]
+
+    def _expand_multiple_tags(self, structured_tags):
+        '''expand multiple tag strings into lists'''
+        return [x.split(self._tag_sep) for x in structured_tags]
 
 
 class KnownStructuredTags(object):
