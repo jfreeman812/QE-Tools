@@ -3,7 +3,6 @@ import json
 
 import requests
 
-
 MAX_ERROR_MESSAGE_CONTENT_LENGTH = 500
 
 HEADERS_TO_IGNORE_IN_ERROR_MESSAGE = [
@@ -22,12 +21,13 @@ STATUS_CODE_RANGES = {
 }
 
 
-def safe_json_from(response):
+def safe_json_from(response, description=''):
     '''
     Accepts a response object and attempts to return the JSON-decoded data.
 
     Args:
         response (requests.models.Response): a Response object from a requests call
+        description (str, optional): details about the response expected.
 
     Returns:
         The JSON-decoded data from the response
@@ -44,10 +44,11 @@ def safe_json_from(response):
     try:
         data = response.json()
     except decode_error:
-        message = format_items_as_string_tree('\nResponse Content NOT a Valid JSON:',
-                                              ['URL: {}'.format(response.url),
-                                               'Status Code: {}'.format(response.status_code),
-                                               'Response Text -{}-'.format(response.text)])
+        content = list(filter(None, [description,
+                                     'URL: {}'.format(response.url),
+                                     'Status Code: {}'.format(response.status_code),
+                                     'Response Text -{}-'.format(response.text)]))
+        message = format_items_as_string_tree('\nResponse Content NOT a Valid JSON:', content)
         raise AssertionError(message)
     return data
 
