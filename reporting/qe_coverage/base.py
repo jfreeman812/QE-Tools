@@ -195,10 +195,13 @@ class StructuredTag(object):
             item_list: the list of items to be built into a structured tag entry
 
         Returns:
-            A formatted structured tag entry
+            If multiple: A formatted structured tag entry string, preserving ordering
+            If not multiple: a list of individual structured tag entry strings
         '''
-        joined_tags = self._tag_sep.join(item_list)
-        return '{}{}'.format(self._tag_prefix, joined_tags)
+        if self._multiple:
+            joined_tags = self._tag_sep.join(item_list)
+            return '{}{}'.format(self._tag_prefix, joined_tags)
+        return ['{}{}'.format(self._tag_prefix, item) for item in item_list]
 
     def _extract_matching_entries(self, tag_list):
         '''Build a list of entries that match the tag prefix, and remove the tag prefix'''
