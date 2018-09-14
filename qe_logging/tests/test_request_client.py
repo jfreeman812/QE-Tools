@@ -225,9 +225,11 @@ def test_base_url_override(log_dir, client_class, client_class_kwargs, request_i
 @pytest.mark.parametrize('request_item', REQUESTS_TO_TEST)
 def test_x_auth_token_client_includes_x_auth_token_in_request(log_dir, request_item):
     session = _make_session(XAuthTokenRequestsLoggingClient, X_AUTH_CLIENT_KWARGS)
-    _, _, response = _make_request(log_dir, session, request_item)
+    log_contents, _, response = _make_request(log_dir, session, request_item)
     assert 'X-Auth-Token' in response.request.headers
     assert _get_x_auth_token_header(response) == TOKEN
+    assert 'X-Auth-Token' in log_contents
+    assert TOKEN not in log_contents
 
 
 @pytest.mark.parametrize('request_item', REQUESTS_TO_TEST)
@@ -235,8 +237,9 @@ def test_x_auth_token_client_with_no_auth_does_not_include_x_auth_token_in_reque
                                                                                    request_item):
     session = _make_session(XAuthTokenRequestsLoggingClient, X_AUTH_CLIENT_KWARGS)
     with session.no_auth:
-        _, _, response = _make_request(log_dir, session, request_item)
+        log_contents, _, response = _make_request(log_dir, session, request_item)
     assert 'X-Auth-Token' not in response.request.headers
+    assert 'X-Auth-Token' not in log_contents
 
 
 @pytest.mark.parametrize('request_item', REQUESTS_TO_TEST)
