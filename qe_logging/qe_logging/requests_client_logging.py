@@ -175,6 +175,9 @@ class XAuthTokenRequestsLoggingClient(RequestsLoggingClient):
         '''
         super(XAuthTokenRequestsLoggingClient, self).__init__(base_url, curl_logger, content_type)
         self.token = token
+        override_headers = getattr(self.curl_logger, 'override_headers', None)
+        if override_headers is not None:
+            override_headers['X-Auth-Token'] = '$TOKEN'
 
     @property
     @contextmanager
