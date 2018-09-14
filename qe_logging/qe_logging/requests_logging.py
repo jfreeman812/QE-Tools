@@ -19,14 +19,11 @@ from qecommon_tools import list_from
 from qecommon_tools.http_helpers import is_status_code
 
 
-DEFAULT_OVERRIDE_HEADERS = {'X-Auth-Token': '$TOKEN'}
-DEFAULT_SKIP_HEADERS = ['Connection', 'Accept-Encoding', 'Accept', 'User-Agent', 'Content-Length']
 DEFAULT_COMMAND = 'curl'
 
 
 def curl_command_from(method=None, url=None, kwargs={}, exclude_params=[],
-                      override_headers=DEFAULT_OVERRIDE_HEADERS, skip_headers=DEFAULT_SKIP_HEADERS,
-                      command=DEFAULT_COMMAND):
+                      override_headers=None, skip_headers=None, command=DEFAULT_COMMAND):
     '''
     Creates a curl command string from the request items provided.
 
@@ -37,10 +34,9 @@ def curl_command_from(method=None, url=None, kwargs={}, exclude_params=[],
         exclude_params (list): If supplied will be excluded from the curl.  Note that this may
             make the curl invalid.
         override_headers (dict): Any matching keys in the ``kwargs['headers]`` will have their
-            values replaced with the corresponding values in ``override_headers``. Defaults to
-            ``DEFAULT_OVERRIDE_HEADERS``.
+            values replaced with the corresponding values in ``override_headers``.
         skip_headers (list): Excludes any matching keys and values in the ``kwargs['headers]`` from
-            the curl. Defaults to ``DEFAULT_SKIP_HEADERS``.
+            the curl.
         command (str):  The command to execute.  Defaults to ``default_command``
 
     Returns:
@@ -64,8 +60,8 @@ class _RequestCurl(object):
 
     def __init__(self, method=None, url=None, kwargs=None, exclude_params=None,
                  override_headers=None, skip_headers=None, command=None):
-        self.override_headers = override_headers
-        self.skip_headers = skip_headers
+        self.override_headers = override_headers or {}
+        self.skip_headers = skip_headers or []
         self.command = command
         self._request = self._prepare_request(method, url, kwargs)
         self.include_params = [x for x in self.default_include_params if x not in exclude_params]
@@ -130,14 +126,24 @@ class RequestAndResponseLogger(object):
         exclude_request_params (str, or list[str]): If supplied will be excluded from the logging
             in the curl for the request.
             Note that this may make the curl invalid.
+        skip_headers (optional, list): These headers will be excluded from the logging
+            in the curl for the request. Defaults to ``skip_headers``.
+        override_headers (optional, dict): If supplied, headers present as keys in the dictionary
+            will have their values replaced by the value in the dictionary
+            in the curl for the request.
 
     Note: The individual logging methods are exposed for the convenience of subclassing.
     '''
     default_logger_name = 'QE_requests'
+    skip_headers = ['Connection', 'Accept-Encoding', 'Accept', 'User-Agent', 'Content-Length']
+    '''Common headers we find annoying in the logs.'''
 
-    def __init__(self, logger=None, exclude_request_params=None):
+    def __init__(self, logger=None, exclude_request_params=None, skip_headers=None,
+                 override_headers=None):
         self.logger = logger or logging.getLogger(self.default_logger_name)
         self.exclude_request_params = list_from(exclude_request_params)
+        self.skip_headers = self.skip_headers if skip_headers is None else skip_headers
+        self.override_headers = {} if override_headers is None else override_headers
 
     def log_request(self, request_kwargs):
         '''
@@ -146,7 +152,10 @@ class RequestAndResponseLogger(object):
         Args:
             request_kwargs (dict): A dictionary of keyword arguments for the API call to log.
         '''
-        kwargs = {'exclude_params': self.exclude_request_params}
+        kwargs = {'exclude_params': self.exclude_request_params,
+                  'skip_headers': self.skip_headers,
+                  'override_headers': self.override_headers,
+                  }
         kwargs.update(request_kwargs)
         self.logger.debug(curl_command_from(**kwargs))
 
