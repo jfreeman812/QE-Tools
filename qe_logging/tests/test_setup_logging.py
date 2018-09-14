@@ -16,6 +16,9 @@ FILE_NAMES_TO_TEST = ['qe', '1234']
 LOG_DIRS_TO_TEST = [mkdtemp(), mkdtemp(dir=os.getcwd()), str(uuid4())]
 DIR_LAYERS_TO_TEST = [[], ['abc'], ['def', 'ghij', 'zzzzz']]
 
+NO_LOG_TEST_HELPER = os.path.join(os.path.abspath(os.path.dirname(__file__)),
+                                  'no_log_test.py')
+
 
 @pytest.fixture(scope='function', params=LOG_DIRS_TO_TEST)
 def log_dir(request):
@@ -72,14 +75,14 @@ def test_log_files_contain_data(log_dir, message, log_name_prefix, log_layers):
 
 
 def test_unconfigured_logging_generates_output():
-    output = subprocess.check_output(['qe_logging/tests/no_log_test.py'], stderr=subprocess.STDOUT)
+    output = subprocess.check_output([NO_LOG_TEST_HELPER], stderr=subprocess.STDOUT)
     assert output, 'Expected logging out with no configuration setup at all'
 
 
 def test_unconfigured_logging_can_be_suppressed():
     new_env = os.environ.copy()
     new_env['NO_LOG'] = 'Arbitrary_value'  # Tell test helper script to shut off it's logging.
-    output = subprocess.check_output(['qe_logging/tests/no_log_test.py'],
+    output = subprocess.check_output([NO_LOG_TEST_HELPER],
                                      stderr=subprocess.STDOUT,
                                      env=new_env)
     assert not output, 'Unexpected output when logging suppressed'
