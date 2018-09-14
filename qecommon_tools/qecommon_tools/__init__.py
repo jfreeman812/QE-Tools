@@ -98,6 +98,16 @@ def default_if_none(value, default):
     return default if value is None else value
 
 
+def no_nones(iterable):
+    '''Return a list of the non-None values in iterable'''
+    return [x for x in iterable if x is not None]
+
+
+def truths_only(iterable):
+    '''Return a list of the truthy values in iterable'''
+    return list(filter(None, iterable))
+
+
 def padded_list(iterable, size, padding=None):
     '''
     Generate a fixed-length list from an iterable, padding as needed.

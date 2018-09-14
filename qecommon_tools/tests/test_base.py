@@ -285,6 +285,15 @@ def test_list_from_iterable(iterable_items):
         assert item in results
 
 
+def test_no_nones():
+    assert None not in qecommon_tools.no_nones(FALSEY_VALUES)
+
+
+def test_truths_only():
+    assert qecommon_tools.truths_only(FALSEY_VALUES) == []
+    assert qecommon_tools.truths_only(FALSEY_VALUES + SINGLE_ITEM_VALUES) == SINGLE_ITEM_VALUES
+
+
 def test_get_file_contents(temp_dir):
     file_path = path.join(temp_dir, 'test.txt')
     with open(file_path, 'w') as f:
