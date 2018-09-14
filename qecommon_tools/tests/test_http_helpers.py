@@ -1,7 +1,7 @@
 import json
 
 import pytest
-from qecommon_tools import http_helpers
+from qecommon_tools import http_helpers, generate_random_string
 import requests
 import requests_mock
 
@@ -60,8 +60,16 @@ def bad_json():
 
 # data from response helpers testing
 def test_invalid_json(bad_json):
-    with pytest.raises(AssertionError):
+    with pytest.raises(AssertionError) as e:
         http_helpers.safe_json_from(bad_json)
+    assert 'Status Code' in str(e.value)
+
+
+def test_invalid_json_with_message(bad_json):
+    random_text = generate_random_string()
+    with pytest.raises(AssertionError) as e:
+        http_helpers.safe_json_from(bad_json, description=random_text)
+    assert random_text in str(e.value)
 
 
 def test_valid_json(good_json):
