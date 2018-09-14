@@ -86,6 +86,18 @@ def format_if(format_str, content):
     return format_str.format(content) if content else ''
 
 
+def default_if_none(value, default):
+    '''
+    Return ``default if value is None else value``
+
+    Use because:
+      * no chance of the value stutter being mistyped, speeds up code reading time.
+      * easier to read when value or default are complex expressions.
+      * can save having to create local variable(s) to shorten the  ``if .. is None ...`` form.
+    '''
+    return default if value is None else value
+
+
 def padded_list(iterable, size, padding=None):
     '''
     Generate a fixed-length list from an iterable, padding as needed.
