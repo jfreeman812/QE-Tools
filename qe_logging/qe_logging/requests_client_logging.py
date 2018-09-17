@@ -266,6 +266,17 @@ class XAuthTokenRequestsLoggingClient(HeaderAuthRequestsLoggingClient):
     AUTH_HEADER_OVERRIDE = '$TOKEN'
 
 
+class XAuthRequestsLoggingClient(HeaderAuthRequestsLoggingClient):
+    '''
+    Requests Client using the ```X-Auth``` header for authentication.
+
+    See :class:`HeaderAuthRequestsLoggingClient` for more details.
+    '''
+
+    AUTH_HEADER = 'X-Auth'
+    AUTH_HEADER_OVERRIDE = '$TOKEN'
+
+
 class QERequestsLoggingClient(XAuthTokenRequestsLoggingClient):
     '''
     Legacy Logging Client.
