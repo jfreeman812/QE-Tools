@@ -103,7 +103,7 @@ def no_nones(iterable):
     return [x for x in iterable if x is not None]
 
 
-def truths_only(iterable):
+def truths_from(iterable):
     '''Return a list of the truthy values in iterable'''
     return list(filter(None, iterable))
 

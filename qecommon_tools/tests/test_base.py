@@ -289,9 +289,9 @@ def test_no_nones():
     assert None not in qecommon_tools.no_nones(FALSEY_VALUES)
 
 
-def test_truths_only():
-    assert qecommon_tools.truths_only(FALSEY_VALUES) == []
-    assert qecommon_tools.truths_only(FALSEY_VALUES + SINGLE_ITEM_VALUES) == SINGLE_ITEM_VALUES
+def test_truths_from():
+    assert qecommon_tools.truths_from(FALSEY_VALUES) == []
+    assert qecommon_tools.truths_from(FALSEY_VALUES + SINGLE_ITEM_VALUES) == SINGLE_ITEM_VALUES
 
 
 def test_get_file_contents(temp_dir):
