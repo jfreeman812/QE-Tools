@@ -163,7 +163,7 @@ class HeaderAuthRequestsLoggingClient(RequestsLoggingClient):
 
     # Define these in a subclass:
     AUTH_HEADER = None
-    '''The name of the header field to use for storing the authentication (``token``)'''
+    '''The name of the header field to use for storing the authentication value (``.token``)'''
 
     AUTH_HEADER_OVERRIDE = None
     '''The value that will be substituted when the AUTH_HEADER field is printed for logging.'''
