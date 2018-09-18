@@ -250,6 +250,18 @@ def test_format_if_no_content():
     assert qecommon_tools.format_if(FORMAT_STR, value) == ''
 
 
+def test_default_if_none_with_content():
+    # Pick a falsey value to make sure only None is being checked for.
+    falsey_value = ''
+    truthy_value = 57
+    assert qecommon_tools.default_if_none(falsey_value, truthy_value) == falsey_value
+
+
+def test_default_if_none_with_none():
+    arbitrary_default = 57  # Anything except None
+    assert qecommon_tools.default_if_none(None, arbitrary_default) == arbitrary_default
+
+
 FALSEY_VALUES = [None, '', [], {}, False, 0]
 SINGLE_ITEM_VALUES = [1, 11111, '1', 'ABCDEFG', u'ABCDEFG', [[]], {'A': 1, 'B': 2}, True]
 ITERABLE_VALUES = [[1, 2, 3], list('abcde'), [[1], [2], [3]], map(lambda x: x, [1, 2, 3]), {1, 2}]
@@ -271,6 +283,15 @@ def test_list_from_iterable(iterable_items):
     assert len(results) > 1
     for item in iterable_items:
         assert item in results
+
+
+def test_no_nones():
+    assert None not in qecommon_tools.no_nones(FALSEY_VALUES)
+
+
+def test_truths_from():
+    assert qecommon_tools.truths_from(FALSEY_VALUES) == []
+    assert qecommon_tools.truths_from(FALSEY_VALUES + SINGLE_ITEM_VALUES) == SINGLE_ITEM_VALUES
 
 
 def test_get_file_contents(temp_dir):
