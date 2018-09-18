@@ -154,15 +154,27 @@ class RequestsLoggingClient(class_lookup.get('requests.Session', requests.Sessio
         return response
 
 
-class XAuthTokenRequestsLoggingClient(RequestsLoggingClient):
+class BaseHeaderAuthRequestsLoggingClient(RequestsLoggingClient):
+    '''
+    Base class for http-header-based authentication.
+
+    DO NOT INSTANTIATE: Define and use subclasses only.
+    '''
+
+    # Define these in a subclass:
+    AUTH_HEADER = None
+    '''The name of the header field to use for storing the authentication value (``.token``)'''
+
+    AUTH_HEADER_OVERRIDE = None
+    '''The value that will be substituted when the AUTH_HEADER field is printed for logging.'''
 
     def __init__(self, token, base_url=None, curl_logger=None, content_type='application/json'):
         '''
-        A requests logging client that adds an ``X-Auth-Token`` header to all requests.
+        A requests logging client that adds an authentication header to all requests.
 
         Args:
-            token (str): The authentication token from Identity to be used as the ``X-Auth-Token``
-                header in all requests.
+            token (str): The authentication token to be used as the authentication header
+                in all requests.
             base_url (str, optional): Used as a prefix for all the request methods' URL parameters,
                 so that client code does not need to constantly join.
                 If a fully qualified URL is passed to a verb method instead, it will be used,
@@ -173,11 +185,17 @@ class XAuthTokenRequestsLoggingClient(RequestsLoggingClient):
                 Defaults to ``RequestAndResponseLogger``.
             content_type (str, optional):  The default content type to include in the headers.
         '''
-        super(XAuthTokenRequestsLoggingClient, self).__init__(base_url, curl_logger, content_type)
+        assert self.AUTH_HEADER is not None, \
+            '{} did not define an AUTH_HEADER value'.format(self.__class__)
+        assert self.AUTH_HEADER_OVERRIDE is not None,  \
+            '{} did not define an AUTH_HEADER_OVERRIDE value'.format(self.__class__)
+
+        super(BaseHeaderAuthRequestsLoggingClient, self).__init__(base_url, curl_logger,
+                                                                  content_type)
         self.token = token
         override_headers = getattr(self.curl_logger, 'override_headers', None)
         if override_headers is not None:
-            override_headers['X-Auth-Token'] = '$TOKEN'
+            override_headers[self.AUTH_HEADER] = self.AUTH_HEADER_OVERRIDE
 
     @property
     @contextmanager
@@ -187,9 +205,9 @@ class XAuthTokenRequestsLoggingClient(RequestsLoggingClient):
 
         Example Usage::
 
-            client = XAuthTokenRequestsLoggingClient('<token>')
+            client = SomeHeaderAuthRequestsLoggingClientSubClass('<token>')
             with client.no_auth:
-                # This request will not include an X-Auth-Token header
+                # This request will not include an authentication header
                 client.get('<url>')
         '''
         original_token = self.token
@@ -206,14 +224,14 @@ class XAuthTokenRequestsLoggingClient(RequestsLoggingClient):
 
         Example Usage::
 
-            client = XAuthTokenRequestsLoggingClient('<token>')
+            client = SomeHeaderAuthRequestsLoggingClientSubClass('<token>')
             with client.this_auth('<other-token>'):
-                # <other-token> will be in the X-Auth-Token header
+                # <other-token> will be in the authentication header
                 client.get('<url>')
 
         Args:
             token (str): The new Identity authentication token to temporarily use
-                as the ``X-Auth-Token`` header.
+                as the authentication header.
         '''
         original_token = self.token
         try:
@@ -225,17 +243,39 @@ class XAuthTokenRequestsLoggingClient(RequestsLoggingClient):
     @property
     def token(self):
         '''
-        Property that gets/sets/deletes the ``X-Auth-Token`` in request headers.
+        Property that gets/sets/deletes the authentication header in request headers.
         '''
-        return self.default_headers.get('X-Auth-Token')
+        return self.default_headers.get(self.AUTH_HEADER)
 
     @token.setter
     def token(self, token):
-        self.default_headers['X-Auth-Token'] = token
+        self.default_headers[self.AUTH_HEADER] = token
 
     @token.deleter
     def token(self):
-        del self.default_headers['X-Auth-Token']
+        del self.default_headers[self.AUTH_HEADER]
+
+
+class XAuthTokenRequestsLoggingClient(BaseHeaderAuthRequestsLoggingClient):
+    '''
+    Requests Client using the ```X-Auth-Token``` header for authentication.
+
+    See :class:`BaseHeaderAuthRequestsLoggingClient` for more details.
+    '''
+
+    AUTH_HEADER = 'X-Auth-Token'
+    AUTH_HEADER_OVERRIDE = '$TOKEN'
+
+
+class XAuthRequestsLoggingClient(BaseHeaderAuthRequestsLoggingClient):
+    '''
+    Requests Client using the ```X-Auth``` header for authentication.
+
+    See :class:`BaseHeaderAuthRequestsLoggingClient` for more details.
+    '''
+
+    AUTH_HEADER = 'X-Auth'
+    AUTH_HEADER_OVERRIDE = '$TOKEN'
 
 
 class QERequestsLoggingClient(XAuthTokenRequestsLoggingClient):
