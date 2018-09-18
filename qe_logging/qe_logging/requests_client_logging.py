@@ -154,11 +154,11 @@ class RequestsLoggingClient(class_lookup.get('requests.Session', requests.Sessio
         return response
 
 
-class HeaderAuthRequestsLoggingClient(RequestsLoggingClient):
+class BaseHeaderAuthRequestsLoggingClient(RequestsLoggingClient):
     '''
     Base class for http-header-based authentication.
 
-    DO NOT INSTANTIATE: Create an instance of a subclass of this class only.
+    DO NOT INSTANTIATE: Define and use subclasses only.
     '''
 
     # Define these in a subclass:
@@ -190,7 +190,8 @@ class HeaderAuthRequestsLoggingClient(RequestsLoggingClient):
         assert self.AUTH_HEADER_OVERRIDE is not None,  \
             '{} did not define an AUTH_HEADER_OVERRIDE value'.format(self.__class__)
 
-        super(HeaderAuthRequestsLoggingClient, self).__init__(base_url, curl_logger, content_type)
+        super(BaseHeaderAuthRequestsLoggingClient, self).__init__(base_url, curl_logger,
+                                                                  content_type)
         self.token = token
         override_headers = getattr(self.curl_logger, 'override_headers', None)
         if override_headers is not None:
@@ -255,22 +256,22 @@ class HeaderAuthRequestsLoggingClient(RequestsLoggingClient):
         del self.default_headers[self.AUTH_HEADER]
 
 
-class XAuthTokenRequestsLoggingClient(HeaderAuthRequestsLoggingClient):
+class XAuthTokenRequestsLoggingClient(BaseHeaderAuthRequestsLoggingClient):
     '''
     Requests Client using the ```X-Auth-Token``` header for authentication.
 
-    See :class:`HeaderAuthRequestsLoggingClient` for more details.
+    See :class:`BaseHeaderAuthRequestsLoggingClient` for more details.
     '''
 
     AUTH_HEADER = 'X-Auth-Token'
     AUTH_HEADER_OVERRIDE = '$TOKEN'
 
 
-class XAuthRequestsLoggingClient(HeaderAuthRequestsLoggingClient):
+class XAuthRequestsLoggingClient(BaseHeaderAuthRequestsLoggingClient):
     '''
     Requests Client using the ```X-Auth``` header for authentication.
 
-    See :class:`HeaderAuthRequestsLoggingClient` for more details.
+    See :class:`BaseHeaderAuthRequestsLoggingClient` for more details.
     '''
 
     AUTH_HEADER = 'X-Auth'
