@@ -38,9 +38,9 @@ HIERARCHY_FORMAT = '<TEAM_NAME>{}<PRODUCT_NAME>'.format(HIERARCHY_DELIMITER)
 TAG_DEFINITION_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'coverage.rst')
 COVERAGE_REPORT_FILE = '{product_name}_coverage_report_{time_stamp}.{ext}'
 TICKET_RE = re.compile('([A-Z][A-Z]+-?[0-9]+)')
-COVERAGE_URL_TEMPLATE = 'https://qetools.rax.io/coverage/{}'
-COVERAGE_STAGING_URL = COVERAGE_URL_TEMPLATE.format('staging')
-COVERAGE_PRODUCTION_URL = COVERAGE_URL_TEMPLATE.format('production')
+COVERAGE_URL_TEMPLATE = 'https://{}data-broker.analytics.rackspace.net/coverage'
+COVERAGE_STAGING_URL = COVERAGE_URL_TEMPLATE.format('staging.')
+COVERAGE_PRODUCTION_URL = COVERAGE_URL_TEMPLATE.format('')
 
 ####################################################################################################
 # Globals
