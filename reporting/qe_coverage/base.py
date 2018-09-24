@@ -37,10 +37,22 @@ HIERARCHY_DELIMITER = '::'
 HIERARCHY_FORMAT = '<TEAM_NAME>{}<PRODUCT_NAME>'.format(HIERARCHY_DELIMITER)
 TAG_DEFINITION_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'coverage.rst')
 COVERAGE_REPORT_FILE = '{product_name}_coverage_report_{time_stamp}.{ext}'
-TICKET_RE = re.compile('([A-Z][A-Z]+-?[0-9]+)')
 COVERAGE_URL_TEMPLATE = 'https://{}data-broker.analytics.rackspace.net/coverage'
 COVERAGE_STAGING_URL = COVERAGE_URL_TEMPLATE.format('staging.')
 COVERAGE_PRODUCTION_URL = COVERAGE_URL_TEMPLATE.format('')
+TICKET_RE_PATTERNS = {
+    'JIRA': re.compile('([A-Z][A-Z]+-[0-9]+)'),
+    'SNOW': re.compile('([A-Z][A-Z]+[0-9]+)'),
+    'Version One': re.compile('([A-Z]-[0-9]+)'),
+}
+
+
+def check_ticket_type(tag):
+    for ticket_type, pattern in TICKET_RE_PATTERNS.items():
+        if pattern.match(tag):
+            return ticket_type
+    return None
+
 
 ####################################################################################################
 # Globals
@@ -149,7 +161,7 @@ class TestCoverage(object):
                 # for validation later.
                 self.tickets[status]
                 continue
-            if TICKET_RE.match(tag):
+            if check_ticket_type(tag):
                 self.tickets[status or NO_STATUS_TICKET_KEY].append(tag)
                 continue
             status = None
