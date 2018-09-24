@@ -74,7 +74,7 @@ from unittest_decorators import (quarantined, needs_work, nyi,
                                  not_tested, disable_docstring_hacking,
                                  staging_only, unless_coverage)
 
-from unittest_decorators import (TICKET_RE, STATUS_TAGS, _print_and_raise,
+from unittest_decorators import (check_ticket_type, STATUS_TAGS, _print_and_raise,
                                  _get_coverage_tags_from, _all_ticket_ids_in,
                                  _environment_matches, _docstring_hacking_enabled,
                                  _add_text_to_docstring_summary_line, _tags_log_info)
@@ -126,7 +126,7 @@ def _cafe_tag_prefix(status_tag, target_tag):
         cafe-friendly version of target_tag
     '''
 
-    if (target_tag == status_tag) or TICKET_RE.match(target_tag):
+    if (target_tag == status_tag) or check_ticket_type(target_tag):
         return target_tag
     return '{}-{}'.format(status_tag, target_tag)
 

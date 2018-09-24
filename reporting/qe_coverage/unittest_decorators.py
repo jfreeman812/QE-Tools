@@ -72,7 +72,8 @@ from unittest import skip, SkipTest
 
 import wrapt
 
-from qe_coverage.base import STATUS_TAGS, TICKET_RE, KnownStructuredTags
+from qe_coverage.base import STATUS_TAGS, TICKET_RE_PATTERNS, KnownStructuredTags, check_ticket_type
+
 
 _cafe_tags = None
 TAGS_DECORATOR_TAG_LIST_NAME = PARALLEL_TAGS_LIST_ATTR = ''
@@ -235,7 +236,9 @@ def _all_ticket_ids_in(s):
     Returns:
         A list of all the Ticket ID strings found.
     '''
-    return TICKET_RE.findall(s)
+    return [
+        x for match_list in [p.findall(s) for p in TICKET_RE_PATTERNS.items()] for x in match_list
+    ]
 
 
 def _get_coverage_tags_from(func):
@@ -368,7 +371,7 @@ def _status_tag_expansion(status_tag, target_tag):
         cafe-friendly version of target_tag
     '''
 
-    if (target_tag == status_tag) or TICKET_RE.match(target_tag):
+    if (target_tag == status_tag) or check_ticket_type(target_tag):
         return target_tag
     return '{}-{}'.format(status_tag, target_tag)
 
