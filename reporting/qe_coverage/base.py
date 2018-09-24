@@ -43,7 +43,7 @@ COVERAGE_PRODUCTION_URL = COVERAGE_URL_TEMPLATE.format('')
 TICKET_RE_PATTERNS = {
     'JIRA': re.compile('([A-Z][A-Z]+-[0-9]+)'),
     'SNOW': re.compile('([A-Z][A-Z]+[0-9]+)'),
-    'Version One': re.compile('([A-Z]-[0-9]+)'),
+    'VersionOne': re.compile('([A-Z]-[0-9]+)'),
 }
 
 
