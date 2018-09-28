@@ -290,7 +290,7 @@ def generate_random_string(prefix='', suffix='', size=8, choose_from=None):
         'Lbs-js7eh98sfnk'
         >>> generate_random_string(suffix='-test', size=15)
         '8sdfjs7eh9-test'
-        >>> generate_random_string(characters_from="aeiou")
+        >>> generate_random_string(choose_from="aeiou")
         'uiiaueea'
     '''
     choose_from = default_if_none(choose_from, _string.ascii_lowercase + _string.digits)
