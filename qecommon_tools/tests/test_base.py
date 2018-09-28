@@ -203,8 +203,7 @@ def test_random_string_choose_from():
     # Using only symbols to avoid any overlap with the default choose_from
     non_default_choose_from = '(_)+-*&$#@'
     text = qecommon_tools.generate_random_string(choose_from=non_default_choose_from)
-    for character in text:
-        assert character in non_default_choose_from
+    assert set(text) <= set(non_default_choose_from)
 
 
 def test_random_string_default_size():
@@ -213,8 +212,8 @@ def test_random_string_default_size():
 
 
 def test_random_string_default_choose_from():
-    for character in qecommon_tools.generate_random_string():
-        assert character in RANDOM_STRING_DEFAULT_CHOOSE_FROM
+    text = qecommon_tools.generate_random_string()
+    assert set(text) <= set(RANDOM_STRING_DEFAULT_CHOOSE_FROM)
 
 
 def test_string_size_failure():
