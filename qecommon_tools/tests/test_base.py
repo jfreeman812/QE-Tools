@@ -177,23 +177,44 @@ def test_error_if_with_check(capsys, check, exit_code, message):
     assert pytest_wrapped_e.value.code == exit_code or check
 
 
+RANDOM_STRING_DEFAULT_SIZE = 8
+RANDOM_STRING_DEFAULT_CHOOSE_FROM = string.ascii_lowercase + string.digits
+
+
 def test_random_string_length():
-    text = qecommon_tools.generate_random_string(size=8)
-    assert len(text) == 8
+    non_default_size = RANDOM_STRING_DEFAULT_SIZE + 5
+    text = qecommon_tools.generate_random_string(size=non_default_size)
+    assert len(text) == non_default_size
 
 
 def test_random_string_prefix():
     prefix = 'test-'
-    text = qecommon_tools.generate_random_string(prefix=prefix, size=8)
-    assert len(text) == 8
+    text = qecommon_tools.generate_random_string(prefix=prefix)
     assert text.startswith(prefix)
 
 
 def test_random_string_suffix():
     suffix = '-test'
-    text = qecommon_tools.generate_random_string(suffix=suffix, size=8)
-    assert len(text) == 8
+    text = qecommon_tools.generate_random_string(suffix=suffix)
     assert text.endswith(suffix)
+
+
+def test_random_string_choose_from():
+    # Using only symbols to avoid any overlap with the default choose_from
+    non_default_choose_from = '(_)+-*&$#@'
+    text = qecommon_tools.generate_random_string(choose_from=non_default_choose_from)
+    for character in text:
+        assert character in non_default_choose_from
+
+
+def test_random_string_default_size():
+    text = qecommon_tools.generate_random_string()
+    assert len(text) == RANDOM_STRING_DEFAULT_SIZE
+
+
+def test_random_string_default_choose_from():
+    for character in qecommon_tools.generate_random_string():
+        assert character in RANDOM_STRING_DEFAULT_CHOOSE_FROM
 
 
 def test_string_size_failure():

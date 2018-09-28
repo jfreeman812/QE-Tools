@@ -264,7 +264,7 @@ def dict_strip_value(dict_, value=None):
     return {k: v for k, v in dict_.items() if v != value}
 
 
-def generate_random_string(prefix='', suffix='', size=8):
+def generate_random_string(prefix='', suffix='', size=8, choose_from=None):
     '''
     Generate a random string of the specified size.
 
@@ -272,6 +272,8 @@ def generate_random_string(prefix='', suffix='', size=8):
         prefix (str): The string to prepend to the beginning of the random string. (optional)
         suffix (str): The string to append to the end of the random string. (optional)
         size (int): The number of characters the random string should have. (defaults to 8)
+        choose_from (str): A string containing the characters from which the randomness
+            will be chosen. If not provided, it will choose from lowercase letters and digits.
 
     Returns:
         str: A randomly generated string.
@@ -288,12 +290,14 @@ def generate_random_string(prefix='', suffix='', size=8):
         'Lbs-js7eh98sfnk'
         >>> generate_random_string(suffix='-test', size=15)
         '8sdfjs7eh9-test'
+        >>> generate_random_string(characters_from="aeiou")
+        'uiiaueea'
     '''
-    possible_characters = _string.ascii_lowercase + _string.digits
+    choose_from = default_if_none(choose_from, _string.ascii_lowercase + _string.digits)
     rand_string_length = size - len(prefix) - len(suffix)
     message = '"size" of {} too short with prefix {} and suffix {}!'
     assert rand_string_length > 0, message.format(size, prefix, suffix)
-    rand_string = ''.join(random.choice(possible_characters) for _ in range(rand_string_length))
+    rand_string = ''.join(random.choice(choose_from) for _ in range(rand_string_length))
     return '{}{}{}'.format(prefix, rand_string, suffix)
 
 
