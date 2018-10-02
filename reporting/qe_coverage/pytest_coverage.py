@@ -64,8 +64,13 @@ def pytest_runtest_setup(item):
     if not _get_global_option('qe-coverage'):
         return
 
-    # look for @pytest.marker.tags
-    _tags = item.get_marker('tags')
+    # look for @pytest.marker.tags and @pytest.marker.categories
+    if _new_pytest_ver(3, 6):
+        _tags = item.get_closest_marker('tags')
+        _categories = item.get_closest_marker('categories')
+    else:
+        _tags = item.get_marker('tags')
+        _categories = item.get_marker('categories')
 
     # bail if there isn't a tags marker
     if _tags is None:
@@ -79,10 +84,14 @@ def pytest_runtest_setup(item):
     test_class = _transform_class_name_to_pretty_category(item.location[2])
     test_name = item.name
 
+    # get args in @pytest.mark.categories
+    _categories = list(_categories.args) if _categories else [test_class]
+    _categories.append(test_name)
+
     # add information to global test_group object that on completion of tests
     # will run report
     global test_group
-    test_group.add(name=test_name, categories=[test_class, test_name], tags=_tags)
+    test_group.add(name=test_name, categories=_categories, tags=_tags)
     pytest.skip()
 
 
@@ -178,3 +187,24 @@ def _break_string(input_string, breakpoints):
     for x in range(0, len(breakpoints) - 1):
         substrings.append(input_string[breakpoints[x]:breakpoints[x + 1]])
     return substrings
+
+
+def _new_pytest_ver(major_ver, minor_ver):
+    '''
+    Helper method for pytest version comparison
+    :param version: the given major version (int) and minor version (int) to compare
+    :return: True if the current pytest version is newer than the given version; otherwise, False
+    '''
+    ver_parts = pytest.__version__.split('.')
+    current_major = ver_parts[0]
+    current_minor = ver_parts[1]
+
+    if int(current_major) > major_ver:
+        return True
+    elif int(current_major) < major_ver:
+        return False
+    else:
+        if int(current_minor) > minor_ver:
+            return True
+        else:
+            return False
