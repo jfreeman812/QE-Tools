@@ -64,8 +64,9 @@ def pytest_runtest_setup(item):
     if not _get_global_option('qe-coverage'):
         return
 
-    # look for @pytest.marker.tags
-    _tags = item.get_marker('tags')
+    # look for @pytest.marker.tags and @pytest.marker.categories
+    _tags = item.get_closest_marker('tags')
+    _categories = item.get_closest_marker('categories')
 
     # bail if there isn't a tags marker
     if _tags is None:
@@ -79,10 +80,14 @@ def pytest_runtest_setup(item):
     test_class = _transform_class_name_to_pretty_category(item.location[2])
     test_name = item.name
 
+    # get args in @pytest.mark.categories
+    _categories = list(_categories.args) if _categories else [test_class]
+    _categories.append(test_name)
+
     # add information to global test_group object that on completion of tests
     # will run report
     global test_group
-    test_group.add(name=test_name, categories=[test_class, test_name], tags=_tags)
+    test_group.add(name=test_name, categories=_categories, tags=_tags)
     pytest.skip()
 
 
