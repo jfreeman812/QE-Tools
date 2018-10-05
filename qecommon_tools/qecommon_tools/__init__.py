@@ -551,6 +551,11 @@ class NotEmptyList(list):
     (it would fail to have checked anything) and that would be a false-positive.
     '''
 
+    @staticmethod
+    def error_on_empty():
+        '''Is called to return the error message when the NotEmptyList is empty.'''
+        return 'list is empty!'
+
     def __iter__(self):
         '''
         Iterate only if not empty.
@@ -559,7 +564,7 @@ class NotEmptyList(list):
         lists becuase the loop body would never execute.
         Help our clients by asserting if the list is empty so they don't have to.
         '''
-        assert self, 'list is empty!'
+        assert self, self.error_on_empty()
         return super(NotEmptyList, self).__iter__()
 
 
