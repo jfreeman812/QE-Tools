@@ -281,7 +281,7 @@ def filter_dict(a_dict, keep_key=always_true, keep_value=always_true):
     return {k: v for k, v in a_dict.items() if keep_key(k) and keep_value(v)}
 
 
-def dict_strip_value(dict_, value=None):
+def dict_strip_value(a_dict, value=None):
     '''
     Return a new dict based on stripping out any key with the given value.
 
@@ -290,13 +290,13 @@ def dict_strip_value(dict_, value=None):
         Unlike other functions, value ``None`` is literally the value ``None``.
 
     Args:
-        dict_ (dict): A dictionary to strip values from.
+        a_dict (dict): A dictionary to strip values from.
         value: Any value that should be stripped from the dictionary.
 
     Returns:
         dict: A new dictionary without key/value pairs for the given value.
     '''
-    return filter_dict(dict_, keep_value=lambda v: v != value)
+    return filter_dict(a_dict, keep_value=lambda v: v != value)
 
 
 def dict_transform(a_dict, key_transform=identity, value_transform=identity):
