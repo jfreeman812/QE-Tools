@@ -38,6 +38,11 @@ def temp_dir_with_name_file():
     shutil.rmtree(dir_path)
 
 
+@pytest.fixture
+def unique_dict():
+    return {uuid4(): uuid4() for x in range(5)}  # arbitrary, length > 1 and "not too big"
+
+
 PACKAGE_NAMES = {None: 'Test Directory', 'test.package.name_for_testing': 'Name For Testing'}
 
 
@@ -71,6 +76,61 @@ def test_dict_strip_valid_values_remain(dict_to_strip, value_to_strip):
 def test_dict_strip_stripped_values_are_gone(dict_to_strip, value_to_strip):
     stripped_dictionary = qecommon_tools.dict_strip_value(dict_to_strip, value=value_to_strip)
     assert value_to_strip not in stripped_dictionary.values()
+
+
+@pytest.mark.parametrize('dict_to_filter,value_to_keep', DIST_STRIP_CASES)
+def test_filter_dict_keep_value(dict_to_filter, value_to_keep):
+    new_dict = qecommon_tools.filter_dict(dict_to_filter, keep_value=lambda x: x == value_to_keep)
+    assert all(map(lambda x: x == value_to_keep, new_dict.values()))
+
+
+def test_filter_dict_noop(unique_dict):
+    new_dict = qecommon_tools.filter_dict(unique_dict)
+    assert new_dict == unique_dict
+    assert new_dict is not unique_dict
+
+
+def test_filter_dict_keep_key(unique_dict):
+    all_keys = list(unique_dict.keys())
+    for key_to_keep in all_keys:
+        new_dict = qecommon_tools.filter_dict(unique_dict, keep_key=lambda x: x == key_to_keep)
+        assert len(new_dict) == 1
+        assert key_to_keep in new_dict
+
+
+def test_filter_dict_keep_nothing_by_key(unique_dict):
+    new_dict = qecommon_tools.filter_dict(unique_dict, keep_key=qecommon_tools.always_false)
+    assert new_dict == {}
+
+
+def test_filter_dict_keep_nothing_by_value(unique_dict):
+    new_dict = qecommon_tools.filter_dict(unique_dict, keep_value=qecommon_tools.always_false)
+    assert new_dict == {}
+
+
+def test_filter_dict_keep_nothing_by_key_and_value(unique_dict):
+    new_dict = qecommon_tools.filter_dict(unique_dict, keep_key=qecommon_tools.always_false,
+                                          keep_value=qecommon_tools.always_false)
+    assert new_dict == {}
+
+
+def test_dict_transform_noop(unique_dict):
+    new_dict = qecommon_tools.dict_transform(unique_dict)
+    assert new_dict == unique_dict
+
+
+def test_dict_transform_monokey(unique_dict):
+    new_key = uuid4()
+    new_dict = qecommon_tools.dict_transform(unique_dict, key_transform=lambda x: new_key)
+    assert len(new_dict) == 1
+    assert new_key in new_dict
+
+
+def test_dict_transform_monovalue(unique_dict):
+    new_value = uuid4()
+    new_dict = qecommon_tools.dict_transform(unique_dict, value_transform=lambda x: new_value)
+    assert len(new_dict) == len(unique_dict)
+    assert set(new_dict.values()) == {new_value}
 
 
 PADDED_LIST_CASES = list(product([0, 5, 15], [None, 'TEST']))

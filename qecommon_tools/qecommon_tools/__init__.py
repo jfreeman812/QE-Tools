@@ -45,6 +45,26 @@ with the Locust test runner, and it uses this dictionary to accomplish this.)
 '''
 
 
+def always_true(*args, **kwargs):
+    '''Always return True; ignores any combo of positional and keyword parameters.'''
+    return True
+
+
+def always_false(*args, **kwargs):
+    '''Always return False; ignores any combo of positional and keyword parameters.'''
+    return False
+
+
+def identity(x, *args):
+    '''
+    A single parameter is returned as is, multiple parameters are returned as a tuple.
+
+    From https://stackoverflow.com/questions/8748036/is-there-a-builtin-identity-function-in-python
+    Not the top voted answer, but it handles both single and multiple parameters.
+    '''
+    return (x,) + args if args else x
+
+
 def display_name(path, package_name=''):
     '''
     Create a human-readable name for a given project.
@@ -246,7 +266,22 @@ def error_if(check, status=None, message=''):
         exit(status=status or check, message=message.format(check))
 
 
-def dict_strip_value(dict_, value=None):
+def filter_dict(a_dict, keep_key=always_true, keep_value=always_true):
+    '''
+    Return a new dict based on keeping only those keys _and_ values whose function returns True.
+
+    Args:
+        a_dict (dict): A dictionary to filter values from.
+        keep_key (function): Return True if the key is to be kept.
+        keep_value (function): Return True if the value is to be kept.
+
+    Returns:
+        dict: A new dictionary with only the desired key, value pairs.
+    '''
+    return {k: v for k, v in a_dict.items() if keep_key(k) and keep_value(v)}
+
+
+def dict_strip_value(a_dict, value=None):
     '''
     Return a new dict based on stripping out any key with the given value.
 
@@ -255,13 +290,28 @@ def dict_strip_value(dict_, value=None):
         Unlike other functions, value ``None`` is literally the value ``None``.
 
     Args:
-        dict_ (dict): A dictionary to strip values from.
+        a_dict (dict): A dictionary to strip values from.
         value: Any value that should be stripped from the dictionary.
 
     Returns:
-        dict: A new dictionary without the offending keys or values.
+        dict: A new dictionary without key/value pairs for the given value.
     '''
-    return {k: v for k, v in dict_.items() if v != value}
+    return filter_dict(a_dict, keep_value=lambda v: v != value)
+
+
+def dict_transform(a_dict, key_transform=identity, value_transform=identity):
+    '''
+    Return a new dict based on transforming the keys and/or values of ``a_dict``.
+
+    Args:
+        a_dict (dict): the source dictionary to process
+        key_transform (function): Takes an existing key and returns a new key to use.
+        value_transform (function): Take an existing value and returns a new value to use.
+
+    Returns:
+        dict: A new dictionary with keys and values as transformed.
+    '''
+    return {key_transform(k): value_transform(v) for k, v in a_dict.items()}
 
 
 def generate_random_string(prefix='', suffix='', size=8, choose_from=None):
