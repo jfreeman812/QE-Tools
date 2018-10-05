@@ -46,12 +46,12 @@ with the Locust test runner, and it uses this dictionary to accomplish this.)
 
 
 def always_true(*args, **kwargs):
-    '''Always return True, no matter what, if any, parameters are provided.'''
+    '''Always return True; ignores any combo of positional and keyword parameters.'''
     return True
 
 
 def always_false(*args, **kwargs):
-    '''Always return False, no matter what, if any, parameters are provided.'''
+    '''Always return False; ignores any combo of positional and keyword parameters.'''
     return False
 
 
@@ -294,7 +294,7 @@ def dict_strip_value(dict_, value=None):
         value: Any value that should be stripped from the dictionary.
 
     Returns:
-        dict: A new dictionary without the any key/value pairs with the given value.
+        dict: A new dictionary without key/value pairs for the given value.
     '''
     return filter_dict(dict_, keep_value=lambda v: v != value)
 
