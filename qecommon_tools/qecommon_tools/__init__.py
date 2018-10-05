@@ -553,6 +553,7 @@ class NotEmptyList(list):
 
     @staticmethod
     def error_on_empty():
+        '''Is called to return the error message when the NotEmptyList is empty.'''
         return 'list is empty!'
 
     def __iter__(self):
