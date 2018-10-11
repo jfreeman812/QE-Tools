@@ -36,6 +36,11 @@ FRFM          First Review First Merge  | A PR that can be merged by one and onl
 IIRC          If I Remember Correctly
 LGTM          Looks Good To Me
 NB            Non Blocking              | A PR comment that does not require changes.
+PIR           Price Is Right            | One way to express a version dependency of >= X.
+                                        | Based on the old game show of the same name.
+                                        | Used in the context of "Test T has a PIR of Y",
+                                        | meaning Test T is only valid for version Y, or greater,
+                                        | of the system under test.
 PR            Pull Request              | An official request to merge code into a repository
 RR            Reserve the Right         | We Reserve the Right to get smarter and change things at
                                         | a later date if needed.
