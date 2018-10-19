@@ -106,7 +106,7 @@ def after_step(context, step):
     '''
     if step.status == 'failed':
         _step_debug('        FAILED: {} {}'.format(step.keyword, step.name))
-        _step_debug('                {}'.format(step.error_message))
+        _step_debug('                {}'.format(step.exception))
         _step_debug('--------END OF FAILURE DEBUGGING')
     _step_debug('')
 
