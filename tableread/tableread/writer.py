@@ -10,6 +10,7 @@ class SimpleRSTTableWriteable(object):
         self.title = title
         self._headers = list(row_data[0].keys())
         self.col_widths = self._col_widths(row_data)
+        self.col_mappings = zip(self._headers, self.col_widths)
         self.rows = self._dict_to_lines(row_data)
 
     def _format_row(self, row):
@@ -30,11 +31,6 @@ class SimpleRSTTableWriteable(object):
     def headers(self):
         '''Headers for the table, formatted as a spaced string.'''
         return '  '.join(['{:{c}}'.format(k, c=c) for k, c in self.col_mappings])
-
-    @property
-    def col_mappings(self):
-        '''Ordered list of column widths.'''
-        return zip(self._headers, self.col_widths)
 
     @property
     def divider(self):
@@ -90,8 +86,8 @@ class SimpleRSTWriter(object):
             os.remove(self.file_path)
         os.makedirs(os.path.dirname(self.file_path), exist_ok=True)
         with open(self.file_path, 'a') as writer:
-            for idx, table in enumerate(self.tables, 1):
+            for idx, table in enumerate(self.tables):
+                if idx:
+                    writer.write('\n')
+                    writer.write('\n')
                 table.write_table(writer)
-                if idx != len(self.tables):
-                    writer.write('\n')
-                    writer.write('\n')
