@@ -1,7 +1,7 @@
 import json
 
 import pytest
-from qecommon_tools import http_helpers, generate_random_string
+from qecommon_tools import assert_, http_helpers, generate_random_string
 import requests
 import requests_mock
 
@@ -206,6 +206,17 @@ def test_check_response_code(ok_response, expected_description):
 @pytest.mark.parametrize('expected_description', OK_DESC)
 def test_check_response_code_match(ok_response, expected_description):
     assert not http_helpers.check_response_status_code(expected_description, ok_response)
+
+
+@pytest.mark.parametrize('expected_description', OK_DESC)
+def test_check_response_status_code_add_info(client_err, expected_description):
+    info_key = generate_random_string()
+    info_value = generate_random_string()
+    actual_msg = http_helpers.check_response_status_code(
+        expected_description, client_err, additional_info={info_key: info_value}
+    )
+    assert_.is_in(info_key, actual_msg)
+    assert_.is_in(info_value, actual_msg)
 
 
 @pytest.mark.parametrize('expected_description', ALL_ERRORS)
