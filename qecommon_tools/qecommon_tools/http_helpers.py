@@ -255,21 +255,19 @@ def check_response_status_code(expected_status_description, response, call_descr
         response_content = response.content
 
     status_message = '{} - Actual Response Status: {}'
-    additional_info = additional_info or {}
-    additional_info.update(
-        {
-            'Expected Status': status_message.format(
-                expected_status_description, response.status_code
-            ),
-            'Reason': response.reason
-        }
-    )
+    info = {
+        'Expected Status': status_message.format(
+            expected_status_description, response.status_code
+        ),
+        'Reason': response.reason
+    }
+    info.update(additional_info or {})
     if call_description:
-        additional_info.update({'Call Description': call_description})
+        info.update({'Call Description': call_description})
     err_msg = create_error_message(
         summary_line='The response status does not match the expected status.',
         request=response.request, response_content=response_content,
-        additional_info=additional_info
+        additional_info=info
     )
     return err_msg
 
