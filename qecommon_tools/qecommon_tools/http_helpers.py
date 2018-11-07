@@ -233,7 +233,8 @@ def create_error_message(summary_line, request, response_content, additional_inf
     )
 
 
-def check_response_status_code(expected_status_description, response, call_description=None):
+def check_response_status_code(expected_status_description, response, call_description=None,
+                               additional_info=None):
     '''
     Checks that a response's status code matches an expected status description.
 
@@ -241,6 +242,7 @@ def check_response_status_code(expected_status_description, response, call_descr
         expected_status_description (str, int): The expected HTTP response status reason or code.
         response (Response): The python requests library response to validate.
         call_description (str): additional details about the call placed (optional)
+        additional_info (dict): Additional Info to be passed to create_error_message
 
     Returns:
         str: Empty string if response status code matches, or a detailed error message otherwise
@@ -253,12 +255,15 @@ def check_response_status_code(expected_status_description, response, call_descr
         response_content = response.content
 
     status_message = '{} - Actual Response Status: {}'
-    additional_info = {
-        'Expected Status': status_message.format(
-            expected_status_description, response.status_code
-        ),
-        'Reason': response.reason
-    }
+    additional_info = additional_info or {}
+    additional_info.update(
+        {
+            'Expected Status': status_message.format(
+                expected_status_description, response.status_code
+            ),
+            'Reason': response.reason
+        }
+    )
     if call_description:
         additional_info.update({'Call Description': call_description})
     err_msg = create_error_message(
