@@ -12,6 +12,10 @@ INSTALL_REQUIRES = [
     'attrs>=16.0.0'
 ]
 
+TESTS_REQUIRE = [
+    'pytest'
+]
+
 EXTRAS_REQUIRE = {}
 
 here = os.path.abspath(os.path.dirname(__file__))
@@ -35,6 +39,7 @@ setuptools.setup(name=NAME,
                      'console_scripts': CONSOLE_SCRIPTS,
                  },
                  install_requires=INSTALL_REQUIRES,
+                 tests_require=TESTS_REQUIRE,
                  packages=setuptools.find_packages(),
                  include_package_data=True,
                  zip_safe=False,
