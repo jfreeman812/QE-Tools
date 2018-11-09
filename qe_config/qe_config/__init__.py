@@ -121,6 +121,14 @@ from qecommon_tools import string_to_list
 
 CONFIG_FILE_LIST_KEY = 'layers'
 ENV_VAR_SECTION_NAME = 'ENVIRONMENT VARIABLE OVERRIDE INFO'
+# Sections in the master config that should also be included
+# in the config returned by load_cake.
+MASTER_CONFIG_SECTIONS_TO_KEEP = [
+    # We keep the environment variable override section in the config,
+    # since it will be used for determining if and how
+    # environment variable overrides will work.
+    ENV_VAR_SECTION_NAME,
+]
 
 
 def _filenames_relative_to(base_file, filename_list):
@@ -203,14 +211,8 @@ def load_cake(master_config_path, cake_name, into_config=None):
     config.defaults().update([(k.lower(), v) for k, v in config.items(section_name)])
 
     # Remove all irrelevant sections from the master config file
-    master_config_sections_to_keep = [
-        # We keep the environment variable override section in the config,
-        # since it will be used for determining if and how
-        # environment variable overrides will work.
-        ENV_VAR_SECTION_NAME,
-    ]
     for section in config.sections():
-        if section not in master_config_sections_to_keep:
+        if section not in MASTER_CONFIG_SECTIONS_TO_KEEP:
             config.remove_section(section)
 
     for filename in filename_list:
