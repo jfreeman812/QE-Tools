@@ -10,7 +10,7 @@ class SimpleRSTTableWriteable(object):
         self.title = title
         self._headers = list(row_data[0].keys())
         self.col_widths = self._col_widths(row_data)
-        self.col_mappings = zip(self._headers, self.col_widths)
+        self.col_mappings = list(zip(self._headers, self.col_widths))
         self.rows = self._dict_to_lines(row_data)
 
     def _format_row(self, row):
