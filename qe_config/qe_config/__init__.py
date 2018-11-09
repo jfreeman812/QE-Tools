@@ -143,7 +143,6 @@ def _must_read(config, filename):
     raise ConfigFileNotFoundError('Cannot read config file: {}'.format(filename))
 
 
-
 def _env_override(config, environment):
     '''Process environment overrides, if any are configured.'''
 
