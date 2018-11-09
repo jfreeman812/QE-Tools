@@ -2,10 +2,8 @@
 
 import tempfile
 from uuid import uuid4
-from os import path, mkdir
-import random
+from os import path
 import shutil
-import string
 
 import pytest
 from qe_config import (ConfigFileNotFoundError, NoSectionError,
@@ -228,3 +226,10 @@ def test_expanduser_config_cake_processing(sample_configs):
 def test_load_cake_includes_master_cake_keys_from_cake_section(sample_configs, config_name):
     config = load_cake(sample_configs, config_name)
     assert config_name in config.defaults()['name']
+
+
+@pytest.mark.parametrize('cake_name', VALID_CAKE_NAMES)
+def test_irrelevant_master_config_sections_are_not_in_config(sample_configs, cake_name):
+    config = load_cake(sample_configs, cake_name)
+    for cake_name in VALID_CAKE_NAMES:
+        assert not config.has_section(cake_name)
