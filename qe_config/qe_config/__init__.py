@@ -115,13 +115,20 @@ except (ImportError, NameError):
     ConfigFileNotFoundError = IOError
 
 import os
-import sys
 
 from qecommon_tools import string_to_list
 
 
 CONFIG_FILE_LIST_KEY = 'layers'
 ENV_VAR_SECTION_NAME = 'ENVIRONMENT VARIABLE OVERRIDE INFO'
+# Sections in the master config that should also be included
+# in the config returned by load_cake.
+MASTER_CONFIG_SECTIONS_TO_KEEP = [
+    # We keep the environment variable override section in the config,
+    # since it will be used for determining if and how
+    # environment variable overrides will work.
+    ENV_VAR_SECTION_NAME,
+]
 
 
 def _filenames_relative_to(base_file, filename_list):
@@ -134,12 +141,6 @@ def _must_read(config, filename):
     if config.read(filename):
         return
     raise ConfigFileNotFoundError('Cannot read config file: {}'.format(filename))
-
-
-def _new_config_from(config_file):
-    c = ConfigParser()
-    _must_read(c, config_file)
-    return c
 
 
 def _env_override(config, environment):
@@ -193,40 +194,35 @@ def load_cake(master_config_path, cake_name, into_config=None):
             environment override section, or any individual CAKE section.
     '''
     master_config_path = os.path.expanduser(master_config_path)
-    master_config = _new_config_from(master_config_path)
+    config = ConfigParser() if into_config is None else into_config
+    _must_read(config, master_config_path)
     section_name = cake_name
 
-    filename_list = string_to_list(master_config.get(section_name, CONFIG_FILE_LIST_KEY))
+    filename_list = string_to_list(config.get(section_name, CONFIG_FILE_LIST_KEY))
     filename_list = _filenames_relative_to(master_config_path, filename_list)
 
-    result_config = ConfigParser() if into_config is None else into_config
-
-    # copy over all the keys from the section_name of the master
-    # config as entries in the default dictionary of the new config,
-    # making them foundational starting point for the layers.
+    # Move all the keys from the section_name of the config
+    # into the default dictionary of the config,
+    # making them a foundational starting point for the layers.
     # Since Python 2 doesn't have .read_dict() and since a pre-existing
     # config parser may have been passed in, this avoids any Python version
     # specific code, but does require keys to be lower-cased to make them findable.
-    result_config.defaults().update([(k.lower(), v) for k, v in master_config.items(section_name)])
+    config.defaults().update([(k.lower(), v) for k, v in config.items(section_name)])
 
-    # Transfer over the environment variable override information section (if it exists)
-    # from the master config to the newly created or passed in 'result' config,
-    # since the result config will be used for determining if and how
-    # environment variable overrides will work.
-    if master_config.has_section(ENV_VAR_SECTION_NAME):
-        result_config.add_section(ENV_VAR_SECTION_NAME)
-        for k, v in master_config.items(ENV_VAR_SECTION_NAME):
-            result_config.set(ENV_VAR_SECTION_NAME, k.lower(), v)
+    # Remove all irrelevant sections from the master config file
+    for section in config.sections():
+        if section not in MASTER_CONFIG_SECTIONS_TO_KEEP:
+            config.remove_section(section)
 
     for filename in filename_list:
-        _must_read(result_config, filename)
+        _must_read(config, filename)
 
     # The result config is used for environment variable override information
     # so that the environment variable override section can be defined
     # in any of the layers or in the master config file.
-    _env_override(result_config, os.environ)
+    _env_override(config, os.environ)
 
-    return result_config
+    return config
 
 
 def munchify_config(config_parser):
