@@ -1,5 +1,5 @@
 '''Convenience functions for doing asserts with helpful names and helpful messages.'''
-
+from qecommon_tools import format_if as _format_if
 
 try:
     from math import isclose as _isclose
@@ -73,6 +73,15 @@ def is_not_empty(sequence, msg=''):
     This helper reads better in the test code and in the error message.
     '''
     assert sequence, _msg_concat(msg, "'{}' - should not be empty".format(sequence))
+
+
+def is_close(a, b, msg='', **isclose_kwargs):
+    '''Assert that math.isclose returns True based on the given values.'''
+    assert _isclose(a, b, **isclose_kwargs), _msg_concat(
+        msg, "Expected '{}' to be close to '{}'{}".format(
+            a, b, _format_if(': kwargs: {}', isclose_kwargs)
+        )
+    )
 
 
 def almost_equal(actual, expected, places=2, msg=''):
