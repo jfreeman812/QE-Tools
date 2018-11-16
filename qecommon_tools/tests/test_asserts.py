@@ -116,3 +116,9 @@ def test_is_instance_asserts():
     assert_.is_instance(42, (int, Exception))
     with pytest.raises(AssertionError):
         assert_.is_instance(42, Exception)
+
+
+def test_is_close_asserts():
+    assert_.is_close(100, 97, rel_tol=0.03)
+    with pytest.raises(AssertionError):
+        assert_.is_close(100, 96, rel_tol=0.03)
