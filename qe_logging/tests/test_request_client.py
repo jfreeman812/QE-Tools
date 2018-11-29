@@ -25,8 +25,13 @@ from qe_logging.requests_logging import RequestAndResponseLogger
 
 
 LOG_DIRS_TO_TEST = [mkdtemp(), mkdtemp(dir=os.getcwd()), str(uuid4())]
+
 # Suppress warnings while we are still testing QERequestsLoggingClient
-warnings.filterwarnings('ignore', '.*QERequestsLoggingClient.*')
+
+# Note that we can't say:
+# "ignore:Warning: The QERequestsLoggingClient"
+# because pytest will think "Warning" is a module name.
+pytestmark = pytest.mark.filterwarnings('ignore:.*The QERequestsLoggingClient')
 
 
 @pytest.fixture(scope='function', params=LOG_DIRS_TO_TEST)
