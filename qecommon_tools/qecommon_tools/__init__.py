@@ -351,6 +351,21 @@ def generate_random_string(prefix='', suffix='', size=8, choose_from=None):
     return '{}{}{}'.format(prefix, rand_string, suffix)
 
 
+def index_or_default(a_list, value, default=-1):
+    '''
+    Return the index of a value from a list, or a default if not found.
+
+    Args:
+        a_list (list): A list from which to find the index
+        value (any): the list item whose index is sought
+        default (any): the value to return if the value is not in the list
+
+    Returns:
+        int,any: an index value (int) for the list item, or default value (any)
+    '''
+    return a_list.index(value) if value in a_list else default
+
+
 def must_be_in_virtual_environment(
         exit_code=1,
         message='Must be running in a Python virtual environment, aborting!'):
