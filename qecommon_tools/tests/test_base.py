@@ -164,6 +164,18 @@ def test_cleanup_and_exit_with_dir():
     assert not path.exists(dir_path)
 
 
+def test_index_or_default_value_in_list():
+    assert qecommon_tools.index_or_default([1, 2, 3], 2) == 1
+
+
+def test_index_or_default_value_not_present():
+    assert qecommon_tools.index_or_default([1, 2, 3], 5) == -1
+
+
+def test_index_or_default_custom_default():
+    assert qecommon_tools.index_or_default([1, 2, 3], 5, default=99) == 99
+
+
 def test_no_virtual_env(monkeypatch):
     # Don't depend on tests being run in, or not run in, a virtual environment.
     monkeypatch.delenv('VIRTUAL_ENV', raising=False)
