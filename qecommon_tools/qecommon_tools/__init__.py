@@ -358,10 +358,10 @@ def index_or_default(a_list, value, default=-1):
     Args:
         a_list (list): A list from which to find the index
         value (any): the list item whose index is sought
-        default (int): the value to return if the value is not in the list
+        default (any): the value to return if the value is not in the list
 
     Returns:
-        int: an index value for the list item (or default value)
+        int,any: an index value (int) for the list item, or default value (any)
     '''
     return a_list.index(value) if value in a_list else default
 
