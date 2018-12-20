@@ -34,6 +34,10 @@ See ``--help`` on this command for details. You can also use ``-`` as your comme
 and ``jira-add-comment`` will read the comment from stdin instead. Note that if you
 use ``-`` interactively, you cannot edit your comment before it is posted.
 
+``jira-search-issues`` searches JIRA using your JQL query.
+The ``jira.config`` file is needed to authenticate to JIRA.
+See ``--help`` on this command for details.
+
 .. note::
     ``qe_jira`` is deprecated, please use ``jira-make-linked-issue`` instead.
     ``qe_jira`` will be removed in a future release.
@@ -56,6 +60,9 @@ Examples
 * ``jira-make-linked-issue JIRA-1234 -w sall9987 -w benj4444``
   -- will create the JIRA and assign ``sall9987`` and ``benj4444`` as watchers
   instead of your default watcher list
+* ``jira-search-issues "project=ABC AND summary ~ client"``
+    -- will print a list of links and titles for issues in project ABC
+    that include the word "client" in the summary.
 
 API Documentation
 -----------------
