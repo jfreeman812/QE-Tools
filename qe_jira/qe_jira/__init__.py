@@ -224,13 +224,21 @@ def _cli_search():
     parser = ArgumentParser(
         formatter_class=RawDescriptionHelpFormatter, description=_cli_search.__doc__
     )
-    parser.add_argument('--max-results', '-m', type=int, default=10)
+    result_count = parser.add_mutually_exclusive_group()
+    result_count.add_argument('--max-results', '-m', type=int, default=10)
+    result_count.add_argument('--no-max-count', '-n', action='store_false', dest='max_results')
+    parser.add_argument('--count-only', '-c', action='store_true')
     parser.add_argument('query')
     args = parser.parse_args()
 
     client = get_client()
-    results = client.search_issues(args.query, maxResults=args.max_results)
+    results = client.search_issues(
+        args.query, maxResults=False if args.count_only else args.max_results
+    )
 
+    print('Search for "{}" returned {} results'.format(args.query, len(results)))
+    if args.count_only:
+        return
     for issue in results:
         print('{}: {}'.format(issue.permalink(), issue.fields.summary))
 
