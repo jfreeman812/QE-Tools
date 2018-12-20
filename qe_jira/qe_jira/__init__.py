@@ -34,6 +34,10 @@ See ``--help`` on this command for details. You can also use ``-`` as your comme
 and ``jira-add-comment`` will read the comment from stdin instead. Note that if you
 use ``-`` interactively, you cannot edit your comment before it is posted.
 
+``jira-search-issues`` searches JIRA using your JQL query.
+The ``jira.config`` file is needed to authenticate to JIRA.
+See ``--help`` on this command for details.
+
 .. note::
     ``qe_jira`` is deprecated, please use ``jira-make-linked-issue`` instead.
     ``qe_jira`` will be removed in a future release.
@@ -56,6 +60,9 @@ Examples
 * ``jira-make-linked-issue JIRA-1234 -w sall9987 -w benj4444``
   -- will create the JIRA and assign ``sall9987`` and ``benj4444`` as watchers
   instead of your default watcher list
+* ``jira-search-issues "project=ABC AND summary ~ client"``
+  -- will print a list of links and titles for issues in project ABC
+  that include the word "client" in the summary.
 
 API Documentation
 -----------------
@@ -208,6 +215,32 @@ def _cli_add_comment():
         add_comment(args.jira_id, args.message)
     except jira.exceptions.JIRAError as e:
         print('ERROR: "{}" for "{}"!'.format(e.text, args.jira_id))
+
+
+def _cli_search():
+    '''
+    Search using JQL and return matches.
+    '''
+    parser = ArgumentParser(
+        formatter_class=RawDescriptionHelpFormatter, description=_cli_search.__doc__
+    )
+    result_count = parser.add_mutually_exclusive_group()
+    result_count.add_argument('--max-results', '-m', type=int, default=10)
+    result_count.add_argument('--no-max-count', '-n', action='store_false', dest='max_results')
+    parser.add_argument('--count-only', '-c', action='store_true')
+    parser.add_argument('query')
+    args = parser.parse_args()
+
+    client = get_client()
+    results = client.search_issues(
+        args.query, maxResults=False if args.count_only else args.max_results
+    )
+
+    print('Search for "{}" returned {} results'.format(args.query, len(results)))
+    if args.count_only:
+        return
+    for issue in results:
+        print('{}: {}'.format(issue.permalink(), issue.fields.summary))
 
 
 def _create_qe_jira_from():
