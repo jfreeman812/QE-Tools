@@ -10,6 +10,7 @@ CONSOLE_SCRIPTS = [
     'jira-make-linked-issue=qe_jira:_create_qe_jira_from',
     'jira-add-comment=qe_jira:_cli_add_comment',
     'jira-example-config=qe_jira:_example_config_install',
+    'jira-search-issues=qe_jira:_cli_search'
 ]
 
 INSTALL_REQUIRES = [

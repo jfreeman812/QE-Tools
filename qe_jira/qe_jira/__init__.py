@@ -210,6 +210,24 @@ def _cli_add_comment():
         print('ERROR: "{}" for "{}"!'.format(e.text, args.jira_id))
 
 
+def _cli_search():
+    '''
+    Search using JQL and return matches.
+    '''
+    parser = ArgumentParser(
+        formatter_class=RawDescriptionHelpFormatter, description=_cli_search.__doc__
+    )
+    parser.add_argument('--max-results', '-m', type=int, default=10)
+    parser.add_argument('query')
+    args = parser.parse_args()
+
+    client = get_client()
+    results = client.search_issues(args.query, maxResults=args.max_results)
+
+    for issue in results:
+        print('{}: {}'.format(issue.permalink(), issue.fields.summary))
+
+
 def _create_qe_jira_from():
     args = _get_args()
     client = get_client()
