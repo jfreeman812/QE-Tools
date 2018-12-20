@@ -61,8 +61,8 @@ Examples
   -- will create the JIRA and assign ``sall9987`` and ``benj4444`` as watchers
   instead of your default watcher list
 * ``jira-search-issues "project=ABC AND summary ~ client"``
-    -- will print a list of links and titles for issues in project ABC
-    that include the word "client" in the summary.
+  -- will print a list of links and titles for issues in project ABC
+  that include the word "client" in the summary.
 
 API Documentation
 -----------------
