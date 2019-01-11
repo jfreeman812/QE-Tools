@@ -38,7 +38,6 @@ Here are a few useful things you can do with that table::
     ['name', 'age', 'favorite_color']
     >>>
     >>> for row in table:
-    >>> for row in table:
     ...     print(row.favorite_color)
     ...
     Red
