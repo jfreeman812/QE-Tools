@@ -7,6 +7,57 @@ TableRead is a script designed to read reStructredText (reST) `simple tables`_ f
 .. inheritance-diagram:: tableread
    :parts: 1
 
+Quickstart
+----------
+
+Say you have a simple table like this located in a ``./example.rst``::
+
+    ++++++++++++
+    Damage Doers
+    ++++++++++++
+
+    ------  ---  --------------
+    Name    Age  Favorite Color
+    ------  ---  --------------
+    Mookie  26   Red
+    Andrew  24   Red
+    JD      31   Red
+    Xander  26   Red
+    ------  ---  --------------
+
+Here are a few useful things you can do with that table::
+
+    >>> from tableread import SimpleRSTReader
+    >>>
+    >>> reader = SimpleRSTReader("./example.rst")
+    >>> reader.tables
+    ['Damage Doers']
+    >>>
+    >>> table = reader["Damage Doers"]
+    >>> table.fields
+    ['name', 'age', 'favorite_color']
+    >>>
+    >>> for row in table:
+    >>> for row in table:
+    ...     print(row.favorite_color)
+    ...
+    Red
+    Red
+    Red
+    Red
+    >>>
+    >>> for row in table.matches_all(age="26"):
+    ...     print(row.name)
+    ...
+    Mookie
+    Xander
+    >>>
+    >>> for row in table.exclude_by(age="26"):
+    ...     print(row.name)
+    ...
+    Andrew
+    JD
+
 Usage
 -----
 
@@ -54,11 +105,13 @@ Usage
   Given a set of key/value filters, returns a new TableRead object with only
   the filtered data, that can be iterated over.
   Values may be either a simple value (str, int) or a function that returns a boolean.
+  See Quickstart_ for an example.
 
 **exclude_by(**kwargs)**
   Given a set of key/value filters, returns a new TableRead object without the
   matching data, that can be iterated over.
   Values may be either a simple value (str, int) or a function that returns a boolean.
+  See Quickstart_ for an example.
 
 **get_fields(*fields)**
   Given a list of fields, return a list of only the values associated with those fields.
