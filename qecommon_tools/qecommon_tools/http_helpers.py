@@ -1,8 +1,11 @@
 from itertools import chain
 import json
+import time
 
 import requests
 
+
+MAX_CALL_FAILURES = 5
 
 MAX_ERROR_MESSAGE_CONTENT_LENGTH = 500
 
@@ -308,4 +311,84 @@ def response_if_status_check(call_description, response, target_status='a succes
     validate_response_status_code(
         target_status, response, call_description='Call to "{}" failed'.format(call_description)
     )
+    return response
+
+
+def check_until(
+    client_call,
+    data,
+    pending_validator,
+    timeout,
+    cycle_secs,
+    curl_logger=None,
+    retry=True,
+    max_failures=MAX_CALL_FAILURES,
+    **kwargs
+):
+    '''
+    Helper to repeatedly try a REST client call until a validation condition is met.
+
+
+    Args:
+        client_call (function): a function call that will return a requests.Response object
+        data (dict): a key-value pair(s) to be passed into the ``client_call``
+        pending_validator (function): a call that will accept a requests.Response
+            and return True if the call should continue repeating (still pending),
+            or False if the cycle is complete and this response may be returned.
+        timeout (int): maximum number of seconds to "check until"
+        cycle_secs (int): number of seconds per cycle (check every n seconds)
+        curl_logger (cls): if your client is an instance of ``qe_logging.RequestsLoggingClient``,
+            you can pass in an uninstantiated member of ``qe_logging.RequestAndResponseLogger``
+            that will be used to log the calls as well as entries from check_until
+        retry (bool): if True, will attempt to re-run a call
+            if an unsuccessful status code (>299) is returned
+        max_failures (int): if ``retry`` is True, the maximum number of allowed failed retries
+        kwargs: all other kwargs will be passed directly to the client call
+
+    Returns:
+        requests.Response: the eventual result of your client_call
+            once the pending_validator condition has been met, or failure retries are exhausted.
+
+    '''
+
+    def _noop(*args, **kwargs):
+        # No-op debug if no curl_logger passed in
+        pass
+
+    debug = _noop
+    if curl_logger:
+        curl_logger = curl_logger()
+        debug = curl_logger.logger.debug
+    failures = {'failures': 0}
+
+    def is_pending(response):
+        fail_count = failures['failures']
+        if is_status_code('unauthorized', response.status_code):
+            return False
+        if retry and not is_status_code('a successful response', response.status_code):
+            fail_count += 1
+            if fail_count <= max_failures:
+                return True
+            msg = '***Call failed {} times, final status code was {}.***'
+            debug(msg.format(max_failures, response.status_code))
+            return False
+        fail_count = 0
+        return pending_validator(response)
+
+    check_start = time.time()
+    debug('***logging response content of final call of loop only***')
+    call_kwargs = data
+    call_kwargs.update(kwargs)
+    if curl_logger:
+        call_kwargs.update(curl_logger=curl_logger)
+    response = client_call(**call_kwargs)
+    end_time = time.time() + timeout
+    while is_pending(response) and time.time() < end_time:
+        time.sleep(cycle_secs)
+        response = client_call(**call_kwargs)
+    time_elapsed = round(time.time() - check_start, 2)
+    debug('Final response achieved in {} seconds'.format(time_elapsed))
+    if hasattr(curl_logger, 'done'):
+        # This is a temporary hack until a dummy `done` method is added to the qe_logging loggers.
+        curl_logger.done()
     return response
