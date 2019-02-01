@@ -337,12 +337,12 @@ def check_until(
             or False if the cycle is complete and this response may be returned.
         timeout (int): maximum number of seconds to "check until"
         cycle_secs (int): number of seconds per cycle (check every n seconds)
-        curl_logger (cls): if your client is an instance of ``qe_logging.RequestsLoggingClient``,
+        curl_logger (cls,optional): if your client is
+            an instance of ``qe_logging.RequestsLoggingClient``,
             you can pass in an uninstantiated member of ``qe_logging.RequestAndResponseLogger``
-            that will be used to log the calls as well as entries from check_until
-        retry (bool): if True, will attempt to re-run a call
-            if an unsuccessful status code (>299) is returned
-        max_failures (int): if ``retry`` is True, the maximum number of allowed failed retries
+            that will be used to log the calls as well as entries from check_until,
+            ``LastOnlyRequestAndResponseLogger`` is recommended.
+        max_failures (int): the maximum number of allowed for failed retries
         kwargs: all other kwargs will be passed directly to the client call
 
     Returns:
@@ -365,7 +365,7 @@ def check_until(
         fail_count = failures['failures']
         if is_status_code('unauthorized', response.status_code):
             return False
-        if retry and not is_status_code('a successful response', response.status_code):
+        if max_failures and not is_status_code('a successful response', response.status_code):
             fail_count += 1
             if fail_count <= max_failures:
                 return True
