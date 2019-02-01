@@ -1,3 +1,4 @@
+from copy import copy
 from itertools import chain
 import json
 import time
@@ -323,7 +324,7 @@ def check_until(
     curl_logger=None,
     retry=True,
     max_failures=MAX_CALL_FAILURES,
-    **kwargs
+    **client_call_kwargs
 ):
     '''
     Helper to repeatedly try a REST client call until a validation condition is met.
@@ -331,7 +332,9 @@ def check_until(
 
     Args:
         client_call (function): a function call that will return a requests.Response object
-        data (dict): a key-value pair(s) to be passed into the ``client_call``
+        data (dict): a key-value pair(s) to be passed into the ``client_call`` as the main args,
+            kept separate from client_call_kwargs to support easy comprehensions and loops
+            with shared kwargs but multiple data entries.
         pending_validator (function): a call that will accept a requests.Response
             and return True if the call should continue repeating (still pending),
             or False if the cycle is complete and this response may be returned.
@@ -339,11 +342,11 @@ def check_until(
         cycle_secs (int): number of seconds per cycle (check every n seconds)
         curl_logger (cls,optional): if your client is
             an instance of ``qe_logging.RequestsLoggingClient``,
-            you can pass in an uninstantiated member of ``qe_logging.RequestAndResponseLogger``
+            you can pass in a member of ``qe_logging.RequestAndResponseLogger``
             that will be used to log the calls as well as entries from check_until,
             ``LastOnlyRequestAndResponseLogger`` is recommended.
         max_failures (int): the maximum number of allowed for failed retries
-        kwargs: all other kwargs will be passed directly to the client call
+        client_call_kwargs: all other kwargs will be passed directly to the client call
 
     Returns:
         requests.Response: the eventual result of your client_call
@@ -357,7 +360,8 @@ def check_until(
 
     debug = _noop
     if curl_logger:
-        curl_logger = curl_logger()
+        # instantiate if not already
+        curl_logger = curl_logger() if isinstance(curl_logger, type) else curl_logger
         debug = curl_logger.logger.debug
     failures = {'failures': 0}
 
@@ -377,8 +381,8 @@ def check_until(
 
     check_start = time.time()
     debug('***logging response content of final call of loop only***')
-    call_kwargs = data
-    call_kwargs.update(kwargs)
+    call_kwargs = copy(data)
+    call_kwargs.update(client_call_kwargs)
     if curl_logger:
         call_kwargs.update(curl_logger=curl_logger)
     response = client_call(**call_kwargs)
@@ -387,8 +391,10 @@ def check_until(
         time.sleep(cycle_secs)
         response = client_call(**call_kwargs)
     time_elapsed = round(time.time() - check_start, 2)
+    if is_pending(response):
+        debug('Response was still pending at timeout.')
     debug('Final response achieved in {} seconds'.format(time_elapsed))
     if hasattr(curl_logger, 'done'):
-        # This is a temporary hack until a dummy `done` method is added to the qe_logging loggers.
+        # This is a temporary workaround pending QET-129.
         curl_logger.done()
     return response

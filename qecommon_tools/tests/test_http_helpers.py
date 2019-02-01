@@ -2,7 +2,7 @@ import itertools
 import json
 
 import pytest
-from qecommon_tools import assert_, http_helpers, generate_random_string
+from qecommon_tools import assert_, http_helpers, generate_random_string, always_false, always_true
 import requests
 import requests_mock
 
@@ -261,26 +261,26 @@ def test_response_if_status_code_match(ok_response, expected_description):
     assert checked_response == ok_response
 
 
+def _less_than_four(response):
+    return int(response.text) < 4
+
+
 def test_check_until_pass():
     response = http_helpers.check_until(
-        session.get, {'url': 'mock://test.com/count'}, lambda x: int(x.text) < 4, 5, 0.1
+        session.get, {'url': 'mock://test.com/count'}, _less_than_four, 5, 0.1
     )
     assert int(response.text) == 4
 
 
 def test_check_until_retry():
     response = http_helpers.check_until(
-        session.get,
-        {'url': 'mock://test.com/failfirst'},
-        lambda x: x.text == 'second response', 5, 0.1
+        session.get, {'url': 'mock://test.com/failfirst'}, always_false, 5, 0.1
     )
     assert response.text == 'second response'
 
 
 def test_check_until_fail():
     response = http_helpers.check_until(
-        session.get,
-        {'url': 'mock://test.com/ok'},
-        lambda x: x.text == 'never going to happen', 5, 0.1
+        session.get, {'url': 'mock://test.com/ok'}, always_true, 5, 0.1
     )
     assert response.text == ''
