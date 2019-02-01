@@ -2,7 +2,7 @@ import itertools
 import json
 
 import pytest
-from qecommon_tools import assert_, http_helpers, generate_random_string, always_false, always_true
+from qecommon_tools import assert_, http_helpers, generate_random_string, always_true
 import requests
 import requests_mock
 
@@ -37,14 +37,6 @@ adapter.register_uri(
     'GET',
     'mock://test.com/count',
     [{'status_code': 200, 'text': str(x)} for x in range(10)]
-)
-adapter.register_uri(
-    'GET',
-    'mock://test.com/failfirst',
-    [
-        {'status_code': 500, 'text': 'first response'},
-        {'status_code': 200, 'text': 'second response'}
-    ]
 )
 
 
@@ -270,13 +262,6 @@ def test_check_until_pass():
         session.get, {'url': 'mock://test.com/count'}, _less_than_four, 5, 0.1
     )
     assert int(response.text) == 4
-
-
-def test_check_until_retry():
-    response = http_helpers.check_until(
-        session.get, {'url': 'mock://test.com/failfirst'}, always_false, 5, 0.1
-    )
-    assert response.text == 'second response'
 
 
 def test_check_until_fail():

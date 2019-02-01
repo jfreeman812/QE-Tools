@@ -318,7 +318,7 @@ def response_if_status_check(call_description, response, target_status='a succes
 def check_until(
     client_call,
     data,
-    pending_validator,
+    keep_checking_validator,
     timeout,
     cycle_secs,
     curl_logger=None,
@@ -335,9 +335,9 @@ def check_until(
         data (dict): a key-value pair(s) to be passed into the ``client_call`` as the main args,
             kept separate from client_call_kwargs to support easy comprehensions and loops
             with shared kwargs but multiple data entries.
-        pending_validator (function): a call that will accept a requests.Response
+        keep_checking_validator (function): a call that will accept a requests.Response
             and return True if the call should continue repeating (still pending),
-            or False if the cycle is complete and this response may be returned.
+            or False if the checked response is complete and may be returned.
         timeout (int): maximum number of seconds to "check until"
         cycle_secs (int): number of seconds per cycle (check every n seconds)
         curl_logger (cls,optional): if your client is
@@ -363,21 +363,6 @@ def check_until(
         # instantiate if not already
         curl_logger = curl_logger() if isinstance(curl_logger, type) else curl_logger
         debug = curl_logger.logger.debug
-    failures = {'failures': 0}
-
-    def is_pending(response):
-        fail_count = failures['failures']
-        if is_status_code('unauthorized', response.status_code):
-            return False
-        if max_failures and not is_status_code('a successful response', response.status_code):
-            fail_count += 1
-            if fail_count <= max_failures:
-                return True
-            msg = '***Call failed {} times, final status code was {}.***'
-            debug(msg.format(max_failures, response.status_code))
-            return False
-        fail_count = 0
-        return pending_validator(response)
 
     check_start = time.time()
     debug('***logging response content of final call of loop only***')
@@ -387,11 +372,11 @@ def check_until(
         call_kwargs.update(curl_logger=curl_logger)
     response = client_call(**call_kwargs)
     end_time = time.time() + timeout
-    while is_pending(response) and time.time() < end_time:
+    while keep_checking_validator(response) and time.time() < end_time:
         time.sleep(cycle_secs)
         response = client_call(**call_kwargs)
     time_elapsed = round(time.time() - check_start, 2)
-    if is_pending(response):
+    if keep_checking_validator(response):
         debug('Response was still pending at timeout.')
     debug('Final response achieved in {} seconds'.format(time_elapsed))
     if hasattr(curl_logger, 'done'):
