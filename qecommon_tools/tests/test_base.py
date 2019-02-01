@@ -498,6 +498,34 @@ def test_retry_on_exception_error_handling():
     assert 'max_retry_count must be' in str(e)
 
 
+CYCLE_VALUE = 1
+
+
+def cycle_func():
+    global CYCLE_VALUE
+    return_value = CYCLE_VALUE
+    if CYCLE_VALUE < 3:
+        CYCLE_VALUE += 1
+    else:
+        CYCLE_VALUE = 1
+    return return_value
+
+
+def is_not_three(n):
+    return n != 3
+
+
+def test_check_until_pass():
+    assert qecommon_tools.check_until(cycle_func, is_not_three, timeout=2, cycle_secs=0.1) == 3
+
+
+def test_check_until_never():
+    result = qecommon_tools.check_until(
+        cycle_func, qecommon_tools.always_true, timeout=2, cycle_secs=0.1
+    )
+    assert result in [1, 2, 3]
+
+
 def test_only_item_of():
     bad_lists = [[], list(range(100))]
     for bad_list in bad_lists:

@@ -1,9 +1,11 @@
-from copy import copy
+from contextlib import contextmanager
 from itertools import chain
 import json
 import time
 
 import requests
+
+from qecommon_tools import no_op
 
 
 MAX_CALL_FAILURES = 5
@@ -315,71 +317,63 @@ def response_if_status_check(call_description, response, target_status='a succes
     return response
 
 
-def check_until(
-    client_call,
-    data,
-    keep_checking_validator,
-    timeout,
-    cycle_secs,
-    curl_logger=None,
-    retry=True,
-    max_failures=MAX_CALL_FAILURES,
-    **client_call_kwargs
-):
+def safe_request_validator(inner_validator, max_failures=MAX_CALL_FAILURES, logger=None):
     '''
-    Helper to repeatedly try a REST client call until a validation condition is met.
+    Helper to wrap a ``check_request_until`` validator in additional response checks.
 
+    Will "fail fast" in the case of an ``unauthorized`` response,
+    and will support retrying calls if a non-200-level reponse status is returned.
 
     Args:
-        client_call (function): a function call that will return a requests.Response object
-        data (dict): a key-value pair(s) to be passed into the ``client_call`` as the main args,
-            kept separate from client_call_kwargs to support easy comprehensions and loops
-            with shared kwargs but multiple data entries.
-        keep_checking_validator (function): a call that will accept a requests.Response
-            and return True if the call should continue repeating (still pending),
-            or False if the checked response is complete and may be returned.
-        timeout (int): maximum number of seconds to "check until"
-        cycle_secs (int): number of seconds per cycle (check every n seconds)
-        curl_logger (cls,optional): if your client is
-            an instance of ``qe_logging.RequestsLoggingClient``,
-            you can pass in a member of ``qe_logging.RequestAndResponseLogger``
-            that will be used to log the calls as well as entries from check_until,
-            ``LastOnlyRequestAndResponseLogger`` is recommended.
-        max_failures (int): the maximum number of allowed for failed retries
-        client_call_kwargs: all other kwargs will be passed directly to the client call
+        inner_validator (function): case-specific response validator function,
+            should return True if re-checking should continue,
+            or False if checking should stop.
+        max_failures (int): total number of retries *per cycle* a call should be allowed
+            before failing permanently and returning the last response
+        logger (logging.logger, optional): a logger to handle debug messages from the validator
 
     Returns:
-        requests.Response: the eventual result of your client_call
-            once the pending_validator condition has been met, or failure retries are exhausted.
+        function: response-status-checking decorated version of ``inner_validator``
 
     '''
+    debug = logger.debug if logger else no_op
+    # In Python 3+, modification of outer scope variables is achievable
+    # with the ``nonlocal`` keyword,
+    # but for 2.7 compatibility, we must access and modify via a dictionary.
+    failures = {'fail_count': 0}
 
-    def _noop(*args, **kwargs):
-        # No-op debug if no curl_logger passed in
-        pass
+    def inner(response):
+        fail_count = failures['fail_count']
+        if is_status_code('unauthorized', response.status_code):
+            return False
+        if max_failures and not is_status_code('a successful response', response.status_code):
+            fail_count += 1
+            if fail_count <= max_failures:
+                return True
+            msg = '***Call failed {} times, final status code was {}.'
+            debug(msg.format(fail_count, response.status_code))
+        fail_count = 0
+        return inner_validator(response)
 
-    debug = _noop
-    if curl_logger:
-        # instantiate if not already
-        curl_logger = curl_logger() if isinstance(curl_logger, type) else curl_logger
-        debug = curl_logger.logger.debug
+    return inner
 
-    check_start = time.time()
-    debug('***logging response content of final call of loop only***')
-    call_kwargs = copy(data)
-    call_kwargs.update(client_call_kwargs)
-    if curl_logger:
-        call_kwargs.update(curl_logger=curl_logger)
-    response = client_call(**call_kwargs)
-    end_time = time.time() + timeout
-    while keep_checking_validator(response) and time.time() < end_time:
-        time.sleep(cycle_secs)
-        response = client_call(**call_kwargs)
-    time_elapsed = round(time.time() - check_start, 2)
-    if keep_checking_validator(response):
-        debug('Response was still pending at timeout.')
-    debug('Final response achieved in {} seconds'.format(time_elapsed))
+
+@contextmanager
+def call_with_custom_logger(call, curl_logger):
+    '''
+    Place a call with a given curl_logger in place of the default.
+
+    If curl_logger is a last-only logger, call ``.done()`` on context exit.
+    NOTE: for last-only loggers, the log will not be written until you exit the context.
+
+    '''
+    curl_logger = curl_logger() if isinstance(curl_logger, type) else curl_logger
+
+    def custom_call(*args, **kwargs):
+        return call(*args, curl_logger=curl_logger, **kwargs)
+
+    yield custom_call
+
     if hasattr(curl_logger, 'done'):
         # This is a temporary workaround pending QET-129.
         curl_logger.done()
-    return response

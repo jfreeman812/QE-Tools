@@ -26,6 +26,7 @@ SAMPLE_DATA = {
 adapter.register_uri('GET', 'mock://test.com/ok', status_code=200)
 adapter.register_uri('GET', 'mock://test.com/client', status_code=400)
 adapter.register_uri('GET', 'mock://test.com/server', status_code=500)
+adapter.register_uri('GET', 'mock://test.com/unauthorized', status_code=401)
 adapter.register_uri('GET', 'mock://test.com/good_json', status_code=200, json=SAMPLE_DATA)
 adapter.register_uri(
     'GET',
@@ -53,6 +54,11 @@ def client_err():
 @pytest.fixture
 def server_err():
     return session.get('mock://test.com/server')
+
+
+@pytest.fixture
+def unauth_err():
+    return session.get('mock://test.com/unauthorized')
 
 
 @pytest.fixture
@@ -253,19 +259,22 @@ def test_response_if_status_code_match(ok_response, expected_description):
     assert checked_response == ok_response
 
 
-def _less_than_four(response):
-    return int(response.text) < 4
+def test_safe_request_validator_pass(ok_response):
+    assert http_helpers.safe_request_validator(always_true)(ok_response) is True
 
 
-def test_check_until_pass():
-    response = http_helpers.check_until(
-        session.get, {'url': 'mock://test.com/count'}, _less_than_four, 5, 0.1
-    )
-    assert int(response.text) == 4
+def test_safe_request_validator_error(client_err):
+    assert http_helpers.safe_request_validator(always_true)(client_err) is True
 
 
-def test_check_until_fail():
-    response = http_helpers.check_until(
-        session.get, {'url': 'mock://test.com/ok'}, always_true, 5, 0.1
-    )
-    assert response.text == ''
+def test_safe_request_validator_unauth(unauth_err):
+    assert http_helpers.safe_request_validator(always_true)(unauth_err) is False
+
+
+def dummy_decorated_call(curl_logger=None):
+    return curl_logger.__class__.__name__
+
+
+def test_call_with_custom_logger():
+    with http_helpers.call_with_custom_logger(dummy_decorated_call, 3) as call:
+        assert call() == 'int'

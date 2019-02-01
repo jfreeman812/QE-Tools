@@ -45,6 +45,15 @@ with the Locust test runner, and it uses this dictionary to accomplish this.)
 '''
 
 
+CHECK_UNTIL_TIMEOUT = 300
+CHECK_UNTIL_CYCLE_SECS = 5
+
+
+def no_op(*args, **kwargs):
+    '''A reusable no-op function.'''
+    pass
+
+
 def always_true(*args, **kwargs):
     '''Always return True; ignores any combo of positional and keyword parameters.'''
     return True
@@ -545,6 +554,49 @@ def retry_on_exceptions(max_retry_count, exceptions, max_retry_sleep=DEFAULT_MAX
         raise error
 
     return wrapper
+
+
+def check_until(
+    function_call,
+    keep_checking_validator,
+    timeout=CHECK_UNTIL_TIMEOUT,
+    cycle_secs=CHECK_UNTIL_CYCLE_SECS,
+    fn_args=None,
+    **fn_kwargs
+):
+    '''
+    Args:
+        function_call (function): The function to be called
+        keep_checking_validator (function): a fn that will accept the output from function_call
+            and return True if the call should continue repeating (still pending result),
+            or False if the checked result is complete and may be returned.
+        timeout (int): maximum number of seconds to "check until" before returning last result
+        cycle_secs (int): frequency (in seconds) of checks (call every n seconds until...)
+        fn_args (tuple, optional): tuple of positional args to be provided to function_call
+        fn_kwargs (any): keyword args to be provided to function_call
+
+    Returns:
+        any: the eventual result of your function_call
+            once the keep_checking_validator condition has been met
+            or the timeout limit is exhausted.
+
+    '''
+    fn_args = fn_args or ()
+    log = logging.getLogger('check_until')
+
+    check_start = _time.time()
+    log.debug('***logging response content of final call of loop only***')
+
+    result = function_call(*fn_args, **fn_kwargs)
+    end_time = _time.time() + timeout
+    while keep_checking_validator(result) and _time.time() < end_time:
+        _time.sleep(cycle_secs)
+        result = function_call(*fn_args, **fn_kwargs)
+    time_elapsed = round(_time.time() - check_start, 2)
+    if keep_checking_validator(result):
+        log.debug('Response was still pending at timeout.')
+    log.debug('Final response achieved in {} seconds'.format(time_elapsed))
+    return result
 
 
 def only_item_of(item_sequence, label=''):
