@@ -591,6 +591,10 @@ def check_until(
             once the keep_checking_validator condition has been met
             or the timeout limit is exhausted.
 
+    Raises:
+        qecommon_tools.IncompleteAtTimeoutException: if the call result does not meet
+            the validator condition when timeout is reached.
+
     '''
     fn_args = fn_args or ()
     fn_kwargs = fn_kwargs or {}
