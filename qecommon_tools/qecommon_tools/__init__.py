@@ -566,7 +566,7 @@ class IncompleteAtTimeoutException(BaseException):
 
 def check_until(
     function_call,
-    keep_checking_validator,
+    is_complete_validator,
     timeout=CHECK_UNTIL_TIMEOUT,
     cycle_secs=CHECK_UNTIL_CYCLE_SECS,
     logger=_logger,
@@ -576,9 +576,9 @@ def check_until(
     '''
     Args:
         function_call (function): The function to be called
-        keep_checking_validator (function): a fn that will accept the output from function_call
-            and return True if the call should continue repeating (still pending result),
-            or False if the checked result is complete and may be returned.
+        is_complete_validator (function): a fn that will accept the output from function_call
+            and return False if the call should continue repeating (still pending result),
+            or True if the checked result is complete and may be returned.
         timeout (int): maximum number of seconds to "check until" before returning last result
         cycle_secs (int): frequency (in seconds) of checks (call every n seconds until...)
         logger (logging.logger, optional): a logging instance to be used for debug info,
@@ -601,11 +601,11 @@ def check_until(
 
     result = function_call(*fn_args, **fn_kwargs)
     end_time = _time.time() + timeout
-    while keep_checking_validator(result) and _time.time() < end_time:
+    while not is_complete_validator(result) and _time.time() < end_time:
         _time.sleep(cycle_secs)
         result = function_call(*fn_args, **fn_kwargs)
     time_elapsed = round(_time.time() - check_start, 2)
-    if keep_checking_validator(result):
+    if not is_complete_validator(result):
         msg = 'Response was still pending at timeout.'
         debug(msg)
         raise IncompleteAtTimeoutException(msg, call_result=result, timeout=timeout)

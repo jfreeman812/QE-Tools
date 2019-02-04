@@ -511,19 +511,19 @@ def cycle_func():
     return return_value
 
 
-def is_not_three(n):
-    return n != 3
+def is_three(n):
+    return n == 3
 
 
 def test_check_until_pass():
-    assert qecommon_tools.check_until(cycle_func, is_not_three, timeout=2, cycle_secs=0.1) == 3
+    assert qecommon_tools.check_until(cycle_func, is_three, timeout=2, cycle_secs=0.1) == 3
 
 
 def test_check_until_never():
     test_timeout = 2
     with pytest.raises(qecommon_tools.IncompleteAtTimeoutException) as e:
         qecommon_tools.check_until(
-            cycle_func, qecommon_tools.always_true, timeout=test_timeout, cycle_secs=0.1
+            cycle_func, qecommon_tools.always_false, timeout=test_timeout, cycle_secs=0.1
         )
         assert e.call_result in [1, 2, 3]
         assert e.timeout == test_timeout
