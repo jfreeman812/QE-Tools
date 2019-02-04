@@ -557,11 +557,25 @@ def retry_on_exceptions(max_retry_count, exceptions, max_retry_sleep=DEFAULT_MAX
     return wrapper
 
 
-class IncompleteAtTimeoutException(BaseException):
-    def __init__(self, *args, **kwargs):
-        self.call_result = kwargs.pop('call_result', None)
-        self.timeout = kwargs.pop('timeout', None)
-        super(IncompleteAtTimeoutException, self).__init__(*args, **kwargs)
+class IncompleteAtTimeoutException(Exception):
+    '''
+    Exception for check_until results that timeout still pending validation.
+
+    Args:
+        msg (str): Human readable string describing the exception.
+        call_result (any): the final result of the call, which failed validation.
+        timeout (int,float): the timeout at which the result was still failing.
+
+    Atributes:
+        call_result (any): the final result of the call, which failed validation.
+        timeout (int,float): the timeout at which the result was still failing.
+
+    '''
+
+    def __init__(self, msg, call_result=None, timeout=None):
+        self.call_result = call_result
+        self.timeout = timeout
+        super(IncompleteAtTimeoutException, self).__init__(msg)
 
 
 def check_until(
@@ -604,16 +618,17 @@ def check_until(
 
     result = function_call(*fn_args, **fn_kwargs)
     end_time = _time.time() + timeout
-    while not is_complete_validator(result) and _time.time() < end_time:
-        _time.sleep(cycle_secs)
+    while _time.time() < end_time:
         result = function_call(*fn_args, **fn_kwargs)
-    time_elapsed = round(_time.time() - check_start, 2)
-    if not is_complete_validator(result):
-        msg = 'Response was still pending at timeout.'
-        debug(msg)
-        raise IncompleteAtTimeoutException(msg, call_result=result, timeout=timeout)
-    debug('Final response achieved in {} seconds'.format(time_elapsed))
-    return result
+        if is_complete_validator(result):
+            time_elapsed = round(_time.time() - check_start, 2)
+            debug('Final response achieved in {} seconds'.format(time_elapsed))
+            return result
+    # If a result wasn't returned from within the while loop,
+    # we have reached timeout without a valid result.
+    msg = 'Response was still pending at timeout.'
+    debug(msg)
+    raise IncompleteAtTimeoutException(msg, call_result=result, timeout=timeout)
 
 
 def only_item_of(item_sequence, label=''):

@@ -1,6 +1,6 @@
 '''Unit tests for the qecommon_tools tools.'''
 
-from itertools import product
+from itertools import product, cycle
 import tempfile
 from uuid import uuid4
 from os import path, mkdir
@@ -13,6 +13,10 @@ import qecommon_tools
 
 
 TEST_MESSAGE = 'Test Message'
+CYCLE_ITEMS = [1, 2, 3]
+CYCLE_OF_NUMBERS = cycle(CYCLE_ITEMS)
+CHECK_UNTIL_TIMEOUT = 2
+CHECK_UNTIL_CYCLE_SECS = 0.1
 
 
 @pytest.fixture
@@ -498,35 +502,30 @@ def test_retry_on_exception_error_handling():
     assert 'max_retry_count must be' in str(e)
 
 
-CYCLE_VALUE = 1
-
-
 def cycle_func():
-    global CYCLE_VALUE
-    return_value = CYCLE_VALUE
-    if CYCLE_VALUE < 3:
-        CYCLE_VALUE += 1
-    else:
-        CYCLE_VALUE = 1
-    return return_value
+    return next(CYCLE_OF_NUMBERS)
 
 
 def is_three(n):
-    return n == 3
+    return n == CYCLE_ITEMS[-1]
 
 
 def test_check_until_pass():
-    assert qecommon_tools.check_until(cycle_func, is_three, timeout=2, cycle_secs=0.1) == 3
+    assert qecommon_tools.check_until(
+        cycle_func, is_three, timeout=CHECK_UNTIL_TIMEOUT, cycle_secs=CHECK_UNTIL_CYCLE_SECS
+    ) == CYCLE_ITEMS[-1]
 
 
 def test_check_until_never():
-    test_timeout = 2
     with pytest.raises(qecommon_tools.IncompleteAtTimeoutException) as e:
         qecommon_tools.check_until(
-            cycle_func, qecommon_tools.always_false, timeout=test_timeout, cycle_secs=0.1
+            cycle_func,
+            qecommon_tools.always_false,
+            timeout=CHECK_UNTIL_TIMEOUT,
+            cycle_secs=CHECK_UNTIL_CYCLE_SECS
         )
-        assert e.call_result in [1, 2, 3]
-        assert e.timeout == test_timeout
+        assert e.call_result in CYCLE_ITEMS
+        assert e.timeout == CHECK_UNTIL_TIMEOUT
 
 
 def test_only_item_of():

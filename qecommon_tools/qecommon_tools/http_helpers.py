@@ -343,16 +343,15 @@ def safe_request_validator(inner_validator, max_failures=MAX_CALL_FAILURES, logg
     failures = {'fail_count': 0}
 
     def inner(response):
-        fail_count = failures['fail_count']
         if is_status_code('unauthorized', response.status_code):
             return False
         if max_failures and not is_status_code('a successful response', response.status_code):
-            fail_count += 1
-            if fail_count <= max_failures:
+            failures['fail_count'] += 1
+            if failures['fail_count'] <= max_failures:
                 return True
             msg = '***Call failed {} times, final status code was {}.'
-            debug(msg.format(fail_count, response.status_code))
-        fail_count = 0
+            debug(msg.format(failures['fail_count'], response.status_code))
+        failures['fail_count'] = 0
         return inner_validator(response)
 
     return inner
