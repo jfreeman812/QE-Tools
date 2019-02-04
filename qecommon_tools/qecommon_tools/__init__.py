@@ -20,7 +20,8 @@ import requests as _requests
 import wrapt as _wrapt
 
 
-_debug = logging.getLogger(__name__).debug
+_logger = logging.getLogger(__name__)
+_debug = _logger.debug
 
 
 class_lookup = {}
@@ -561,8 +562,9 @@ def check_until(
     keep_checking_validator,
     timeout=CHECK_UNTIL_TIMEOUT,
     cycle_secs=CHECK_UNTIL_CYCLE_SECS,
+    logger=_logger,
     fn_args=None,
-    **fn_kwargs
+    fn_kwargs=None,
 ):
     '''
     Args:
@@ -572,8 +574,9 @@ def check_until(
             or False if the checked result is complete and may be returned.
         timeout (int): maximum number of seconds to "check until" before returning last result
         cycle_secs (int): frequency (in seconds) of checks (call every n seconds until...)
+        logger (logging.logger, optional): a logging instance to be used for debug info
         fn_args (tuple, optional): tuple of positional args to be provided to function_call
-        fn_kwargs (any): keyword args to be provided to function_call
+        fn_kwargs (dict, optional): keyword args to be provided to function_call
 
     Returns:
         any: the eventual result of your function_call
@@ -582,10 +585,11 @@ def check_until(
 
     '''
     fn_args = fn_args or ()
-    log = logging.getLogger('check_until')
+    fn_kwargs = fn_kwargs or {}
+    debug = logger.debug if logger else no_op
 
     check_start = _time.time()
-    log.debug('***logging response content of final call of loop only***')
+    debug('***logging response content of final call of loop only***')
 
     result = function_call(*fn_args, **fn_kwargs)
     end_time = _time.time() + timeout
@@ -594,8 +598,8 @@ def check_until(
         result = function_call(*fn_args, **fn_kwargs)
     time_elapsed = round(_time.time() - check_start, 2)
     if keep_checking_validator(result):
-        log.debug('Response was still pending at timeout.')
-    log.debug('Final response achieved in {} seconds'.format(time_elapsed))
+        debug('Response was still pending at timeout.')
+    debug('Final response achieved in {} seconds'.format(time_elapsed))
     return result
 
 
