@@ -20,7 +20,8 @@ import requests as _requests
 import wrapt as _wrapt
 
 
-_debug = logging.getLogger(__name__).debug
+_logger = logging.getLogger(__name__)
+_debug = _logger.debug
 
 
 class_lookup = {}
@@ -43,6 +44,15 @@ class instead of just ``requests.Session`` when being used by testing code
 with the Locust test runner, and it uses this dictionary to accomplish this.)
 
 '''
+
+
+CHECK_UNTIL_TIMEOUT = 300
+CHECK_UNTIL_CYCLE_SECS = 5
+
+
+def no_op(*args, **kwargs):
+    '''A reusable no-op function.'''
+    pass
 
 
 def always_true(*args, **kwargs):
@@ -545,6 +555,81 @@ def retry_on_exceptions(max_retry_count, exceptions, max_retry_sleep=DEFAULT_MAX
         raise error
 
     return wrapper
+
+
+class IncompleteAtTimeoutException(Exception):
+    '''
+    Exception for check_until results that timeout still pending validation.
+
+    Args:
+        msg (str): Human readable string describing the exception.
+        call_result (any): the final result of the call, which failed validation.
+        timeout (int,float): the timeout at which the result was still failing.
+
+    Atributes:
+        call_result (any): the final result of the call, which failed validation.
+        timeout (int,float): the timeout at which the result was still failing.
+
+    '''
+
+    def __init__(self, msg, call_result=None, timeout=None):
+        self.call_result = call_result
+        self.timeout = timeout
+        super(IncompleteAtTimeoutException, self).__init__(msg)
+
+
+def check_until(
+    function_call,
+    is_complete_validator,
+    timeout=CHECK_UNTIL_TIMEOUT,
+    cycle_secs=CHECK_UNTIL_CYCLE_SECS,
+    logger=_logger,
+    fn_args=None,
+    fn_kwargs=None,
+):
+    '''
+    Args:
+        function_call (function): The function to be called
+        is_complete_validator (function): a fn that will accept the output from function_call
+            and return False if the call should continue repeating (still pending result),
+            or True if the checked result is complete and may be returned.
+        timeout (int): maximum number of seconds to "check until" before returning last result
+        cycle_secs (int): frequency (in seconds) of checks (call every n seconds until...)
+        logger (logging.logger, optional): a logging instance to be used for debug info,
+            or ``None`` to suppress this function's logging.
+        fn_args (tuple, optional): tuple of positional args to be provided to function_call
+        fn_kwargs (dict, optional): keyword args to be provided to function_call
+
+    Returns:
+        any: the eventual result of your function_call
+            once the keep_checking_validator condition has been met.
+
+    Raises:
+        qecommon_tools.IncompleteAtTimeoutException: if the call result does not meet
+            the validator condition when timeout is reached.
+
+    '''
+    fn_args = fn_args or ()
+    fn_kwargs = fn_kwargs or {}
+    debug = logger.debug if logger else no_op
+
+    check_start = _time.time()
+    debug('***logging response content of final call of loop only***')
+
+    result = function_call(*fn_args, **fn_kwargs)
+    end_time = _time.time() + timeout
+    while _time.time() < end_time:
+        result = function_call(*fn_args, **fn_kwargs)
+        if is_complete_validator(result):
+            time_elapsed = round(_time.time() - check_start, 2)
+            debug('Final response achieved in {} seconds'.format(time_elapsed))
+            return result
+        _time.sleep(cycle_secs)
+    # If a result wasn't returned from within the while loop,
+    # we have reached timeout without a valid result.
+    msg = 'Response was still pending at timeout.'
+    debug(msg)
+    raise IncompleteAtTimeoutException(msg, call_result=result, timeout=timeout)
 
 
 def only_item_of(item_sequence, label=''):

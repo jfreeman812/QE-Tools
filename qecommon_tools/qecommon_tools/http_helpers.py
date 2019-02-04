@@ -1,8 +1,14 @@
+from contextlib import contextmanager
 from itertools import chain
 import json
+import time
 
 import requests
 
+from qecommon_tools import no_op
+
+
+MAX_CALL_FAILURES = 5
 
 MAX_ERROR_MESSAGE_CONTENT_LENGTH = 500
 
@@ -309,3 +315,64 @@ def response_if_status_check(call_description, response, target_status='a succes
         target_status, response, call_description='Call to "{}" failed'.format(call_description)
     )
     return response
+
+
+def safe_request_validator(inner_validator, max_failures=MAX_CALL_FAILURES, logger=None):
+    '''
+    Helper to wrap a ``check_request_until`` validator in additional response checks.
+
+    Will "fail fast" in the case of an ``unauthorized`` response,
+    and will support retrying calls if a non-200-level reponse status is returned.
+
+    Args:
+        inner_validator (function): case-specific response validator function,
+            should return False if condition is not met and re-checking should continue,
+            or True if target status is complete and result should be returned.
+        max_failures (int): total number of retries *per cycle* a call should be allowed
+            before failing permanently and returning the last response
+        logger (logging.logger, optional): a logger to handle debug messages from the validator
+
+    Returns:
+        function: response-status-checking decorated version of ``inner_validator``
+
+    '''
+    debug = logger.debug if logger else no_op
+    # In Python 3+, modification of outer scope variables is achievable
+    # with the ``nonlocal`` keyword,
+    # but for 2.7 compatibility, we must access and modify via a dictionary.
+    failures = {'fail_count': 0}
+
+    def inner(response):
+        if is_status_code('unauthorized', response.status_code):
+            return False
+        if max_failures and not is_status_code('a successful response', response.status_code):
+            failures['fail_count'] += 1
+            if failures['fail_count'] <= max_failures:
+                return True
+            msg = '***Call failed {} times, final status code was {}.'
+            debug(msg.format(failures['fail_count'], response.status_code))
+        failures['fail_count'] = 0
+        return inner_validator(response)
+
+    return inner
+
+
+@contextmanager
+def call_with_custom_logger(call, curl_logger):
+    '''
+    Place a call with a given curl_logger in place of the default.
+
+    If curl_logger is a last-only logger, call ``.done()`` on context exit.
+    NOTE: for last-only loggers, the log will not be written until you exit the context.
+
+    '''
+    curl_logger = curl_logger() if isinstance(curl_logger, type) else curl_logger
+
+    def custom_call(*args, **kwargs):
+        return call(*args, curl_logger=curl_logger, **kwargs)
+
+    yield custom_call
+
+    if hasattr(curl_logger, 'done'):
+        # This is a temporary workaround pending QET-129.
+        curl_logger.done()

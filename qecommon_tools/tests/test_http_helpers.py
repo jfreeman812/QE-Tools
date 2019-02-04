@@ -1,7 +1,8 @@
+import itertools
 import json
 
 import pytest
-from qecommon_tools import assert_, http_helpers, generate_random_string
+from qecommon_tools import assert_, http_helpers, generate_random_string, always_true
 import requests
 import requests_mock
 
@@ -21,15 +22,22 @@ SAMPLE_DATA = {
     'data': [{'inside_key': 'inside_value'}, {'inside_key2': 'inside_value2'}]
 }
 
+
 adapter.register_uri('GET', 'mock://test.com/ok', status_code=200)
 adapter.register_uri('GET', 'mock://test.com/client', status_code=400)
 adapter.register_uri('GET', 'mock://test.com/server', status_code=500)
+adapter.register_uri('GET', 'mock://test.com/unauthorized', status_code=401)
 adapter.register_uri('GET', 'mock://test.com/good_json', status_code=200, json=SAMPLE_DATA)
 adapter.register_uri(
     'GET',
     'mock://test.com/bad_json',
     status_code=200,
     text=json.dumps(SAMPLE_DATA).replace('}', ')')
+)
+adapter.register_uri(
+    'GET',
+    'mock://test.com/count',
+    [{'status_code': 200, 'text': str(x)} for x in range(10)]
 )
 
 
@@ -46,6 +54,11 @@ def client_err():
 @pytest.fixture
 def server_err():
     return session.get('mock://test.com/server')
+
+
+@pytest.fixture
+def unauth_err():
+    return session.get('mock://test.com/unauthorized')
 
 
 @pytest.fixture
@@ -244,3 +257,24 @@ def test_response_if_status_code_match(ok_response, expected_description):
         'place_test_call', ok_response, target_status=expected_description
     )
     assert checked_response == ok_response
+
+
+def test_safe_request_validator_pass(ok_response):
+    assert http_helpers.safe_request_validator(always_true)(ok_response) is True
+
+
+def test_safe_request_validator_error(client_err):
+    assert http_helpers.safe_request_validator(always_true)(client_err) is True
+
+
+def test_safe_request_validator_unauth(unauth_err):
+    assert http_helpers.safe_request_validator(always_true)(unauth_err) is False
+
+
+def dummy_decorated_call(curl_logger=None):
+    return curl_logger.__class__.__name__
+
+
+def test_call_with_custom_logger():
+    with http_helpers.call_with_custom_logger(dummy_decorated_call, 3) as call:
+        assert call() == 'int'
