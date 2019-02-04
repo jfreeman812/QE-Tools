@@ -506,13 +506,13 @@ def cycle_func():
     return next(CYCLE_OF_NUMBERS)
 
 
-def is_three(n):
+def is_final_number(n):
     return n == CYCLE_ITEMS[-1]
 
 
 def test_check_until_pass():
     assert qecommon_tools.check_until(
-        cycle_func, is_three, timeout=CHECK_UNTIL_TIMEOUT, cycle_secs=CHECK_UNTIL_CYCLE_SECS
+        cycle_func, is_final_number, timeout=CHECK_UNTIL_TIMEOUT, cycle_secs=CHECK_UNTIL_CYCLE_SECS
     ) == CYCLE_ITEMS[-1]
 
 

@@ -624,6 +624,7 @@ def check_until(
             time_elapsed = round(_time.time() - check_start, 2)
             debug('Final response achieved in {} seconds'.format(time_elapsed))
             return result
+        _time.sleep(cycle_secs)
     # If a result wasn't returned from within the while loop,
     # we have reached timeout without a valid result.
     msg = 'Response was still pending at timeout.'
