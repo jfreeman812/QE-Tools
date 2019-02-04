@@ -557,6 +557,13 @@ def retry_on_exceptions(max_retry_count, exceptions, max_retry_sleep=DEFAULT_MAX
     return wrapper
 
 
+class IncompleteAtTimeoutException(BaseException):
+    def __init__(self, *args, **kwargs):
+        self.call_result = kwargs.pop('call_result', None)
+        self.timeout = kwargs.pop('timeout', None)
+        super(IncompleteAtTimeoutException, self).__init__(*args, **kwargs)
+
+
 def check_until(
     function_call,
     keep_checking_validator,
@@ -599,7 +606,9 @@ def check_until(
         result = function_call(*fn_args, **fn_kwargs)
     time_elapsed = round(_time.time() - check_start, 2)
     if keep_checking_validator(result):
-        debug('Response was still pending at timeout.')
+        msg = 'Response was still pending at timeout.'
+        debug(msg)
+        raise IncompleteAtTimeoutException(msg, call_result=result, timeout=timeout)
     debug('Final response achieved in {} seconds'.format(time_elapsed))
     return result
 

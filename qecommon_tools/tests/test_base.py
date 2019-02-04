@@ -520,10 +520,13 @@ def test_check_until_pass():
 
 
 def test_check_until_never():
-    result = qecommon_tools.check_until(
-        cycle_func, qecommon_tools.always_true, timeout=2, cycle_secs=0.1
-    )
-    assert result in [1, 2, 3]
+    test_timeout = 2
+    with pytest.raises(qecommon_tools.IncompleteAtTimeoutException) as e:
+        qecommon_tools.check_until(
+            cycle_func, qecommon_tools.always_true, timeout=test_timeout, cycle_secs=0.1
+        )
+        assert e.call_result in [1, 2, 3]
+        assert e.timeout == test_timeout
 
 
 def test_only_item_of():
