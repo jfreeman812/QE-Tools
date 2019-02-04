@@ -574,7 +574,8 @@ def check_until(
             or False if the checked result is complete and may be returned.
         timeout (int): maximum number of seconds to "check until" before returning last result
         cycle_secs (int): frequency (in seconds) of checks (call every n seconds until...)
-        logger (logging.logger, optional): a logging instance to be used for debug info
+        logger (logging.logger, optional): a logging instance to be used for debug info,
+            or ``None`` to suppress this function's logging.
         fn_args (tuple, optional): tuple of positional args to be provided to function_call
         fn_kwargs (dict, optional): keyword args to be provided to function_call
 
