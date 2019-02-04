@@ -588,8 +588,7 @@ def check_until(
 
     Returns:
         any: the eventual result of your function_call
-            once the keep_checking_validator condition has been met
-            or the timeout limit is exhausted.
+            once the keep_checking_validator condition has been met.
 
     Raises:
         qecommon_tools.IncompleteAtTimeoutException: if the call result does not meet
