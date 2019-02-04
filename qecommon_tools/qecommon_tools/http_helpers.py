@@ -326,8 +326,8 @@ def safe_request_validator(inner_validator, max_failures=MAX_CALL_FAILURES, logg
 
     Args:
         inner_validator (function): case-specific response validator function,
-            should return True if re-checking should continue,
-            or False if checking should stop.
+            should return False if condition is not met and re-checking should continue,
+            or True if target status is complete and result should be returned.
         max_failures (int): total number of retries *per cycle* a call should be allowed
             before failing permanently and returning the last response
         logger (logging.logger, optional): a logger to handle debug messages from the validator
