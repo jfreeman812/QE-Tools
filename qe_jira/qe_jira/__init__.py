@@ -36,6 +36,8 @@ use ``-`` interactively, you cannot edit your comment before it is posted.
 
 ``jira-search-issues`` searches JIRA using your JQL query.
 The ``jira.config`` file is needed to authenticate to JIRA.
+You may set a default integer max_results value as ``MAX_RESULT_COUNT`` in ``jira.config``,
+or set a value of ``-1`` for no max by default.
 See ``--help`` on this command for details.
 
 .. note::
@@ -221,17 +223,19 @@ def _cli_search():
     '''
     Search using JQL and return matches.
     '''
-    parser = ArgumentParser(
-        formatter_class=RawDescriptionHelpFormatter, description=_cli_search.__doc__
-    )
+    client = get_client()
+    default_max_count = int(CONFIG.get('MAX_RESULT_COUNT', 0)) or 10
+    default_max_count = False if default_max_count == -1 else default_max_count
+    parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter)
     result_count = parser.add_mutually_exclusive_group()
-    result_count.add_argument('--max-results', '-m', type=int, default=10)
+    result_count.add_argument(
+        '--max-results', '-m', type=int, default=default_max_count, help='Max results returned.'
+    )
     result_count.add_argument('--no-max-count', '-n', action='store_false', dest='max_results')
     parser.add_argument('--count-only', '-c', action='store_true')
     parser.add_argument('query')
     args = parser.parse_args()
 
-    client = get_client()
     results = client.search_issues(
         args.query, maxResults=False if args.count_only else args.max_results
     )
