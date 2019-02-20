@@ -264,11 +264,11 @@ def test_safe_request_validator_pass(ok_response):
 
 
 def test_safe_request_validator_error(client_err):
-    assert http_helpers.safe_request_validator(always_true)(client_err) is True
+    assert http_helpers.safe_request_validator(always_true)(client_err) is False
 
 
 def test_safe_request_validator_unauth(unauth_err):
-    assert http_helpers.safe_request_validator(always_true)(unauth_err) is False
+    assert http_helpers.safe_request_validator(always_true)(unauth_err) is True
 
 
 def dummy_decorated_call(curl_logger=None):
