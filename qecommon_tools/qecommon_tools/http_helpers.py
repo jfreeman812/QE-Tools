@@ -360,11 +360,16 @@ def safe_request_validator(inner_validator, max_failures=MAX_CALL_FAILURES, logg
 @contextmanager
 def call_with_custom_logger(call, curl_logger):
     '''
-    Place a call with a given curl_logger in place of the default.
+    Context Manager to make a call with a given curl_logger in place of the default.
 
     If curl_logger is a last-only logger, call ``.done()`` on context exit.
     NOTE: for last-only loggers, the log will not be written until you exit the context.
 
+    Example:
+        Create a new callable based on 'call' that uses the logger 'logger_to_use'::
+
+            with call_with_custom_logger(call, logger_to_use) as call_using_logger:
+                some_result = check_until(call_using_logger, ...)
     '''
     curl_logger = curl_logger() if isinstance(curl_logger, type) else curl_logger
 
