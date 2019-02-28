@@ -588,25 +588,26 @@ def check_until(
     fn_kwargs=None,
 ):
     '''
+    Periodically call a function until its result validates or the timeout is exceeded.
+
     Args:
         function_call (function): The function to be called
         is_complete_validator (function): a fn that will accept the output from function_call
             and return False if the call should continue repeating (still pending result),
             or True if the checked result is complete and may be returned.
-        timeout (int): maximum number of seconds to "check until" before returning last result
-        cycle_secs (int): frequency (in seconds) of checks (call every n seconds until...)
+        timeout (int): maximum number of seconds to "check until" before raising an exception.
+        cycle_secs (int): how long to wait (in seconds) in between calls to function_call.
         logger (logging.logger, optional): a logging instance to be used for debug info,
-            or ``None`` to suppress this function's logging.
+            or ``None`` to suppress logging by this function.
         fn_args (tuple, optional): tuple of positional args to be provided to function_call
         fn_kwargs (dict, optional): keyword args to be provided to function_call
 
     Returns:
-        any: the eventual result of your function_call
-            once the keep_checking_validator condition has been met.
+        any: the result of function_call when the is_complete_validator returns any True value.
 
     Raises:
-        qecommon_tools.IncompleteAtTimeoutException: if the call result does not meet
-            the validator condition when timeout is reached.
+        qecommon_tools.IncompleteAtTimeoutException: if function_call's result never satisfies
+            the is_complete_validator before timeout is reached.
 
     '''
     fn_args = fn_args or ()
