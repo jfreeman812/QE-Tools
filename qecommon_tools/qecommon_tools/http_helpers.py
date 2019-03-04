@@ -1,3 +1,8 @@
+'''
+HTTP HELPERS!
+
+'''
+
 from contextlib import contextmanager
 from itertools import chain
 import json
@@ -5,7 +10,7 @@ import time
 
 import requests
 
-from qecommon_tools import no_op
+from qecommon_tools import build_classification_rst_string, classify, no_op
 
 
 MAX_CALL_FAILURES = 5
@@ -28,6 +33,7 @@ STATUS_CODE_RANGES = {
 }
 
 
+@classify('json', 'response')
 def safe_json_from(response, description=''):
     '''
     Accepts a response object and attempts to return the JSON-decoded data.
@@ -60,6 +66,7 @@ def safe_json_from(response, description=''):
     return data
 
 
+@classify('response')
 def get_data_from_response(response, dig_layers=None, check_empty=True, first_only=True):
     '''
     Accepts a response object and returns a dict of the data contained within.
@@ -102,6 +109,7 @@ def get_data_from_response(response, dig_layers=None, check_empty=True, first_on
     return data
 
 
+@classify('response')
 def get_data_list(response, **kwargs):
     '''
     Get the full list of data from within a response, if the data is a list.
@@ -136,6 +144,7 @@ def _indent_items(*items):
             for x in items for s in chain(_indent_items(*x) if isinstance(x, list) else [x])]
 
 
+@classify('string')
 def format_items_as_string_tree(*items):
     '''
     Format the items provided as a string representing a "tree" format.
@@ -167,6 +176,7 @@ def _status_code_from(status_description):
     return requests.codes.get(status_description.replace(' ', '_').upper())
 
 
+@classify('status_code')
 def is_status_code(expected_status_description, actual_status_code):
     '''
     Determine if a given status code matches the expected result.
@@ -196,6 +206,7 @@ def is_status_code(expected_status_description, actual_status_code):
     return expected_code == actual_status_code
 
 
+@classify('string', 'response')
 def create_error_message(summary_line, request, response_content, additional_info=None):
     '''
     Create a detailed error message based on an API call.
@@ -239,6 +250,7 @@ def create_error_message(summary_line, request, response_content, additional_inf
     )
 
 
+@classify('status_code', 'response')
 def check_response_status_code(expected_status_description, response, call_description=None,
                                additional_info=None):
     '''
@@ -278,6 +290,7 @@ def check_response_status_code(expected_status_description, response, call_descr
     return err_msg
 
 
+@classify('status_code', 'response')
 def validate_response_status_code(expected_status_description, response, err_prefix='', **kwargs):
     '''
     Assert that a response's status code matches an expected status code.
@@ -296,6 +309,7 @@ def validate_response_status_code(expected_status_description, response, err_pre
         raise AssertionError(err_prefix + err_msg)
 
 
+@classify('status_code', 'response')
 def response_if_status_check(call_description, response, target_status='a successful response'):
     '''
     Validates a response matches the expected status code before returning.
@@ -317,6 +331,7 @@ def response_if_status_check(call_description, response, target_status='a succes
     return response
 
 
+@classify('response')
 def safe_request_validator(inner_validator, max_failures=MAX_CALL_FAILURES, logger=None):
     '''
     Helper to wrap a ``check_request_until`` validator in additional response checks.
@@ -357,6 +372,7 @@ def safe_request_validator(inner_validator, max_failures=MAX_CALL_FAILURES, logg
     return inner
 
 
+@classify('logging')
 @contextmanager
 def call_with_custom_logger(call, curl_logger):
     '''
@@ -381,3 +397,12 @@ def call_with_custom_logger(call, curl_logger):
     if hasattr(curl_logger, 'done'):
         # This is a temporary workaround pending QET-129.
         curl_logger.done()
+
+
+__doc__ += build_classification_rst_string(globals(), __name__, {
+    'json': 'JSON related functions',
+    'logging': 'Logging related functions',
+    'response': "Requests' Response object related functions",
+    'status_code': 'HTTP Status code functions',
+    'string': 'String related functions',
+})
