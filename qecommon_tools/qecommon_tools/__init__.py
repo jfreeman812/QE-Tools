@@ -42,7 +42,7 @@ def classify(*args):
 
 
 # classify itself deserves to be classified.
-# Since it can't be used as a regular decorator on itself, hendle it here:
+# Since it can't be used as a regular decorator on itself, handle it here:
 classify = classify('doc', 'meta-data')(classify)
 
 class_lookup = {}
