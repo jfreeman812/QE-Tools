@@ -29,10 +29,14 @@ _logger = logging.getLogger(__name__)
 _debug = _logger.debug
 
 
+_CLASSIFICATION_ATTRIBUTE = 'classify_data'
+'''Attribute used to store classification data on functions and classes.'''
+
+
 def classify(*args):
     '''Decorator to add gloassary subject category classification meta-data to it's target.'''
     def classifier(target):
-        target.classify_data = args
+        setattr(target, _CLASSIFICATION_ATTRIBUTE, args)
         return target
     return classifier
 
@@ -61,6 +65,9 @@ class instead of just ``requests.Session`` when being used by testing code
 with the Locust test runner, and it uses this dictionary to accomplish this.)
 
 '''
+
+SINGLE_QUOTE = "'"
+DOUBLE_QUOTE = '"'
 
 
 CHECK_UNTIL_TIMEOUT = 300
@@ -237,7 +244,7 @@ def string_to_list(source, sep=',', maxsplit=-1, chars=None):
     return [item.strip(chars) for item in source.split(sep, maxsplit)]
 
 
-@classify('exity')
+@classify('exit')
 def cleanup_and_exit(dir_name=None, status=0, message=None):
     '''
     Cleanup a directory tree that was created and exit.
@@ -252,7 +259,7 @@ def cleanup_and_exit(dir_name=None, status=0, message=None):
     exit(status=status, message=message)
 
 
-@classify('exity', 'running commands')
+@classify('exit', 'running commands')
 def safe_run(commands, cwd=None):
     '''
     Run the given list of commands, only return if no error.
@@ -277,7 +284,7 @@ def safe_run(commands, cwd=None):
         _sys.exit(status)
 
 
-@classify('exity')
+@classify('exit')
 def exit(status=0, message=None):
     '''
     Exit the program and optionally print a message to standard error.
@@ -291,7 +298,7 @@ def exit(status=0, message=None):
     _sys.exit(status)
 
 
-@classify('exity')
+@classify('exit')
 def error_if(check, status=None, message=''):
     '''
     Exit the program if a provided check is true.
@@ -414,7 +421,7 @@ def index_or_default(a_list, value, default=-1):
     return a_list.index(value) if value in a_list else default
 
 
-@classify('exity', 'environment')
+@classify('exit', 'environment')
 def must_be_in_virtual_environment(
         exit_code=1,
         message='Must be running in a Python virtual environment, aborting!'):
@@ -904,16 +911,19 @@ def build_classification_rst_string(from_dict, for_module, category_name_mapping
         str: multiline rST string.
     '''
     classification_mapping = defaultdict(list)
-    for name, item in from_dict.items():
+    for name, item in sorted(from_dict.items()):
         if getattr(item, '__module__', None) != for_module:
             continue
-        classify_data = getattr(item, 'classify_data', None)
+        classify_data = getattr(item, _CLASSIFICATION_ATTRIBUTE, None)
         if classify_data is None:
             continue
-        cvs_line = '   :py:func:`{}`, "{}"'.format(
-            name, first_line_of_doc_string(item).replace('"', "'"))
+        # The built-in csv module doesn't expose any way to quote CSV data without writing
+        # it to a file, and certainly not in rST's csv table format, so we protect the CSV
+        # here with a simple quote-mark replacement if/until a better csv option comes along.
+        csv_line = '   :py:func:`{}`, "{}"'.format(
+            name, first_line_of_doc_string(item).replace(DOUBLE_QUOTE, SINGLE_QUOTE))
         for group in classify_data:
-            classification_mapping[group].append(cvs_line)
+            classification_mapping[group].append(csv_line)
     if not classification_mapping:
         return '<NO classifications were found>'
     result = '\n'
@@ -934,14 +944,14 @@ __doc__ += build_classification_rst_string(globals(), __name__, {
     'doc': 'Documentation support',
     'environment': 'Environment related functions',
     'exceptions': 'Exceptions and exception handling',
-    'exity': 'Exitting the process',
+    'exit': 'Exitting the process',
     'files': 'File and file contents related functions',
     'filter': 'Filtering and Transforming functions',
     'looping': 'Looping / Retry related items',
     'meta-data': 'Meta-data related functions',
     'misc': 'Miscellaneous functions',
     'random': 'Random data related functions',
-    'requests': 'Classes/functions for working with the `requests` library',
+    'requests': 'Classes/functions for working with the ``requests`` library',
     'running commands': 'Subprocesses/Commands related functions',
     'sequence': 'Sequences/Lists helper classes and functions',
     'string': 'String related functions',
