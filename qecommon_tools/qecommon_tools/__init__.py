@@ -1,11 +1,16 @@
 '''
 .. inheritance-diagram:: qecommon_tools
    :parts: 1
+
+----
+
+The functions and classes in this module fall into several
+general categories:
 '''
 
 from __future__ import print_function
 import ast
-from collections import Iterable
+from collections import Iterable, defaultdict
 import itertools as _itertools
 import logging
 import os as _os
@@ -23,6 +28,22 @@ import wrapt as _wrapt
 _logger = logging.getLogger(__name__)
 _debug = _logger.debug
 
+
+_CLASSIFICATION_ATTRIBUTE = 'classify_data'
+'''Attribute used to store classification data on functions and classes.'''
+
+
+def classify(*args):
+    '''Decorator to add gloassary subject category classification meta-data to it's target.'''
+    def classifier(target):
+        setattr(target, _CLASSIFICATION_ATTRIBUTE, args)
+        return target
+    return classifier
+
+
+# classify itself deserves to be classified.
+# Since it can't be used as a regular decorator on itself, handle it here:
+classify = classify('doc', 'meta-data')(classify)
 
 class_lookup = {}
 '''
@@ -45,26 +66,33 @@ with the Locust test runner, and it uses this dictionary to accomplish this.)
 
 '''
 
+SINGLE_QUOTE = "'"
+DOUBLE_QUOTE = '"'
+
 
 CHECK_UNTIL_TIMEOUT = 300
 CHECK_UNTIL_CYCLE_SECS = 5
 
 
+@classify('misc')
 def no_op(*args, **kwargs):
     '''A reusable no-op function.'''
     pass
 
 
+@classify('misc')
 def always_true(*args, **kwargs):
     '''Always return True; ignores any combo of positional and keyword parameters.'''
     return True
 
 
+@classify('misc')
 def always_false(*args, **kwargs):
     '''Always return False; ignores any combo of positional and keyword parameters.'''
     return False
 
 
+@classify('misc')
 def identity(x, *args):
     '''
     A single parameter is returned as is, multiple parameters are returned as a tuple.
@@ -75,6 +103,7 @@ def identity(x, *args):
     return (x,) + args if args else x
 
 
+@classify('files', 'meta-data')
 def display_name(path, package_name=''):
     '''
     Create a human-readable name for a given project.
@@ -98,6 +127,7 @@ def display_name(path, package_name=''):
     return _string.capwords(raw_name.replace('_', ' '))
 
 
+@classify('misc', 'string')
 def format_if(format_str, content):
     '''
     Return a message string with a formatted value if any content value is present.
@@ -116,6 +146,7 @@ def format_if(format_str, content):
     return format_str.format(content) if content else ''
 
 
+@classify('misc')
 def default_if_none(value, default):
     '''
     Return ``default if value is None else value``
@@ -128,16 +159,19 @@ def default_if_none(value, default):
     return default if value is None else value
 
 
+@classify('sequence')
 def no_nones(iterable):
     '''Return a list of the non-None values in iterable'''
     return [x for x in iterable if x is not None]
 
 
+@classify('sequence')
 def truths_from(iterable):
     '''Return a list of the truthy values in iterable'''
     return list(filter(None, iterable))
 
 
+@classify('sequence')
 def padded_list(iterable, size, padding=None):
     '''
     Generate a fixed-length list from an iterable, padding as needed.
@@ -160,6 +194,7 @@ def _python_2_or_3_base_str_type():
         return str
 
 
+@classify('sequence')
 def list_from(item):
     '''
     Generate a list from a single item or an iterable.
@@ -194,6 +229,7 @@ def list_from(item):
     return list(item)
 
 
+@classify('sequence', 'string')
 def string_to_list(source, sep=',', maxsplit=-1, chars=None):
     '''``.split()`` a string into a list and ``.strip()`` each piece.
 
@@ -208,6 +244,7 @@ def string_to_list(source, sep=',', maxsplit=-1, chars=None):
     return [item.strip(chars) for item in source.split(sep, maxsplit)]
 
 
+@classify('exit')
 def cleanup_and_exit(dir_name=None, status=0, message=None):
     '''
     Cleanup a directory tree that was created and exit.
@@ -222,6 +259,7 @@ def cleanup_and_exit(dir_name=None, status=0, message=None):
     exit(status=status, message=message)
 
 
+@classify('exit', 'running commands')
 def safe_run(commands, cwd=None):
     '''
     Run the given list of commands, only return if no error.
@@ -246,6 +284,7 @@ def safe_run(commands, cwd=None):
         _sys.exit(status)
 
 
+@classify('exit')
 def exit(status=0, message=None):
     '''
     Exit the program and optionally print a message to standard error.
@@ -259,6 +298,7 @@ def exit(status=0, message=None):
     _sys.exit(status)
 
 
+@classify('exit')
 def error_if(check, status=None, message=''):
     '''
     Exit the program if a provided check is true.
@@ -276,6 +316,7 @@ def error_if(check, status=None, message=''):
         exit(status=status or check, message=message.format(check))
 
 
+@classify('dict', 'filter')
 def filter_dict(a_dict, keep_key=always_true, keep_value=always_true):
     '''
     Return a new dict based on keeping only those keys _and_ values whose function returns True.
@@ -291,6 +332,7 @@ def filter_dict(a_dict, keep_key=always_true, keep_value=always_true):
     return {k: v for k, v in a_dict.items() if keep_key(k) and keep_value(v)}
 
 
+@classify('dict', 'filter')
 def dict_strip_value(a_dict, value=None):
     '''
     Return a new dict based on stripping out any key with the given value.
@@ -309,6 +351,7 @@ def dict_strip_value(a_dict, value=None):
     return filter_dict(a_dict, keep_value=lambda v: v != value)
 
 
+@classify('dict', 'filter')
 def dict_transform(a_dict, key_transform=identity, value_transform=identity):
     '''
     Return a new dict based on transforming the keys and/or values of ``a_dict``.
@@ -324,6 +367,7 @@ def dict_transform(a_dict, key_transform=identity, value_transform=identity):
     return {key_transform(k): value_transform(v) for k, v in a_dict.items()}
 
 
+@classify('random', 'string')
 def generate_random_string(prefix='', suffix='', size=8, choose_from=None):
     '''
     Generate a random string of the specified size.
@@ -361,6 +405,7 @@ def generate_random_string(prefix='', suffix='', size=8, choose_from=None):
     return '{}{}{}'.format(prefix, rand_string, suffix)
 
 
+@classify('sequence')
 def index_or_default(a_list, value, default=-1):
     '''
     Return the index of a value from a list, or a default if not found.
@@ -376,6 +421,7 @@ def index_or_default(a_list, value, default=-1):
     return a_list.index(value) if value in a_list else default
 
 
+@classify('exit', 'environment')
 def must_be_in_virtual_environment(
         exit_code=1,
         message='Must be running in a Python virtual environment, aborting!'):
@@ -384,6 +430,7 @@ def must_be_in_virtual_environment(
         exit(exit_code, message)
 
 
+@classify('dict')
 def must_get_key(a_dict, key):
     '''
     Either return the value for the key, or raise an exception.
@@ -409,6 +456,7 @@ def must_get_key(a_dict, key):
     return a_dict[key]
 
 
+@classify('dict')
 def must_get_keys(a_dict, *keys):
     '''
     Either return the value found for the keys provided, or raise an exception.
@@ -428,6 +476,7 @@ def must_get_keys(a_dict, *keys):
     return a_dict
 
 
+@classify('environment')
 def var_from_env(var_name):
     '''
     Get an environment variable and raise an error if it is not set or has an empty value.
@@ -444,6 +493,7 @@ def var_from_env(var_name):
     return envvar
 
 
+@classify('files')
 def get_file_contents(*paths):
     '''
     Get the contents of a file as a Python string.
@@ -458,6 +508,7 @@ def get_file_contents(*paths):
         return f.read()
 
 
+@classify('files', 'meta-data')
 def get_file_docstring(file_path):
     '''
     Get the full docstring of a given python file.
@@ -473,6 +524,7 @@ def get_file_docstring(file_path):
     return ast.get_docstring(tree)
 
 
+@classify('files', 'filter')
 def filter_lines(line_filter, lines, return_type=None):
     '''
     Filter the given lines based on the given filter function.
@@ -506,6 +558,7 @@ def filter_lines(line_filter, lines, return_type=None):
     return filtered_lines if return_type is list else '\n'.join(filtered_lines)
 
 
+@classify('misc')
 def fib_or_max(fib_number_index, max_number=None):
     '''The nth Fibonacci number or max_number, which ever is smaller.
 
@@ -523,6 +576,7 @@ def fib_or_max(fib_number_index, max_number=None):
 DEFAULT_MAX_RETRY_SLEEP = 30
 
 
+@classify('looping', 'exceptions')
 def retry_on_exceptions(max_retry_count, exceptions, max_retry_sleep=DEFAULT_MAX_RETRY_SLEEP):
     '''
     A wrapper to retry a function max_retry_count times if any of the given exceptions are raised.
@@ -557,6 +611,7 @@ def retry_on_exceptions(max_retry_count, exceptions, max_retry_sleep=DEFAULT_MAX
     return wrapper
 
 
+@classify('looping', 'exceptions', 'class')
 class IncompleteAtTimeoutException(Exception):
     '''
     Exception for check_until results that timeout still pending validation.
@@ -578,6 +633,7 @@ class IncompleteAtTimeoutException(Exception):
         super(IncompleteAtTimeoutException, self).__init__(msg)
 
 
+@classify('looping')
 def check_until(
     function_call,
     is_complete_validator,
@@ -633,6 +689,7 @@ def check_until(
     raise IncompleteAtTimeoutException(msg, call_result=result, timeout=timeout)
 
 
+@classify('sequence')
 def only_item_of(item_sequence, label=''):
     '''Assert item_sequence has only one item, and return that item.'''
     label = label or item_sequence.__class__.__name__
@@ -640,6 +697,7 @@ def only_item_of(item_sequence, label=''):
     return item_sequence[0]
 
 
+@classify('sequence', 'class')
 class NotEmptyList(list):
     '''
     A list that fails to iterate if it is empty.
@@ -669,6 +727,7 @@ class NotEmptyList(list):
         return super(NotEmptyList, self).__iter__()
 
 
+@classify('sequence', 'class')
 class CommonAttributeList(list):
     '''
     A list for similar objects that can be operated on as a group.
@@ -699,6 +758,7 @@ class CommonAttributeList(list):
             setattr(self, key, value)
 
 
+@classify('requests', 'class')
 class ResponseInfo(object):
 
     def __init__(self, response=None, description=None, response_callback=None,
@@ -776,6 +836,7 @@ class ResponseInfo(object):
         return self.response
 
 
+@classify('requests', 'class')
 class ResponseList(NotEmptyList, CommonAttributeList):
     '''A list specialized for testing, w/ResponseInfo object items.'''
 
@@ -807,3 +868,91 @@ class ResponseList(NotEmptyList, CommonAttributeList):
         '''Call ``run_response_callback`` on each item of this ReponseList.'''
         for resp_info in self:
             resp_info.run_response_callback()
+
+
+@classify('doc')
+def first_line_of_doc_string(thing):
+    '''
+    Get the first non-empty line of the doc string for thing, if there is one.
+
+    If thing is a class and has no doc string,
+    return the first line of the __init__ method doc string if there is one.
+    '''
+
+    doc_string = getattr(thing, '__doc__', None)
+    if doc_string is None:
+        __init__method = getattr(thing, '__init__', None)
+        if __init__method:
+            return first_line_of_doc_string(__init__method)
+        return ''
+    doc_string_lines = list(filter(None, doc_string.splitlines()))
+    return doc_string_lines[0].strip()
+
+
+@classify('doc')
+def build_classification_rst_string(from_dict, for_module, category_name_mappings):
+    '''
+    Create rST for all the items in from_dict that are part of for_module.
+
+    Example:
+        __doc__ += build_classification_rst_string(globals(), __name__, <category mappings dict>)
+
+        The ``for_module`` parameter is needed because often ``globals()``
+        contains symbols imported from other modules which should not be documented here.
+
+    Args:
+        from_dict (dict): A dictionary of name to function/class mappings,
+            such as from locals() or globals()
+        for_module (str): The module for which rST documentation is desired.
+        category_name_mappings (str): Map from the short hand names used in the :py:func:`classify`
+            decorator to the desired category table label.
+
+    Returns:
+        str: multiline rST string.
+    '''
+    classification_mapping = defaultdict(list)
+    for name, item in sorted(from_dict.items()):
+        if getattr(item, '__module__', None) != for_module:
+            continue
+        classify_data = getattr(item, _CLASSIFICATION_ATTRIBUTE, None)
+        if classify_data is None:
+            continue
+        # The built-in csv module doesn't expose any way to quote CSV data without writing
+        # it to a file, and certainly not in rST's csv table format, so we protect the CSV
+        # here with a simple quote-mark replacement if/until a better csv option comes along.
+        csv_line = '   :py:func:`{}`, "{}"'.format(
+            name, first_line_of_doc_string(item).replace(DOUBLE_QUOTE, SINGLE_QUOTE))
+        for group in classify_data:
+            classification_mapping[group].append(csv_line)
+    if not classification_mapping:
+        return '<NO classifications were found>'
+    result = '\n'
+    for category, items in sorted(classification_mapping.items()):
+        result += '.. csv-table:: {}\n'.format(category_name_mappings[category])
+        result += '   :widths: auto\n'
+        result += '\n'
+        result += '\n'.join(items)
+        result += '\n\n'
+
+    result += '\n---------\n\n'
+    return result
+
+
+__doc__ += build_classification_rst_string(globals(), __name__, {
+    'class': 'Classes Defined in this Module',
+    'dict': 'Dictionary related functions',
+    'doc': 'Documentation support',
+    'environment': 'Environment related functions',
+    'exceptions': 'Exceptions and exception handling',
+    'exit': 'Exitting the process',
+    'files': 'File and file contents related functions',
+    'filter': 'Filtering and Transforming functions',
+    'looping': 'Looping / Retry related items',
+    'meta-data': 'Meta-data related functions',
+    'misc': 'Miscellaneous functions',
+    'random': 'Random data related functions',
+    'requests': 'Classes/functions for working with the ``requests`` library',
+    'running commands': 'Subprocesses/Commands related functions',
+    'sequence': 'Sequences/Lists helper classes and functions',
+    'string': 'String related functions',
+})
