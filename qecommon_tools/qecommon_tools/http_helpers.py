@@ -1,5 +1,5 @@
 '''
-HTTP HELPERS!
+Tools for simplifying HTTP requests and responses.
 
 '''
 
