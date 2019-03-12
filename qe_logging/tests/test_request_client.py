@@ -208,6 +208,31 @@ def test_logs_can_be_suppressed(log_dir, client_class, client_class_kwargs, requ
 
 @pytest.mark.parametrize('client_class, client_class_kwargs, request_item',
                          _clients_and_requests_combinations)
+def test_response_formatter(log_dir, client_class, client_class_kwargs, request_item):
+    '''The request client can accept and use a custom response formatter.'''
+
+    test_key = 'TESTKEY'
+    test_value = 'TESTVALUE'
+
+    def custom_formatter(resp):
+        resp.headers.update({test_key: test_value})
+        return resp
+
+    kwargs = client_class_kwargs
+    kwargs.update(response_formatter=custom_formatter)
+    session = _make_session(client_class, kwargs)
+    _, _, response = _make_request(log_dir, session, request_item)
+
+    msg = 'Test key: "{}" not found in headers: {}'.format(test_key, response.headers)
+    assert test_key in response.headers, msg
+    msg = 'Test key value "{}" does not match expected ({})'.format(
+        response.headers[test_key], test_key
+    )
+    assert response.headers[test_key] == test_value, msg
+
+
+@pytest.mark.parametrize('client_class, client_class_kwargs, request_item',
+                         _clients_and_requests_combinations)
 def test_with_no_base_url(log_dir, client_class, client_class_kwargs, request_item):
     '''The request will error out with partial URLs and no base to prefix.'''
     session = _make_session(client_class, client_class_kwargs, base_url=None)
