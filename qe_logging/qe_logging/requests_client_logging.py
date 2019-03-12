@@ -51,7 +51,8 @@ class RequestsLoggingClient(class_lookup.get('requests.Session', requests.Sessio
     '''
 
     def __init__(self, base_url=None, curl_logger=None,
-                 accept='application/json', content_type='application/json'):
+                 accept='application/json', content_type='application/json',
+                 response_formatter=None):
         '''
         A logging client based on ``requests.Session``.
 
@@ -66,10 +67,14 @@ class RequestsLoggingClient(class_lookup.get('requests.Session', requests.Sessio
                 Defaults to ``RequestAndResponseLogger``.
             accept (str, optional):  The default accept value to include in the headers.
             content_type (str, optional):  The default content type to include in the headers.
+            response_formatter (func, optional): A function to modify the ``requests.Response``
+                object before returning.
+                Must accept and return a ``requests.Response``.
         '''
         self.default_headers = {'Accept': accept, 'Content-Type': content_type}
         self.base_url = base_url
         self.curl_logger = self._initialized_logger(curl_logger or RequestAndResponseLogger)
+        self.response_formatter = response_formatter or (lambda x: x)
 
         # Although requests.Sessions does not take any parameters, it is possible to register
         # a different parent class that may take parameters as well as not accept *args or **kwargs,
@@ -150,6 +155,7 @@ class RequestsLoggingClient(class_lookup.get('requests.Session', requests.Sessio
         # utilized by the library. This can happen when uploading a large file where-in
         # the file data is provided by a generator (for example). Fixing this code
         # so that we can log early and not eat-up/expire the data is yet to come.
+        response = self.response_formatter(response)
         self._get_logger(curl_logger).log(request_kwargs, response)
         return response
 
@@ -168,7 +174,8 @@ class BaseHeaderAuthRequestsLoggingClient(RequestsLoggingClient):
     AUTH_HEADER_OVERRIDE = None
     '''The value that will be substituted when the AUTH_HEADER field is printed for logging.'''
 
-    def __init__(self, token, base_url=None, curl_logger=None, content_type='application/json'):
+    def __init__(self, token, base_url=None, curl_logger=None,
+                 content_type='application/json', **kwargs):
         '''
         A requests logging client that adds an authentication header to all requests.
 
@@ -191,7 +198,7 @@ class BaseHeaderAuthRequestsLoggingClient(RequestsLoggingClient):
             '{} did not define an AUTH_HEADER_OVERRIDE value'.format(self.__class__)
 
         super(BaseHeaderAuthRequestsLoggingClient, self).__init__(base_url, curl_logger,
-                                                                  content_type)
+                                                                  content_type, **kwargs)
         self.token = token
         override_headers = getattr(self.curl_logger, 'override_headers', None)
         if override_headers is not None:
@@ -299,7 +306,7 @@ class QERequestsLoggingClient(XAuthTokenRequestsLoggingClient):
 class BasicAuthRequestsLoggingClient(RequestsLoggingClient):
 
     def __init__(self, username, password, base_url=None, curl_logger=None,
-                 content_type='application/json'):
+                 content_type='application/json', **kwargs):
         '''
         A requests logging client specifically designed for authenticating with Basic Auth.
 
@@ -316,7 +323,9 @@ class BasicAuthRequestsLoggingClient(RequestsLoggingClient):
                 Defaults to ``RequestAndResponseLogger``.
             content_type (str, optional):  The default content type to include in the headers.
         '''
-        super(BasicAuthRequestsLoggingClient, self).__init__(base_url, curl_logger, content_type)
+        super(BasicAuthRequestsLoggingClient, self).__init__(
+            base_url, curl_logger, content_type, **kwargs
+        )
         self.username = username
         self.password = password
 
