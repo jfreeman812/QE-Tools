@@ -148,7 +148,6 @@ class RequestsLoggingClient(class_lookup.get('requests.Session', requests.Sessio
         try:
             response = super(RequestsLoggingClient, self).request(method, full_url,
                                                                   verify=False, **kwargs)
-            response = self.response_formatter(response)
         except Exception:
             # If the request fails for any reason log the request data causing the failure.
             self._get_logger(curl_logger).log_request(request_kwargs)
@@ -158,6 +157,7 @@ class RequestsLoggingClient(class_lookup.get('requests.Session', requests.Sessio
         # utilized by the library. This can happen when uploading a large file where-in
         # the file data is provided by a generator (for example). Fixing this code
         # so that we can log early and not eat-up/expire the data is yet to come.
+        response = self.response_formatter(response)
         self._get_logger(curl_logger).log(request_kwargs, response)
         return response
 
