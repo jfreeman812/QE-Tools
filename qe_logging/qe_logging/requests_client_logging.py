@@ -74,9 +74,7 @@ class RequestsLoggingClient(class_lookup.get('requests.Session', requests.Sessio
         self.default_headers = {'Accept': accept, 'Content-Type': content_type}
         self.base_url = base_url
         self.curl_logger = self._initialized_logger(curl_logger or RequestAndResponseLogger)
-        self.response_formatter = lambda x: x
-        if response_formatter:
-            self.response_formatter = response_formatter
+        self.response_formatter = response_formatter or (lambda x: x)
 
         # Although requests.Sessions does not take any parameters, it is possible to register
         # a different parent class that may take parameters as well as not accept *args or **kwargs,
