@@ -255,6 +255,39 @@ class Locator(object):
         self.get_object().click()
         self.driver.optional_take_screenshot()
 
+    def click_when_obscured(self):
+        '''Click on the locator's object when it is obscured by a floating element/menu/etc.
+
+        It avoids these types of errors:
+
+        Firefox::
+
+            selenium.common.exceptions.ElementClickInterceptedException: Message:
+            Element <a class="btn btn-secondary" href="/debooks/create_form/420187">
+            is not clickable at point (1161.25,19) because another element <div id="sticky-sidebar">
+            obscures it
+
+        Chrome::
+
+            selenium.common.exceptions.WebDriverException: Message:
+            unknown error: Element <a href="/debooks/create_form/420187"
+            class="btn btn-secondary">...</a> is not clickable at point (1161, 19).
+            Other element would receive the click: <div id="sticky-sidebar"
+            style="float: none; right: 0px; position: fixed; top: 10px;">...</div>
+
+        NOTE:
+            Those problems usually happen when a page has a sticky button or floating menu.
+            JavaScript is used to click an obscured web element.
+
+        Example::
+
+            edit_decomm_devices_option = Button(driver, 'css', '#locator')
+            edit_decomm_devices_option.click_when_obscured()
+        '''
+        self.assert_is_visible()
+        self.assert_is_enabled()
+        self.driver.browser.execute_script('arguments[0].click();', self.find_one())
+
     def get_text(self):
         '''Return the text of the locator's object.'''
         self._log.debug(('Getting the text from: '
