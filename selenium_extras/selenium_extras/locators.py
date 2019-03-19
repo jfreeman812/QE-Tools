@@ -284,9 +284,12 @@ class Locator(object):
             edit_decomm_devices_option = Button(driver, 'css', '#locator')
             edit_decomm_devices_option.click_when_obscured()
         '''
+        self._log.debug('Clicking element using JavaScript: {self}'.format(**locals()))
+        self.scroll_to()
         self.assert_is_visible()
         self.assert_is_enabled()
         self.driver.browser.execute_script('arguments[0].click();', self.find_one())
+        self.driver.optional_take_screenshot()
 
     def get_text(self):
         '''Return the text of the locator's object.'''
