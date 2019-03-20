@@ -84,7 +84,9 @@ class SimpleRSTWriter(object):
         '''Write provided tables out to .rst file.'''
         if os.path.exists(self.file_path):
             os.remove(self.file_path)
-        os.makedirs(os.path.dirname(self.file_path), exist_ok=True)
+        dirname = os.path.dirname(self.file_path)
+        if not os.path.exists(dirname):
+            os.makedirs(dirname)
         with open(self.file_path, 'a') as writer:
             for idx, table in enumerate(self.tables):
                 if idx:
