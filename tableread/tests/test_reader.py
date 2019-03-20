@@ -1,5 +1,6 @@
 '''Unit Tests for the TableRead SimpleRSTReader.'''
 
+import os
 import pytest
 import attr
 
@@ -8,11 +9,12 @@ import tableread
 
 @pytest.fixture
 def sample_rst_table():
-    return tableread.SimpleRSTReader('tests/sample_table.rst')
+    file_dir = os.path.dirname(os.path.abspath(__file__))
+    return tableread.SimpleRSTReader(os.path.join(file_dir, 'sample_table.rst'))
 
 
 @attr.s
-class FirstTableRow:
+class FirstTableRow(object):
     name = attr.ib()
     favorite_color = attr.ib()
     favorite_number = attr.ib()
