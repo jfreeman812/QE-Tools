@@ -116,3 +116,8 @@ def test_get_field(reader):
 def test_spillover_last_col(reader):
     pluto = reader['Second Table'].matches_all(planet='Pluto')[0]
     assert pluto.is_planet == 'Forever Yes'
+
+
+def test_non_existent_file_errors_appropriately():
+    with pytest.raises(AssertionError):
+        tableread.SimpleRSTReader('./not/a/valid/path/to/file.rst')
