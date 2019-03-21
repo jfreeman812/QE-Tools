@@ -1,15 +1,15 @@
 '''Unit Tests for the TableRead SimpleRSTReader.'''
 
 import os
+import tempfile
+
 import pytest
 import attr
 
 import tableread
 
 
-SAMPLE_TABLES_FILE_DIR = os.path.dirname(os.path.abspath(__file__))
-SAMPLE_TABLES_FILE_PATH = os.path.join(SAMPLE_TABLES_FILE_DIR, 'sample_table.rst')
-SAMPLE_TABLES_FILE_IN_STRING_FORM = '''
+SAMPLE_TABLES = '''
 Sample RST Table
 ================
 
@@ -42,9 +42,20 @@ Pluto    8               Forever Yes
 =======  ==============  =========
 '''
 
+
+def get_sample_reader_from_file():
+    file_path = tempfile.mktemp(suffix='.rst')
+    with open(file_path, 'w') as f:
+        f.write(SAMPLE_TABLES)
+
+    reader = tableread.SimpleRSTReader(file_path)
+    os.remove(file_path)
+    return reader
+
+
 readers = [
-    tableread.SimpleRSTReader(SAMPLE_TABLES_FILE_PATH),
-    tableread.SimpleRSTReader(SAMPLE_TABLES_FILE_IN_STRING_FORM)
+    get_sample_reader_from_file(),
+    tableread.SimpleRSTReader(SAMPLE_TABLES)
 ]
 
 
