@@ -149,8 +149,9 @@ class SimpleRSTReader(BaseRSTDataObject):
                 file path with a ``.rst`` extension, or a string containing the RST content.
         '''
         super(SimpleRSTReader, self).__init__()
-        rst_source = rst_source.lower()
-        rst_string = self._read_file(rst_source) if rst_source.endswith('.rst') else rst_source
+        rst_string = rst_source
+        if rst_source.lower().endswith('.rst'):
+            rst_string = self._read_file(rst_source)
         self._parse(rst_string)
 
     @staticmethod
