@@ -140,10 +140,25 @@ class SimpleRSTTable(BaseRSTDataObject):
 class SimpleRSTReader(BaseRSTDataObject):
     data_format = OrderedDict
 
-    def __init__(self, file_path):
+    def __init__(self, rst_source):
+        '''
+        Determine from where to parse RST content and then parse it.
+
+        Args:
+            rst_source (str): The source of the RST content to parse. This can either be a
+                file path with a ``.rst`` extension, or a string containing the RST content.
+        '''
         super(SimpleRSTReader, self).__init__()
+        rst_string = rst_source
+        if rst_source.lower().endswith('.rst'):
+            rst_string = self._read_file(rst_source)
+        self._parse(rst_string)
+
+    @staticmethod
+    def _read_file(file_path):
         assert os.path.exists(file_path), 'File not found: {}'.format(file_path)
-        self._parse(file_path)
+        with open(file_path, 'r') as rst_fo:
+            return rst_fo.read()
 
     @property
     def first(self):
@@ -163,10 +178,8 @@ class SimpleRSTReader(BaseRSTDataObject):
                 return name
             name_number += 1
 
-    def _parse(self, file_path):
-        # readlines() does not strip the '\n' from the end of each line, so we use splitlines
-        with open(file_path, 'r') as rst_fo:
-            text_lines = rst_fo.read().splitlines()
+    def _parse(self, rst_string):
+        text_lines = rst_string.split('\n')
         section_header_cursor = None
         i = 0
         while i < len(text_lines) - 1:
