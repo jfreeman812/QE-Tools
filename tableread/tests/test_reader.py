@@ -7,10 +7,45 @@ import attr
 import tableread
 
 
-@pytest.fixture
-def sample_rst_table():
-    file_dir = os.path.dirname(os.path.abspath(__file__))
-    return tableread.SimpleRSTReader(os.path.join(file_dir, 'sample_table.rst'))
+SAMPLE_TABLES_FILE_DIR = os.path.dirname(os.path.abspath(__file__))
+SAMPLE_TABLES_FILE_PATH = os.path.join(SAMPLE_TABLES_FILE_DIR, 'sample_table.rst')
+SAMPLE_TABLES_FILE_IN_STRING_FORM = '''
+Sample RST Table
+================
+
+First Table
+-----------
+
+====  ==============  ===============
+Name  Favorite Color  Favorite Number
+====  ==============  ===============
+Bob   Red             3
+Sue   Blue            5
+Jim   Green           8
+====  ==============  ===============
+
+Second Table
+------------
+
+=======  ==============  =========
+Planet   Order From Sun  Is Planet
+=======  ==============  =========
+Mercury  0               Yes
+Venus    1               Yes
+Earth    2               Yes
+Mars     3               Yes
+Jupiter  4               Yes
+Saturn   5               Yes
+Uranus   6               Yes
+Neptune  7               Yes
+Pluto    8               Forever Yes
+=======  ==============  =========
+'''
+
+readers = [
+    tableread.SimpleRSTReader(SAMPLE_TABLES_FILE_PATH),
+    tableread.SimpleRSTReader(SAMPLE_TABLES_FILE_IN_STRING_FORM)
+]
 
 
 @attr.s
@@ -29,46 +64,55 @@ def first_table():
     ]]
 
 
-def test_open(sample_rst_table):
-    assert sample_rst_table
+@pytest.mark.parametrize('reader', readers)
+def test_open(reader):
+    assert reader
 
 
-def test_tables(sample_rst_table):
-    assert sample_rst_table.tables == ['First Table', 'Second Table']
+@pytest.mark.parametrize('reader', readers)
+def test_tables(reader):
+    assert reader.tables == ['First Table', 'Second Table']
 
 
-def test_first(sample_rst_table):
-    assert sample_rst_table.first
+@pytest.mark.parametrize('reader', readers)
+def test_first(reader):
+    assert reader.first
 
 
-def test_first_data_matches(sample_rst_table, first_table):
-    for table_row, test_row in zip(sample_rst_table.first.data, first_table):
+@pytest.mark.parametrize('reader', readers)
+def test_first_data_matches(reader, first_table):
+    for table_row, test_row in zip(reader.first.data, first_table):
         assert attr.asdict(table_row) == attr.asdict(test_row)
 
 
-def test_matches_all_positive(sample_rst_table):
-    match = sample_rst_table.first.matches_all(name='Bob', favorite_color='Red')
+@pytest.mark.parametrize('reader', readers)
+def test_matches_all_positive(reader):
+    match = reader.first.matches_all(name='Bob', favorite_color='Red')
     assert len(match) == 1
 
 
-def test_matches_all_negative(sample_rst_table):
-    match = sample_rst_table.first.matches_all(name='Greg', favorite_color='Cyan')
+@pytest.mark.parametrize('reader', readers)
+def test_matches_all_negative(reader):
+    match = reader.first.matches_all(name='Greg', favorite_color='Cyan')
     assert not match
 
 
-def test_exclude_by(sample_rst_table):
-    match = sample_rst_table.first.exclude_by(name='Bob')
+@pytest.mark.parametrize('reader', readers)
+def test_exclude_by(reader):
+    match = reader.first.exclude_by(name='Bob')
     assert len(match) == 2
     for entry in match:
         assert entry.name != 'Bob'
 
 
-def test_get_field(sample_rst_table):
-    table = sample_rst_table['Second Table']
+@pytest.mark.parametrize('reader', readers)
+def test_get_field(reader):
+    table = reader['Second Table']
     fields = table.get_fields('order_from_sun')
     assert [field_value == row.order_from_sun for field_value, row in zip(fields, table)]
 
 
-def test_spillover_last_col(sample_rst_table):
-    pluto = sample_rst_table['Second Table'].matches_all(planet='Pluto')[0]
+@pytest.mark.parametrize('reader', readers)
+def test_spillover_last_col(reader):
+    pluto = reader['Second Table'].matches_all(planet='Pluto')[0]
     assert pluto.is_planet == 'Forever Yes'
