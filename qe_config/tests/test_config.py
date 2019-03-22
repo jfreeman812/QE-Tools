@@ -1,5 +1,4 @@
 '''Unit tests for the qecommon_tools config_cake module.'''
-from __future__ import print_function
 
 from uuid import uuid4
 from os import path
