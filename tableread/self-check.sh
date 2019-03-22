@@ -1,3 +1,3 @@
 . ../path-setup.sh
 
-detox
+tox -q -p auto .
