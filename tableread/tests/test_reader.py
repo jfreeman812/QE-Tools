@@ -44,12 +44,12 @@ Pluto    8               Forever Yes
 
 
 def get_sample_reader_from_file():
-    file_path = tempfile.mktemp(suffix='.rst')
-    with open(file_path, 'w') as f:
-        f.write(SAMPLE_TABLES)
+    tmp_file = tempfile.NamedTemporaryFile(suffix='.rst', delete=False)
+    tmp_file.write(SAMPLE_TABLES.encode())
+    tmp_file.close()
 
-    reader = tableread.SimpleRSTReader(file_path)
-    os.remove(file_path)
+    reader = tableread.SimpleRSTReader(tmp_file.name)
+    os.remove(tmp_file.name)
     return reader
 
 
