@@ -10,7 +10,7 @@ general categories:
 
 from __future__ import print_function
 import ast
-from collections import Iterable, defaultdict
+from collections import defaultdict
 import itertools as _itertools
 import logging
 import os as _os
@@ -194,6 +194,25 @@ def _python_2_or_3_base_str_type():
         return str
 
 
+@classify('misc', 'sequence')
+def is_iterable(item):
+    '''
+    Return True if item is iterable, False otherwise, using an iter(item) test.
+
+    From the Python documentation for class :py:class:`collections.abc.Iterable`:
+
+        Checking isinstance(obj, Iterable) detects classes that are registered as Iterable
+        or that have an __iter__() method, but it does not detect classes that iterate
+        with the __getitem__() method.
+        *The only reliable way to determine whether an object is iterable is to call iter(obj)*.
+    '''
+    try:
+        iter(item)
+        return True
+    except TypeError:
+        return False
+
+
 @classify('sequence')
 def list_from(item):
     '''
@@ -224,7 +243,7 @@ def list_from(item):
     '''
     if not item:
         return []
-    if isinstance(item, (_python_2_or_3_base_str_type(), dict)) or not isinstance(item, Iterable):
+    if isinstance(item, (_python_2_or_3_base_str_type(), dict)) or not is_iterable(item):
         return [item]
     return list(item)
 

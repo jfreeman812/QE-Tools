@@ -1,6 +1,5 @@
 '''Unit tests for the qecommon_tools config_cake module.'''
 
-import tempfile
 from uuid import uuid4
 from os import path
 import shutil
@@ -101,22 +100,14 @@ VALID_CAKE_NAMES = ['L1', 'L2', 'L1L2']
 
 
 @pytest.fixture(scope='session')
-def sample_configs(request):
+def sample_configs(tmp_path_factory):
     '''Creates sample configs (once) and returns the filename of the master config file'''
 
-    base_dir = tempfile.mkdtemp()
-
-    # Using finalizer to make sure this gets cleaned up even if following code throws.
-    # The 'yield' form of pytest fixture cleanup does not guarantee that.
-
-    def cleanup_base_dir():
-        shutil.rmtree(base_dir, ignore_errors=True)
-
-    request.addfinalizer(cleanup_base_dir)
+    base_dir = tmp_path_factory.mktemp('qe_config_tests')
 
     result = None
     for config_name, contents in test_configs.items():
-        filename = path.join(base_dir, config_name)
+        filename = str(base_dir.joinpath(config_name))  # str needed for py2.7
         with open(filename, 'w') as f:
             f.write(contents)
         if contents.startswith(MASTER_CONFIG_SIGNATURE):

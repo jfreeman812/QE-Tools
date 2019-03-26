@@ -317,7 +317,7 @@ def test_valid_key():
 def test_invalid_key():
     key = qecommon_tools.generate_random_string()
     expected_msg = '{} is not one of: {}'.format(key, _sorted_key_names(KEY_TEST_DICT))
-    with pytest.raises(KeyError, message=expected_msg):
+    with pytest.raises(KeyError, match=expected_msg):
         qecommon_tools.must_get_key(KEY_TEST_DICT, key)
 
 
@@ -329,7 +329,7 @@ def test_valid_keys():
 def test_invalid_keys():
     key = qecommon_tools.generate_random_string()
     expected_msg = '{} is not one of: {}'.format(key, _sorted_key_names(KEY_TEST_DICT['nested']))
-    with pytest.raises(KeyError, message=expected_msg):
+    with pytest.raises(KeyError, match=expected_msg):
         qecommon_tools.must_get_keys(KEY_TEST_DICT, 'nested', key)
 
 
