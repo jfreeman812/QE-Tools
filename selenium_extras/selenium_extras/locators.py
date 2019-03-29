@@ -374,12 +374,16 @@ class TextField(Locator):
             text (str): text to enter.
         '''
         self.scroll_to()
+        print ("Scrolled")
         self.clear()
+        print ("Cleared")
         self.get_object().send_keys(text)
+        print ("Send Keys")
         self.driver.optional_take_screenshot()
 
     def enter(self, text):
         '''Alias for send_keys - backward compatibility.'''
+        print ("enter:", text)
         self.send_keys(text)
 
 
@@ -458,6 +462,11 @@ class Select(Locator):
         select_obj.deselect_all()
         self.driver.optional_take_screenshot()
 
+    def fetch_current_selection(self):
+        '''Returns the text of the current selection from a Select'''
+        select_obj = NativeSelectWrapper(self.get_object())
+        return select_obj.first_selected_option.text
+        
 
 class Table(Locator):
     '''Simple Table interactions.'''
