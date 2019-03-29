@@ -462,7 +462,7 @@ class Select(Locator):
         '''Returns the text of the current selection from a Select'''
         select_obj = NativeSelectWrapper(self.get_object())
         return select_obj.first_selected_option.text
-        
+
 
 class Table(Locator):
     '''Simple Table interactions.'''
