@@ -374,11 +374,8 @@ class TextField(Locator):
             text (str): text to enter.
         '''
         self.scroll_to()
-        print ("Scrolled")
         self.clear()
-        print ("Cleared")
         self.get_object().send_keys(text)
-        print ("Send Keys")
         self.driver.optional_take_screenshot()
 
     def enter(self, text):
