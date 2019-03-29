@@ -380,7 +380,6 @@ class TextField(Locator):
 
     def enter(self, text):
         '''Alias for send_keys - backward compatibility.'''
-        print ("enter:", text)
         self.send_keys(text)
 
 
