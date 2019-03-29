@@ -458,6 +458,11 @@ class Select(Locator):
         select_obj.deselect_all()
         self.driver.optional_take_screenshot()
 
+    def get_current_selection_text(self):
+        '''Returns the text of our current selection.'''
+        select_obj = NativeSelectWrapper(self.get_object())
+        return select_obj.first_selected_option.text
+
 
 class Table(Locator):
     '''Simple Table interactions.'''
