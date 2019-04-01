@@ -200,9 +200,13 @@ class BaseHeaderAuthRequestsLoggingClient(RequestsLoggingClient):
         super(BaseHeaderAuthRequestsLoggingClient, self).__init__(base_url, curl_logger,
                                                                   content_type, **kwargs)
         self.token = token
-        override_headers = getattr(self.curl_logger, 'override_headers', None)
+
+    def _get_logger(self, curl_logger):
+        curl_logger = super(BaseHeaderAuthRequestsLoggingClient, self)._get_logger(curl_logger)
+        override_headers = getattr(curl_logger, 'override_headers', None)
         if override_headers is not None:
             override_headers[self.AUTH_HEADER] = self.AUTH_HEADER_OVERRIDE
+        return curl_logger
 
     @property
     @contextmanager
