@@ -1,4 +1,5 @@
 from collections import namedtuple
+from itertools import product
 import logging
 import os
 import shutil
@@ -21,7 +22,11 @@ from qe_logging.requests_client_logging import QERequestsLoggingClient  # Legacy
 from qe_logging.requests_client_logging import (RequestsLoggingClient,
                                                 XAuthTokenRequestsLoggingClient,
                                                 BasicAuthRequestsLoggingClient)
-from qe_logging.requests_logging import RequestAndResponseLogger
+from qe_logging.requests_logging import (
+    RequestAndResponseLogger,
+    NoResponseContentLogger,
+    NoRequestDataNoResponseContentLogger,
+)
 
 
 LOG_DIRS_TO_TEST = [mkdtemp(), mkdtemp(dir=os.getcwd()), str(uuid4())]
@@ -142,7 +147,7 @@ def assert_not_in(part, whole, prefix):
     assert part not in whole, "{} '{}' should not have been in '{}'".format(prefix, part, whole)
 
 
-def _make_request(log_dir, session, request_item, log_message=None, url_prefix=None):
+def _make_request(log_dir, session, request_item, log_message=None, url_prefix=None, **kwargs):
     '''Make a request and return the log contents, info about the request, and the response.'''
     log_file = _setup_logging(log_dir)
     method = request_item.method.lower()
@@ -156,7 +161,7 @@ def _make_request(log_dir, session, request_item, log_message=None, url_prefix=N
 
     session_method = getattr(session, method)
     outgoing_text = generate_random_string()
-    response = session_method(url, data=outgoing_text)
+    response = session_method(url, data=outgoing_text, **kwargs)
 
     log_contents = get_file_contents(log_file)
     fields = {
@@ -252,10 +257,24 @@ def test_base_url_override(log_dir, client_class, client_class_kwargs, request_i
         assert_in(value, log_contents, field_name)
 
 
-@pytest.mark.parametrize('request_item', REQUESTS_TO_TEST)
-def test_x_auth_token_client_includes_x_auth_token_in_request(log_dir, request_item):
+def _curl_logger_kwargs_to_test():
+    classes_to_test = [
+        RequestAndResponseLogger, NoResponseContentLogger, NoRequestDataNoResponseContentLogger
+    ]
+    # Always test empty kwargs to ensure behavior when using the logger on the class.
+    kwargs_to_test = [{}]
+    for item in classes_to_test:
+        kwargs_to_test.append({'curl_logger': item})
+        kwargs_to_test.append({'curl_logger': item()})
+    return kwargs_to_test
+
+
+@pytest.mark.parametrize(
+    'request_item,req_kwargs', product(REQUESTS_TO_TEST, _curl_logger_kwargs_to_test())
+)
+def test_x_auth_token_client_includes_x_auth_token_in_request(log_dir, request_item, req_kwargs):
     session = _make_session(XAuthTokenRequestsLoggingClient, X_AUTH_CLIENT_KWARGS)
-    log_contents, _, response = _make_request(log_dir, session, request_item)
+    log_contents, _, response = _make_request(log_dir, session, request_item, **req_kwargs)
     assert 'X-Auth-Token' in response.request.headers
     assert _get_x_auth_token_header(response) == TOKEN
     assert 'X-Auth-Token' in log_contents
