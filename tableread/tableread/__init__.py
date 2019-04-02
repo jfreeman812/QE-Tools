@@ -153,6 +153,7 @@ class SimpleRSTReader(BaseRSTDataObject):
         if rst_source.lower().endswith('.rst'):
             rst_string = self._read_file(rst_source)
         self._parse(rst_string)
+        assert self.data, 'No tables could be parsed from the RST source.'
 
     @staticmethod
     def _read_file(file_path):

@@ -132,3 +132,14 @@ def test_spillover_last_col(reader):
 def test_non_existent_file_errors_appropriately():
     with pytest.raises(AssertionError):
         tableread.SimpleRSTReader('./not/a/valid/path/to/file.rst')
+
+
+def test_empty_rst_source_string_gives_error():
+    with pytest.raises(AssertionError):
+        tableread.SimpleRSTReader('')
+
+
+def test_empty_rst_source_file_gives_error():
+    tmp_file = tempfile.NamedTemporaryFile(suffix='.rst')
+    with pytest.raises(AssertionError):
+        tableread.SimpleRSTReader(tmp_file.name)
