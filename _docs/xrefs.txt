@@ -37,3 +37,4 @@
 .. _`selenium`: https://pypi.org/project/selenium/
 .. _`simple tables`: http://docutils.sourceforge.net/docs/ref/rst/restructuredtext.html#simple-tables
 .. _`this repository`: https://github.rackspace.com/QualityEngineering/QE-Tools/
+.. _`jiratools`: https://pypi.org/project/jiratools/
