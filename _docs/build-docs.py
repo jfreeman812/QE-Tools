@@ -50,7 +50,6 @@ def main():
     subprocess.call(sphinx_apidoc_cmd + ['qe_logging/qe_logging'], cwd=BASE_DIR)
     subprocess.call(sphinx_apidoc_cmd + ['qe_config/qe_config'], cwd=BASE_DIR)
     subprocess.call(sphinx_apidoc_cmd + ['selenium_extras/selenium_extras'], cwd=BASE_DIR)
-    subprocess.call(sphinx_apidoc_cmd + ['qe_jira/qe_jira'], cwd=BASE_DIR)
     subprocess.check_call(['sphinx-build', '-c', DOCS_DIR, '-aEW', '.', 'docs/'], cwd=BASE_DIR)
 
 
