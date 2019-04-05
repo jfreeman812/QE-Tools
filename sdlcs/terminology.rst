@@ -8,6 +8,9 @@ are commonly used in QE-Tools and the QE org in general.
 Abbreviation  Stands For                Definition
 ============  ========================  ============================================================
 BRB           Be Right Back             |
+CbC           Commit by Commit          | Hint to PR reviewers that looking at a PR's changes
+                                        | one commit at a time might be a lot easier than
+                                        | looking at it all at once.
 DAMP          Descriptive and           | Give variables, classes, functions meaningful
               Meaningful Phrases        | names. Terse is good, but readable is better.
                                         | Applies to both test code and to Gherkin source.
