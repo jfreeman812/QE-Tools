@@ -70,7 +70,8 @@ class RequestsLoggingClient(class_lookup.get('requests.Session', requests.Sessio
             response_formatter (func, optional): A function to modify the ``requests.Response``
                 object before returning.
                 Must accept and return a ``requests.Response``.
-            response_retry_checker (function): A function that accepts the requests.Response object
+            response_retry_checker (function, optional): A function that accepts
+                the requests.Response object
                 and returns a truth-y or false-y value
                 indicating whether the request should be retried before returning.
         '''
@@ -154,7 +155,8 @@ class RequestsLoggingClient(class_lookup.get('requests.Session', requests.Sessio
                 the request and response.
                 If not supplied, the curl_logger supplied at the class level (or the default) will
                 be used.
-            response_retry_checker (function): A function that accepts the requests.Response object
+            response_retry_checker (function, optional): A function that accepts
+                the requests.Response object
                 and returns a truth-y or false-y value
                 indicating whether the request should be retried before returning.
             **kwargs: Arbitrary keyword arguments that are passed through to the ``request`` method
