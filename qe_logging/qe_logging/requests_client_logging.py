@@ -33,7 +33,7 @@ import requests
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 
 from qe_logging.requests_logging import RequestAndResponseLogger
-from qecommon_tools import class_lookup, dict_strip_value
+from qecommon_tools import class_lookup, dict_strip_value, always_false, identity as ident_fn
 
 
 # Silence the requests urllib3 logger
@@ -52,7 +52,7 @@ class RequestsLoggingClient(class_lookup.get('requests.Session', requests.Sessio
 
     def __init__(self, base_url=None, curl_logger=None,
                  accept='application/json', content_type='application/json',
-                 response_formatter=None):
+                 response_formatter=ident_fn, response_retry_checker=always_false):
         '''
         A logging client based on ``requests.Session``.
 
@@ -70,11 +70,16 @@ class RequestsLoggingClient(class_lookup.get('requests.Session', requests.Sessio
             response_formatter (func, optional): A function to modify the ``requests.Response``
                 object before returning.
                 Must accept and return a ``requests.Response``.
+            response_retry_checker (function, optional): A function that accepts
+                the requests.Response object
+                and returns a truth-y or false-y value
+                indicating whether the request should be retried before returning.
         '''
         self.default_headers = {'Accept': accept, 'Content-Type': content_type}
         self.base_url = base_url
         self.curl_logger = self._initialized_logger(curl_logger or RequestAndResponseLogger)
-        self.response_formatter = response_formatter or (lambda x: x)
+        self.response_formatter = response_formatter
+        self.response_retry_checker = response_retry_checker
 
         # Although requests.Sessions does not take any parameters, it is possible to register
         # a different parent class that may take parameters as well as not accept *args or **kwargs,
@@ -113,7 +118,25 @@ class RequestsLoggingClient(class_lookup.get('requests.Session', requests.Sessio
         '''
         self._logger.debug(data)
 
-    def request(self, method, url, curl_logger=None, **kwargs):
+    def _make_actual_request(self, method, full_url, curl_logger, request_kwargs):
+        try:
+            response = super(RequestsLoggingClient, self).request(
+                method, full_url, verify=False, **request_kwargs['kwargs']
+            )
+        except Exception:
+            # If the request fails for any reason log the request data causing the failure.
+            self._get_logger(curl_logger).log_request(request_kwargs)
+            raise
+        # Because request can be provided an iterable, the logging needs to occur after the
+        # request library is called to ensure the iterable is not expired before being
+        # utilized by the library. This can happen when uploading a large file where-in
+        # the file data is provided by a generator (for example). Fixing this code
+        # so that we can log early and not eat-up/expire the data is yet to come.
+        response = self.response_formatter(response)
+        self._get_logger(curl_logger).log(request_kwargs, response)
+        return response
+
+    def request(self, method, url, curl_logger=None, response_retry_checker=None, **kwargs):
         '''
         Allow for a one-off custom logger (class or instance).
 
@@ -132,31 +155,25 @@ class RequestsLoggingClient(class_lookup.get('requests.Session', requests.Sessio
                 the request and response.
                 If not supplied, the curl_logger supplied at the class level (or the default) will
                 be used.
+            response_retry_checker (function, optional): A function that accepts
+                the requests.Response object
+                and returns a truth-y or false-y value
+                indicating whether the request should be retried before returning.
             **kwargs: Arbitrary keyword arguments that are passed through to the ``request`` method
                 of the parent class.
 
         Returns:
             response (requests.Response): The result from the parent request call.
         '''
+        response_retry_checker = response_retry_checker or self.response_retry_checker
         # If headers are provided by both, headers "wins" over default_headers
         kwargs['headers'] = dict(self.default_headers, **(kwargs.get('headers', {})))
         kwargs['headers'] = dict_strip_value(kwargs['headers'])
         full_url = self._full_url(self.base_url, url)
         request_kwargs = {'method': method, 'url': full_url, 'kwargs': kwargs}
-        try:
-            response = super(RequestsLoggingClient, self).request(method, full_url,
-                                                                  verify=False, **kwargs)
-        except Exception:
-            # If the request fails for any reason log the request data causing the failure.
-            self._get_logger(curl_logger).log_request(request_kwargs)
-            raise
-        # Because request can be provided iterable, the logging needs to occur after the
-        # request library is called to ensure the iterable is not expired before being
-        # utilized by the library. This can happen when uploading a large file where-in
-        # the file data is provided by a generator (for example). Fixing this code
-        # so that we can log early and not eat-up/expire the data is yet to come.
-        response = self.response_formatter(response)
-        self._get_logger(curl_logger).log(request_kwargs, response)
+        response = self._make_actual_request(method, full_url, curl_logger, request_kwargs)
+        if response_retry_checker(response):
+            response = self._make_actual_request(method, full_url, curl_logger, request_kwargs)
         return response
 
 
