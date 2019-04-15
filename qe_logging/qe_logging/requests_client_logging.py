@@ -127,7 +127,7 @@ class RequestsLoggingClient(class_lookup.get('requests.Session', requests.Sessio
             # If the request fails for any reason log the request data causing the failure.
             self._get_logger(curl_logger).log_request(request_kwargs)
             raise
-        # Because request can be provided iterable, the logging needs to occur after the
+        # Because request can be provided an iterable, the logging needs to occur after the
         # request library is called to ensure the iterable is not expired before being
         # utilized by the library. This can happen when uploading a large file where-in
         # the file data is provided by a generator (for example). Fixing this code
