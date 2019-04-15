@@ -33,7 +33,7 @@ import requests
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 
 from qe_logging.requests_logging import RequestAndResponseLogger
-from qecommon_tools import class_lookup, dict_strip_value
+from qecommon_tools import class_lookup, dict_strip_value, always_false, identity as ident_fn
 
 
 # Silence the requests urllib3 logger
@@ -52,7 +52,7 @@ class RequestsLoggingClient(class_lookup.get('requests.Session', requests.Sessio
 
     def __init__(self, base_url=None, curl_logger=None,
                  accept='application/json', content_type='application/json',
-                 response_formatter=None, response_retry_checker=None):
+                 response_formatter=ident_fn, response_retry_checker=always_false):
         '''
         A logging client based on ``requests.Session``.
 
@@ -78,8 +78,8 @@ class RequestsLoggingClient(class_lookup.get('requests.Session', requests.Sessio
         self.default_headers = {'Accept': accept, 'Content-Type': content_type}
         self.base_url = base_url
         self.curl_logger = self._initialized_logger(curl_logger or RequestAndResponseLogger)
-        self.response_formatter = response_formatter or (lambda x: x)
-        self.response_retry_checker = response_retry_checker or (lambda x: False)
+        self.response_formatter = response_formatter
+        self.response_retry_checker = response_retry_checker
 
         # Although requests.Sessions does not take any parameters, it is possible to register
         # a different parent class that may take parameters as well as not accept *args or **kwargs,
